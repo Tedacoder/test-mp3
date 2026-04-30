@@ -41,7 +41,7 @@ function switchRole(role) {
     // Role specific UI adjustments
     const workerCheckoutBtn = document.getElementById('btn-worker-checkout');
     if (role === 'worker') {
-        workerCheckoutBtn.style.display = 'block';
+        workerCheckoutBtn.style.display = 'flex';
     } else {
         workerCheckoutBtn.style.display = 'none';
     }
@@ -76,10 +76,15 @@ async function addToTicket(name) {
     refreshTicket();
 }
 
-async function checkout() {
-    const response = await fetch('/api/checkout', { method: 'POST' });
+async function checkout(method = 'cash') {
+    const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_method: method })
+    });
     if (response.ok) {
-        alert('Payment processed successfully!');
+        const data = await response.json();
+        alert(data.message);
         refreshTicket();
     }
 }

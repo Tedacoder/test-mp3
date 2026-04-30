@@ -11,7 +11,7 @@
     <div class="pos-container">
         <!-- Header -->
         <header class="pos-header">
-            <h1>ModernStore POS</h1>
+            <h1>{{ store_name }} POS</h1>
             <div class="role-selector">
                 <button onclick="switchRole('owner')" id="btn-owner" class="active">Owner</button>
                 <button onclick="switchRole('worker')" id="btn-worker">Worker</button>
@@ -55,11 +55,14 @@
 
                 <!-- Customer View -->
                 <div id="view-customer" class="view-section">
-                    <h2>Welcome to ModernStore!</h2>
+                    <h2>Welcome to {{ store_name }}!</h2>
                     <p class="customer-msg">Please review your items on the ticket screen.</p>
                     <div class="payment-section" id="payment-section" style="display:none;">
                         <h3 class="total-display" id="customer-total-display">$0.00</h3>
-                        <button onclick="checkout()" class="btn-success btn-large">Pay Now</button>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button onclick="checkout('bank')" class="btn-primary btn-large" style="flex: 1;">Pay with Bank</button>
+                            <button onclick="checkout('cash')" class="btn-success btn-large" style="flex: 1;">Pay with Cash</button>
+                        </div>
                     </div>
                 </div>
 
@@ -77,7 +80,10 @@
                         <span>Total:</span>
                         <span id="ticket-total">$0.00</span>
                     </div>
-                    <button onclick="checkout()" class="btn-success w-100" id="btn-worker-checkout" style="display:none;">Complete Sale</button>
+                    <div id="btn-worker-checkout" style="display:none; flex-direction: column; gap: 10px; margin-top: 15px;">
+                        <button onclick="checkout('bank')" class="btn-primary w-100" style="margin-top: 0;">Complete Sale (Bank)</button>
+                        <button onclick="checkout('cash')" class="btn-success w-100" style="margin-top: 0;">Complete Sale (Cash)</button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+import config
 
 app = Flask(__name__)
 
@@ -8,7 +9,7 @@ current_ticket = []
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', store_name=config.STORE_NAME)
 
 @app.route('/api/inventory', methods=['GET'])
 def get_inventory():
@@ -48,9 +49,18 @@ def add_to_ticket():
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
     global current_ticket
+    data = request.json or {}
+    payment_method = data.get('payment_method', 'cash')
+
     total = sum(inventory[item] for item in current_ticket if item in inventory)
     current_ticket = []
-    return jsonify({'message': 'Checkout successful', 'paid': total})
+
+    if payment_method == 'bank':
+        msg = f'Checkout successful. ${total:.2f} deducted directly from customer bank.'
+    else:
+        msg = f'Checkout successful. ${total:.2f} paid in cash.'
+
+    return jsonify({'message': msg, 'paid': total, 'method': payment_method})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
