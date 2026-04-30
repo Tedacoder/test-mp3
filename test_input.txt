@@ -1,0 +1,17 @@
+1
+1
+Apple
+1.50
+1
+Banana
+0.50
+3
+2
+1
+Apple
+1
+Banana
+3
+3
+y
+4
