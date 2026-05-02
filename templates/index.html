@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern POS System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="pos-container">
+        <!-- Header -->
+        <header class="pos-header">
+            <h1>{{ store_name }} POS</h1>
+            <div class="role-selector">
+                <button onclick="switchRole('owner')" id="btn-owner" class="active">Owner</button>
+                <button onclick="switchRole('worker')" id="btn-worker">Worker</button>
+                <button onclick="switchRole('customer')" id="btn-customer">Customer</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="pos-main">
+            <!-- Left Panel (Inventory/Actions) -->
+            <div class="panel left-panel">
+
+                <!-- Owner View -->
+                <div id="view-owner" class="view-section active">
+                    <h2>Manage Inventory</h2>
+                    <form id="add-inventory-form" class="form-card">
+                        <div class="input-group">
+                            <label for="item-name">Item Name</label>
+                            <input type="text" id="item-name" required placeholder="e.g. Apple">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-price">Price ($)</label>
+                            <input type="number" id="item-price" step="0.01" min="0" required placeholder="0.00">
+                        </div>
+                        <button type="submit" class="btn-primary">Add to Inventory</button>
+                    </form>
+
+                    <h3>Current Inventory</h3>
+                    <div class="inventory-list" id="owner-inventory-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Worker View -->
+                <div id="view-worker" class="view-section">
+                    <h2>Available Items</h2>
+                    <div class="product-grid" id="worker-product-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Customer View -->
+                <div id="view-customer" class="view-section">
+                    <h2>Welcome to {{ store_name }}!</h2>
+                    <p class="customer-msg">Please review your items on the ticket screen.</p>
+                    <div class="payment-section" id="payment-section" style="display:none;">
+                        <h3 class="total-display" id="customer-total-display">$0.00</h3>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button onclick="checkout('bank')" class="btn-primary btn-large" style="flex: 1;">Pay with Bank</button>
+                            <button onclick="checkout('cash')" class="btn-success btn-large" style="flex: 1;">Pay with Cash</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Panel (Ticket) -->
+            <div class="panel right-panel ticket-panel">
+                <h2>Current Ticket</h2>
+                <div class="ticket-items" id="ticket-items">
+                    <!-- Populated by JS -->
+                    <p class="empty-msg">Ticket is empty.</p>
+                </div>
+                <div class="ticket-summary">
+                    <div class="summary-row total-row">
+                        <span>Total:</span>
+                        <span id="ticket-total">$0.00</span>
+                    </div>
+                    <div id="btn-worker-checkout" style="display:none; flex-direction: column; gap: 10px; margin-top: 15px;">
+                        <button onclick="checkout('bank')" class="btn-primary w-100" style="margin-top: 0;">Complete Sale (Bank)</button>
+                        <button onclick="checkout('cash')" class="btn-success w-100" style="margin-top: 0;">Complete Sale (Cash)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
