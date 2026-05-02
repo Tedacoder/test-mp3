@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Eat & Drink Sounds</title>
+</head>
+<body>
+    <script>
+        // We'll use HTML5 Audio elements
+
+        window.addEventListener('message', function(event) {
+            let data = event.data;
+
+            if (data.type === "playSound") {
+                // Create a new audio element each time so multiple sounds can play concurrently
+                let audio = new Audio();
+
+                if (data.soundType === "eat") {
+                    audio.src = 'sounds/eat.mp3';
+                } else if (data.soundType === "drink") {
+                    audio.src = 'sounds/drink.mp3';
+                }
+
+                // Base volume multiplier
+                let baseVolume = 0.8;
+
+                // Apply distance volume
+                let calculatedVolume = baseVolume * (data.volume || 1.0);
+
+                // Clamp volume between 0.0 and 1.0
+                calculatedVolume = Math.max(0.0, Math.min(1.0, calculatedVolume));
+
+                audio.volume = calculatedVolume;
+
+                audio.play().catch(e => console.log("Failed to play sound", e));
+
+                // Clean up memory after sound finishes
+                audio.addEventListener('ended', function() {
+                    audio.remove();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
