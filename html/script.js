@@ -1,28 +1,51 @@
 let currentRole = 'owner';
+let resourceName = 'pos_system';
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    refreshInventory();
-    refreshTicket();
+    // Listen for NUI Messages from Lua
+    window.addEventListener('message', function(event) {
+        let data = event.data;
+        if (data.type === "ui") {
+            if (data.status) {
+                document.body.style.display = "flex";
+                if (data.storeName) {
+                    document.getElementById('store-title').innerText = data.storeName + " POS";
+                    document.getElementById('store-welcome').innerText = "Welcome to " + data.storeName + "!";
+                }
+            } else {
+                document.body.style.display = "none";
+            }
+        } else if (data.type === "updateState") {
+            renderOwnerInventory(data.inventory);
+            renderWorkerGrid(data.inventory);
+            renderTicket(data.ticket, data.inventory);
+            updateCustomerView(data.ticket, data.inventory);
+        } else if (data.type === "checkoutResponse") {
+            alert(data.message);
+        }
+    });
 
-    document.getElementById('add-inventory-form').addEventListener('submit', async (e) => {
+    // Close with Escape key
+    document.onkeyup = function (data) {
+        if (data.which == 27) { // Escape key
+            fetch(`https://${GetParentResourceName()}/close`, { method: 'POST' });
+        }
+    };
+
+    document.getElementById('add-inventory-form').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('item-name').value;
         const price = document.getElementById('item-price').value;
 
-        const response = await fetch('/api/inventory', {
+        fetch(`https://${GetParentResourceName()}/addInventory`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, price })
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+            body: JSON.stringify({ name: name, price: parseFloat(price) })
         });
 
-        if (response.ok) {
-            document.getElementById('item-name').value = '';
-            document.getElementById('item-price').value = '';
-            refreshInventory();
-        } else {
-            alert('Failed to add item.');
-        }
+        document.getElementById('item-name').value = '';
+        document.getElementById('item-price').value = '';
     });
 });
 
@@ -45,48 +68,23 @@ function switchRole(role) {
     } else {
         workerCheckoutBtn.style.display = 'none';
     }
-
-    refreshInventory();
-    refreshTicket();
 }
 
 // API Interactions
-async function refreshInventory() {
-    const response = await fetch('/api/inventory');
-    const data = await response.json();
-
-    renderOwnerInventory(data);
-    renderWorkerGrid(data);
-}
-
-async function refreshTicket() {
-    const response = await fetch('/api/ticket');
-    const data = await response.json();
-
-    renderTicket(data);
-    updateCustomerView(data);
-}
-
-async function addToTicket(name) {
-    await fetch('/api/ticket', {
+function addToTicket(name) {
+    fetch(`https://${GetParentResourceName()}/addToTicket`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
+        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+        body: JSON.stringify({ name: name })
     });
-    refreshTicket();
 }
 
-async function checkout(method = 'cash') {
-    const response = await fetch('/api/checkout', {
+function checkout(method = 'cash') {
+    fetch(`https://${GetParentResourceName()}/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
         body: JSON.stringify({ payment_method: method })
     });
-    if (response.ok) {
-        const data = await response.json();
-        alert(data.message);
-        refreshTicket();
-    }
 }
 
 // Rendering Logic
@@ -94,7 +92,7 @@ function renderOwnerInventory(inventory) {
     const list = document.getElementById('owner-inventory-list');
     list.innerHTML = '';
 
-    if (Object.keys(inventory).length === 0) {
+    if (!inventory || Object.keys(inventory).length === 0) {
         list.innerHTML = '<p class="empty-msg">No items in inventory.</p>';
         return;
     }
@@ -114,7 +112,7 @@ function renderWorkerGrid(inventory) {
     const grid = document.getElementById('worker-product-grid');
     grid.innerHTML = '';
 
-    if (Object.keys(inventory).length === 0) {
+    if (!inventory || Object.keys(inventory).length === 0) {
         grid.innerHTML = '<p class="empty-msg" style="grid-column: 1/-1;">No items available. Owner must add items first.</p>';
         return;
     }
@@ -131,39 +129,44 @@ function renderWorkerGrid(inventory) {
     }
 }
 
-function renderTicket(ticketData) {
+function renderTicket(ticket, inventory) {
     const container = document.getElementById('ticket-items');
     const totalDisplay = document.getElementById('ticket-total');
 
     container.innerHTML = '';
 
-    if (ticketData.items.length === 0) {
+    if (!ticket || ticket.length === 0) {
         container.innerHTML = '<p class="empty-msg">Ticket is empty.</p>';
         totalDisplay.textContent = '$0.00';
         return;
     }
 
-    ticketData.items.forEach(item => {
+    let total = 0;
+    ticket.forEach(item => {
+        const price = inventory[item] || 0;
+        total += price;
         const div = document.createElement('div');
         div.className = 'ticket-item';
         div.innerHTML = `
-            <span>${item.name}</span>
-            <span>$${item.price.toFixed(2)}</span>
+            <span>${item}</span>
+            <span>$${price.toFixed(2)}</span>
         `;
         container.appendChild(div);
     });
 
-    totalDisplay.textContent = `$${ticketData.total.toFixed(2)}`;
+    totalDisplay.textContent = `$${total.toFixed(2)}`;
 }
 
-function updateCustomerView(ticketData) {
+function updateCustomerView(ticket, inventory) {
     const paymentSection = document.getElementById('payment-section');
     const totalDisplay = document.getElementById('customer-total-display');
     const msg = document.querySelector('.customer-msg');
 
-    if (ticketData.items.length > 0) {
+    if (ticket && ticket.length > 0) {
         paymentSection.style.display = 'block';
-        totalDisplay.textContent = `$${ticketData.total.toFixed(2)}`;
+        let total = 0;
+        ticket.forEach(item => { total += (inventory[item] || 0); });
+        totalDisplay.textContent = `$${total.toFixed(2)}`;
         msg.textContent = 'Please review your items. Ready to pay?';
     } else {
         paymentSection.style.display = 'none';

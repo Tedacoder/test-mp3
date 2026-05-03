@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modern POS System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body style="display: none;">
     <div class="pos-container">
         <!-- Header -->
         <header class="pos-header">
-            <h1>{{ store_name }} POS</h1>
+            <h1 id="store-title">ModernStore POS</h1>
             <div class="role-selector">
                 <button onclick="switchRole('owner')" id="btn-owner" class="active">Owner</button>
                 <button onclick="switchRole('worker')" id="btn-worker">Worker</button>
@@ -55,7 +55,7 @@
 
                 <!-- Customer View -->
                 <div id="view-customer" class="view-section">
-                    <h2>Welcome to {{ store_name }}!</h2>
+                    <h2 id="store-welcome">Welcome to ModernStore!</h2>
                     <p class="customer-msg">Please review your items on the ticket screen.</p>
                     <div class="payment-section" id="payment-section" style="display:none;">
                         <h3 class="total-display" id="customer-total-display">$0.00</h3>
@@ -89,6 +89,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="script.js"></script>
 </body>
 </html>
