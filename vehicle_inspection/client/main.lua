@@ -4,19 +4,27 @@ local function performInspection(vehicle)
     if not vehicle or vehicle == 0 then return end
 
     local isMechanic = lib.callback.await('vehicle_inspection:checkJob', false, 'mechanic')
-    if not isMechanic then
-        lib.notify({title = 'Error', description = 'You are not authorized.', type = 'error'})
-        return
-    end
 
     local plate = GetVehicleNumberPlateText(vehicle)
     if not plate then return end
     plate = string.gsub(plate, '^%s*(.-)%s*$', '%1') -- Trim whitespace
 
     -- Progress bar
+    local animDict = 'missheistdockssetup1clipboard@base'
+    local animClip = 'base'
+    local duration = 5000
+    local pLabel = locale('inspecting_progress')
+
+    if not isMechanic then
+        duration = 10000 -- takes longer to forge
+        pLabel = locale('forging_progress')
+        animDict = 'anim@amb@clubhouse@tutorial@bkr_tut_ig3@'
+        animClip = 'machinic_loop_mechandplayer'
+    end
+
     if lib.progressBar({
-        duration = 5000,
-        label = locale('inspecting_progress'),
+        duration = duration,
+        label = pLabel,
         useWhileDead = false,
         canCancel = true,
         disable = {
@@ -25,104 +33,109 @@ local function performInspection(vehicle)
             combat = true,
         },
         anim = {
-            dict = 'missheistdockssetup1clipboard@base',
-            clip = 'base'
+            dict = animDict,
+            clip = animClip
         },
-        prop = {
+        prop = isMechanic and {
             model = `p_amb_clipboard_01`,
             pos = vec3(0.03, 0.08, 0.02),
             rot = vec3(-90.0, 0.0, 0.0)
-        },
+        } or nil,
     }) then
-        -- Inspection Logic
         local failedParts = {}
+        local status = 'Passed'
+        local result = true
 
-        -- Engine/Steering
-        if GetVehicleEngineHealth(vehicle) < Config.Thresholds.Engine then
-            table.insert(failedParts, locale('part_engine'))
-        end
-
-        -- Body/Suspension
-        if GetVehicleBodyHealth(vehicle) < Config.Thresholds.Body then
-            table.insert(failedParts, locale('part_body'))
-        end
-
-        -- Fuel Tank
-        if GetVehiclePetrolTankHealth(vehicle) < Config.Thresholds.Tank then
-            table.insert(failedParts, locale('part_tank'))
-        end
-
-
-        -- Brakes (Wheel Health)
-        local numWheels = GetVehicleNumberOfWheels(vehicle)
-        local brakeIssue = false
-        for i=0, numWheels-1 do
-            if GetVehicleWheelHealth(vehicle, i) < Config.Thresholds.Brakes then
-                brakeIssue = true
-                break
+        if isMechanic then
+            -- Inspection Logic
+            -- Engine/Steering
+            if GetVehicleEngineHealth(vehicle) < Config.Thresholds.Engine then
+                table.insert(failedParts, locale('part_engine'))
             end
-        end
-        if brakeIssue then
-            table.insert(failedParts, locale('part_brakes'))
-        end
 
-        -- Lighting
-        -- In GTA, you can check damage status. For simplicity, we check headlights.
-        local lightStatus1, lightStatus2, lightStatus3 = GetVehicleLightsState(vehicle)
-        local lightMultiplier = GetVehicleLightMultiplier(vehicle)
-        -- Also check if they are smashed
-        local leftLight = GetIsLeftVehicleHeadlightDamaged(vehicle)
-        local rightLight = GetIsRightVehicleHeadlightDamaged(vehicle)
+            -- Body/Suspension
+            if GetVehicleBodyHealth(vehicle) < Config.Thresholds.Body then
+                table.insert(failedParts, locale('part_body'))
+            end
 
-        if leftLight or rightLight or lightMultiplier < 0.8 then
-            table.insert(failedParts, locale('part_lighting'))
-        end
+            -- Fuel Tank
+            if GetVehiclePetrolTankHealth(vehicle) < Config.Thresholds.Tank then
+                table.insert(failedParts, locale('part_tank'))
+            end
 
-        -- Tires
-        if Config.Thresholds.Tires then
+            -- Brakes (Wheel Health)
             local numWheels = GetVehicleNumberOfWheels(vehicle)
-            local burst = false
+            local brakeIssue = false
             for i=0, numWheels-1 do
-                if IsVehicleTyreBurst(vehicle, i, false) then
-                    burst = true
+                if GetVehicleWheelHealth(vehicle, i) < Config.Thresholds.Brakes then
+                    brakeIssue = true
                     break
                 end
             end
-            if burst then
-                table.insert(failedParts, locale('part_tires'))
+            if brakeIssue then
+                table.insert(failedParts, locale('part_brakes'))
             end
-        end
 
-        -- Windows
-        if Config.Thresholds.Windows then
-            local smashed = false
-            for i=0, 7 do
-                if not IsVehicleWindowIntact(vehicle, i) then
-                    smashed = true
-                    break
+            -- Lighting
+            local lightStatus1, lightStatus2, lightStatus3 = GetVehicleLightsState(vehicle)
+            local lightMultiplier = GetVehicleLightMultiplier(vehicle)
+            local leftLight = GetIsLeftVehicleHeadlightDamaged(vehicle)
+            local rightLight = GetIsRightVehicleHeadlightDamaged(vehicle)
+
+            if leftLight or rightLight or lightMultiplier < 0.8 then
+                table.insert(failedParts, locale('part_lighting'))
+            end
+
+            -- Tires
+            if Config.Thresholds.Tires then
+                local numWheels = GetVehicleNumberOfWheels(vehicle)
+                local burst = false
+                for i=0, numWheels-1 do
+                    if IsVehicleTyreBurst(vehicle, i, false) then
+                        burst = true
+                        break
+                    end
+                end
+                if burst then
+                    table.insert(failedParts, locale('part_tires'))
                 end
             end
-            if smashed then
-                table.insert(failedParts, locale('part_windows'))
-            end
-        end
 
-        -- Doors
-        if Config.Thresholds.Doors then
-            local missing = false
-            for i=0, 5 do
-                if IsVehicleDoorDamaged(vehicle, i) then
-                    missing = true
-                    break
+            -- Windows
+            if Config.Thresholds.Windows then
+                local smashed = false
+                for i=0, 7 do
+                    if not IsVehicleWindowIntact(vehicle, i) then
+                        smashed = true
+                        break
+                    end
+                end
+                if smashed then
+                    table.insert(failedParts, locale('part_windows'))
                 end
             end
-            if missing then
-                table.insert(failedParts, locale('part_doors'))
-            end
-        end
 
-        local result = #failedParts == 0
-        local status = result and 'Passed' or 'Failed'
+            -- Doors
+            if Config.Thresholds.Doors then
+                local missing = false
+                for i=0, 5 do
+                    if IsVehicleDoorDamaged(vehicle, i) then
+                        missing = true
+                        break
+                    end
+                end
+                if missing then
+                    table.insert(failedParts, locale('part_doors'))
+                end
+            end
+
+            result = #failedParts == 0
+            status = result and 'Passed' or 'Failed'
+        else
+            -- Non-mechanic doing a fake inspection
+            status = 'Fake'
+            result = true
+        end
 
         local closestPlayerId, closestDistance = lib.getClosestPlayer(GetEntityCoords(cache.ped), 3.0, false)
         local targetServerId = nil
@@ -134,7 +147,13 @@ local function performInspection(vehicle)
         local success, msg = lib.callback.await('vehicle_inspection:submitInspection', false, plate, status, failedParts, targetServerId)
 
         if success then
-            if result then
+            if not isMechanic then
+                lib.notify({
+                    title = locale('inspect_vehicle'),
+                    description = locale('fake_inspection_done'),
+                    type = 'success'
+                })
+            elseif result then
                 lib.notify({
                     title = locale('inspect_vehicle'),
                     description = locale('inspection_passed'),
@@ -220,10 +239,15 @@ local function checkSticker(vehicle)
             local statusLocale = locale('status_' .. string.lower(data.status)) or data.status
             local expiryDate = data.expiry and os.date('%m/%d/%Y', data.expiry) or 'N/A'
 
+            local extraWarning = ''
+            if data.status == 'Fake' then
+                extraWarning = '\n' .. locale('sticker_fake_warning')
+            end
+
             lib.notify({
                 title = 'Inspection Sticker',
-                description = string.format(locale('sticker_status_msg'), statusLocale, expiryDate),
-                type = data.status == 'Passed' and 'success' or 'error',
+                description = string.format(locale('sticker_status_msg'), statusLocale, expiryDate, extraWarning),
+                type = (data.status == 'Passed' or data.status == 'Fake') and 'success' or 'error',
                 duration = 8000
             })
 

@@ -15,7 +15,8 @@ Config.PoliceJobs = {
 -- Economy Settings
 Config.Fees = {
     Initial = 500,     -- Cost of the first inspection
-    ReInspection = 200 -- Cost if re-inspected within ReInspectionTimeframe
+    ReInspection = 200, -- Cost if re-inspected within ReInspectionTimeframe
+    Fake = 800         -- Cost of a shady/fake inspection
 }
 
 -- Timeframes

@@ -120,7 +120,9 @@ lib.callback.register('vehicle_inspection:submitInspection', function(source, pl
     local fee = Config.Fees.Initial
     local isReInspection = false
 
-    if result then
+    if status == 'Fake' then
+        fee = Config.Fees.Fake
+    elseif result then
         if result.status == 'Failed' and result.failed_date then
             if (currentTime - result.failed_date) <= Config.Timeframes.ReInspection then
                 fee = Config.Fees.ReInspection
@@ -139,13 +141,13 @@ lib.callback.register('vehicle_inspection:submitInspection', function(source, pl
     local failedDate = nil
     local failedPartsJson = '[]'
 
-    if status == 'Passed' then
+    if status == 'Passed' or status == 'Fake' then
         expiry = currentTime + Config.Timeframes.Expiry
         -- Give certificate item
         local metadata = {
             description = 'Vehicle Inspection Certificate',
             plate = plate,
-            status = 'Passed',
+            status = 'Passed', -- Certificate looks real
             expiryDate = os.date('%m/%d/%Y', expiry)
         }
 
@@ -201,4 +203,24 @@ exports('GetVehicleInspection', function(plate)
         }
     end
     return nil
+end)
+
+exports('RegisterNewVehicle', function(plate)
+    if not plate then return false end
+    plate = string.gsub(plate, '^%s*(.-)%s*$', '%1')
+
+    local currentTime = os.time()
+    local expiry = currentTime + Config.Timeframes.Expiry
+
+    local result = MySQL.single.await('SELECT * FROM `vehicle_inspections` WHERE `plate` = ?', {plate})
+    if result then
+        MySQL.update.await('UPDATE `vehicle_inspections` SET `status` = ?, `expiry` = ?, `failed_date` = NULL, `failed_parts` = ? WHERE `plate` = ?', {
+            'Passed', expiry, '[]', plate
+        })
+    else
+        MySQL.insert.await('INSERT INTO `vehicle_inspections` (`plate`, `status`, `expiry`, `failed_date`, `failed_parts`) VALUES (?, ?, ?, NULL, ?)', {
+            plate, 'Passed', expiry, '[]'
+        })
+    end
+    return true
 end)

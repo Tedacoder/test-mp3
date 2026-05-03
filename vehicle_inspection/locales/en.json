@@ -14,7 +14,7 @@
     "status_failed": "Failed",
     "status_none": "None",
     "status_expired": "Expired",
-    "sticker_status_msg": "Status: %s\nExpiry: %s",
+    "sticker_status_msg": "Status: %s\nExpiry: %s\n%s",
     "part_engine": "Engine/Steering",
     "part_body": "Body/Suspension",
     "part_tank": "Fuel Tank",
@@ -23,5 +23,9 @@
     "part_doors": "Doors",
     "mdt_report": "[VEHICLE REPORT - PLATE: %s]\nStatus: %s\nDate of Failure: %s\nDefects: [%s]\nInstruction: Vehicle must be repaired and re-inspected by %s.",
     "part_brakes": "Brakes",
-    "part_lighting": "Lighting"
+    "part_lighting": "Lighting",
+    "status_fake": "Passed (Forged)",
+    "forging_progress": "Forging inspection documents...",
+    "fake_inspection_done": "Forged inspection applied!",
+    "sticker_fake_warning": "\u26a0\ufe0f WARNING: Sticker appears fraudulent!"
 }
