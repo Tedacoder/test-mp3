@@ -260,3 +260,23 @@ exports.ox_target:addGlobalVehicle({
         end
     }
 })
+
+-- Enforce Custom Plate Style
+if Config.PlateStyle then
+    CreateThread(function()
+        while true do
+            Wait(2500) -- Check every 2.5 seconds to keep resmon low
+
+            local vehicles = GetGamePool('CVehicle')
+            for i = 1, #vehicles do
+                local vehicle = vehicles[i]
+                if DoesEntityExist(vehicle) then
+                    local currentPlateStyle = GetVehicleNumberPlateTextIndex(vehicle)
+                    if currentPlateStyle ~= Config.PlateStyle then
+                        SetVehicleNumberPlateTextIndex(vehicle, Config.PlateStyle)
+                    end
+                end
+            end
+        end
+    end)
+end

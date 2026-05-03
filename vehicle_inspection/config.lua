@@ -42,3 +42,8 @@ Config.Items = {
     Clipboard = 'diagnostic_clipboard',
     Certificate = 'inspection_certificate'
 }
+
+-- Custom License Plate Style
+-- Set to false to disable enforcing a plate style.
+-- Set to a number (e.g., 3) to enforce that texture ID from vehshare.ytd.
+Config.PlateStyle = 3
