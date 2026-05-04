@@ -23,11 +23,36 @@ local function SpawnCookingProp(propName, entity)
     FreezeEntityPosition(obj, true)
 
     SetModelAsNoLongerNeeded(propData.hash)
-    return obj
+
+    local ptfx = nil
+    local soundId = nil
+
+    if Config.Effects.enabled then
+        -- Play Audio
+        soundId = GetSoundId()
+        PlaySoundFromEntity(soundId, Config.Effects.audio.soundName, obj, Config.Effects.audio.soundDict, false, 0)
+
+        -- Play PTFX Steam
+        lib.requestNamedPtfxAsset(Config.Effects.particle.dict)
+        UseParticleFxAssetNextCall(Config.Effects.particle.dict)
+        ptfx = StartParticleFxLoopedOnEntity(Config.Effects.particle.name, obj, Config.Effects.particle.offset.x, Config.Effects.particle.offset.y, Config.Effects.particle.offset.z, 0.0, 0.0, 0.0, Config.Effects.particle.scale, false, false, false)
+        RemoveNamedPtfxAsset(Config.Effects.particle.dict)
+    end
+
+    return obj, ptfx, soundId
 end
 
 -- Cleanup spawned prop
-local function CleanupProp(obj)
+local function CleanupProp(obj, ptfx, soundId)
+    if ptfx then
+        StopParticleFxLooped(ptfx, 0)
+    end
+
+    if soundId then
+        StopSound(soundId)
+        ReleaseSoundId(soundId)
+    end
+
     if obj and DoesEntityExist(obj) then
         DeleteEntity(obj)
     end
@@ -133,7 +158,7 @@ local function StartCooking(recipeName, portionSize, entity)
     local animData = Config.Animations[recipe.anim]
     lib.requestAnimDict(animData.dict)
 
-    local cookingPropObj = SpawnCookingProp(recipe.prop, entity)
+    local cookingPropObj, ptfx, soundId = SpawnCookingProp(recipe.prop, entity)
 
     TaskPlayAnim(PlayerPedId(), animData.dict, animData.anim, 8.0, -8.0, portion.time, animData.flags, 0, false, false, false)
 
@@ -151,14 +176,14 @@ local function StartCooking(recipeName, portionSize, entity)
     }) then
         -- Completed successfully
         ClearPedTasks(PlayerPedId())
-        CleanupProp(cookingPropObj)
+        CleanupProp(cookingPropObj, ptfx, soundId)
 
         local propCoords = GetEntityCoords(entity)
         TriggerServerEvent('ts-lets-eat:server:FinishCooking', recipeName, portionSize, propCoords)
     else
         -- Cancelled
         ClearPedTasks(PlayerPedId())
-        CleanupProp(cookingPropObj)
+        CleanupProp(cookingPropObj, ptfx, soundId)
         lib.notify({
             title = 'Cancelled',
             description = 'You stopped cooking.',

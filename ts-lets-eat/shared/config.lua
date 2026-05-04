@@ -106,6 +106,21 @@ Config.CookingProps = {
     ['cutting_board'] = { hash = `prop_food_cb`, offset = vec3(0.0, 0.0, 1.0), rot = vec3(0.0, 0.0, 0.0) }
 }
 
+-- Visual & Audio Effects
+Config.Effects = {
+    enabled = true,
+    particle = {
+        dict = 'core',
+        name = 'ent_amb_steam',
+        scale = 0.5,
+        offset = vec3(0.0, 0.0, 0.2)
+    },
+    audio = {
+        soundName = 'PAN_SIZZLE',
+        soundDict = 'DLC_Biker_Meth_Lab_Sounds'
+    }
+}
+
 -- Animations
 Config.Animations = {
     ['cutting'] = {
