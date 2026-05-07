@@ -9,7 +9,12 @@ from tkinter.scrolledtext import ScrolledText
 ASSET_TYPES = ['jbib', 'teef', 'feet', 'lowr', 'accs', 'berd', 'hand', 'uppr', 'decl', 'task']
 
 # Compile a regular expression to match files
-regex_pattern = f"^({'|'.join(ASSET_TYPES)})_(\\d+)(.*)$"
+# Captures:
+# 1. Any optional prefix before the asset type (e.g., "mp_f_freemode_01_mp_f_taticreations2^")
+# 2. The asset type (e.g., jbib)
+# 3. The original index/number (e.g., 000)
+# 4. The rest of the filename (the suffix, e.g., _u.ydd)
+regex_pattern = f"^(.*?)({'|'.join(ASSET_TYPES)})_(\\d+)(.*)$"
 FILE_PATTERN = re.compile(regex_pattern)
 
 def natural_sort_key(s):
@@ -98,8 +103,9 @@ class ClothingPackOrdererGUI:
             for file in files_in_folder:
                 match = FILE_PATTERN.match(file)
                 if match:
-                    asset_type = match.group(1)
-                    orig_index = match.group(2)
+                    prefix = match.group(1)
+                    asset_type = match.group(2)
+                    orig_index = match.group(3)
 
                     group_key = (asset_type, orig_index)
                     if group_key not in file_groups:
@@ -122,9 +128,10 @@ class ClothingPackOrdererGUI:
 
                 for file in files_in_group:
                     match = FILE_PATTERN.match(file)
-                    suffix = match.group(3)
+                    prefix = match.group(1)
+                    suffix = match.group(4)
 
-                    final_name = f"{asset_type}_{new_index_str}{suffix}"
+                    final_name = f"{prefix}{asset_type}_{new_index_str}{suffix}"
                     temp_name = f"__TEMP_RENAME_{file}"
 
                     old_path = os.path.join(folder_path, file)
