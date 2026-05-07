@@ -68,12 +68,17 @@ async function refreshTicket() {
 }
 
 async function addToTicket(name) {
-    await fetch('/api/ticket', {
+    const response = await fetch('/api/ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name })
     });
-    refreshTicket();
+    if (response.ok) {
+        refreshTicket();
+    } else {
+        const data = await response.json();
+        alert(`Error: ${data.error || 'Failed to add item to ticket.'}`);
+    }
 }
 
 async function checkout(method = 'cash') {
