@@ -1,5 +1,3 @@
-let currentRole = 'owner';
-
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
     refreshInventory();
@@ -28,8 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // UI View Switching
 function switchRole(role) {
-    currentRole = role;
-
     // Update Buttons
     document.querySelectorAll('.role-selector button').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${role}`).classList.add('active');
