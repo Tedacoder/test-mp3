@@ -1,29 +1,14 @@
 import os
 import re
 import sys
-
-# Define the root directory to process.
-# By default, it uses the current working directory, but you can change it to any absolute or relative path.
-# Example: ROOT_DIR = "C:/Path/To/Your/Clothing/Pack"
-ROOT_DIR = "."
-
-# DRY_RUN configuration toggle.
-# Set to True to only print the planned renames without modifying any files.
-# Set to False to perform the actual file renaming.
-DRY_RUN = True
-
-# Allow passing the root directory as a command line argument
-if len(sys.argv) > 1:
-    ROOT_DIR = sys.argv[1]
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from tkinter.scrolledtext import ScrolledText
 
 # Supported asset types based on the requirements
 ASSET_TYPES = ['jbib', 'teef', 'feet', 'lowr', 'accs', 'berd', 'hand', 'uppr', 'decl', 'task']
 
 # Compile a regular expression to match files
-# It captures:
-# 1. The asset type (e.g., jbib)
-# 2. The original index/number (e.g., 000)
-# 3. The rest of the filename (the suffix, e.g., _u.ydd, _uni.ytd, _a_uni.ytd)
 regex_pattern = f"^({'|'.join(ASSET_TYPES)})_(\\d+)(.*)$"
 FILE_PATTERN = re.compile(regex_pattern)
 
@@ -35,101 +20,135 @@ def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower()
             for text in re.split('([0-9]+)', s)]
 
-def process_clothing_pack(root_directory):
-    # Ensure the root directory exists
-    if not os.path.exists(root_directory):
-        print(f"Error: The directory '{root_directory}' does not exist.")
-        return
+class ClothingPackOrdererGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("GTA V Clothing Pack Orderer")
+        self.root.geometry("600x500")
 
-    # List only directories inside the root directory
-    all_entries = os.listdir(root_directory)
-    subfolders = [d for d in all_entries if os.path.isdir(os.path.join(root_directory, d))]
+        self.root_dir = tk.StringVar(value="")
+        self.dry_run = tk.BooleanVar(value=True)
 
-    # Sort folders using natural sort (alphanumeric order)
-    subfolders.sort(key=natural_sort_key)
+        # Directory Selection Frame
+        dir_frame = tk.Frame(root)
+        dir_frame.pack(pady=10, padx=10, fill="x")
 
-    if not subfolders:
-        print(f"No subfolders found in '{root_directory}'.")
-        return
+        tk.Label(dir_frame, text="Folder Path:").pack(side="left")
+        tk.Entry(dir_frame, textvariable=self.root_dir, width=50).pack(side="left", padx=5)
+        tk.Button(dir_frame, text="Browse...", command=self.browse_directory).pack(side="left")
 
-    # Maintain a global counter for each asset type across all folders.
-    # Initializing at 0 to match 0-based index or as needed.
-    global_counters = {asset: 0 for asset in ASSET_TYPES}
+        # Options Frame
+        options_frame = tk.Frame(root)
+        options_frame.pack(pady=5, padx=10, fill="x")
 
-    print(f"Processing folders in: {os.path.abspath(root_directory)}")
-    if DRY_RUN:
-        print("--- DRY RUN MODE ACTIVE: No files will be modified ---")
+        tk.Checkbutton(options_frame, text="Dry Run (Preview only, no files changed)", variable=self.dry_run).pack(side="left")
+        tk.Button(options_frame, text="Process Files", command=self.process_files, bg="green", fg="white").pack(side="right", padx=5)
 
-    for folder in subfolders:
-        folder_path = os.path.join(root_directory, folder)
-        print(f"\nProcessing Folder: {folder}")
+        # Log Output Area
+        log_frame = tk.Frame(root)
+        log_frame.pack(pady=10, padx=10, fill="both", expand=True)
+        tk.Label(log_frame, text="Log Output:").pack(anchor="w")
 
-        # Get all files in the current subfolder
-        files_in_folder = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+        self.log_area = ScrolledText(log_frame, state='disabled', wrap='word', height=15)
+        self.log_area.pack(fill="both", expand=True)
 
-        # Group files by (asset_type, original_index) to ensure we rename models and textures to the same new index
-        file_groups = {}
-        for file in files_in_folder:
-            match = FILE_PATTERN.match(file)
-            if match:
-                asset_type = match.group(1)
-                orig_index = match.group(2)
+    def browse_directory(self):
+        folder_selected = filedialog.askdirectory()
+        if folder_selected:
+            self.root_dir.set(folder_selected)
 
-                group_key = (asset_type, orig_index)
-                if group_key not in file_groups:
-                    file_groups[group_key] = []
-                file_groups[group_key].append(file)
+    def log(self, message):
+        self.log_area.config(state='normal')
+        self.log_area.insert(tk.END, message + "\n")
+        self.log_area.see(tk.END)
+        self.log_area.config(state='disabled')
+        self.root.update()
 
-        if not file_groups:
-            print("  No matching GTA V assets found in this folder.")
-            continue
+    def process_files(self):
+        root_directory = self.root_dir.get()
+        if not root_directory or not os.path.exists(root_directory):
+            messagebox.showerror("Error", "Please select a valid directory.")
+            return
 
-        # We process each group. To process them predictably, we sort the keys by original index.
-        # This preserves the order *within* the folder.
-        sorted_group_keys = sorted(file_groups.keys(), key=lambda x: int(x[1]))
+        self.log_area.config(state='normal')
+        self.log_area.delete('1.0', tk.END)
+        self.log_area.config(state='disabled')
 
-        # We use a two-pass rename strategy (to __TEMP__, then to the final name)
-        # to avoid collision in case the new name already exists in the folder.
+        self.log(f"Processing folders in: {os.path.abspath(root_directory)}")
+        if self.dry_run.get():
+            self.log("--- DRY RUN MODE ACTIVE: No files will be modified ---")
 
-        # Pass 1: Rename to temporary names and calculate final names
-        temp_renames = [] # List of tuples: (temp_path, final_name, orig_file)
+        all_entries = os.listdir(root_directory)
+        subfolders = [d for d in all_entries if os.path.isdir(os.path.join(root_directory, d))]
+        subfolders.sort(key=natural_sort_key)
 
-        for group_key in sorted_group_keys:
-            asset_type, orig_index = group_key
-            files_in_group = file_groups[group_key]
+        if not subfolders:
+            self.log(f"No subfolders found in '{root_directory}'.")
+            return
 
-            # The new index for this asset type is its current global counter
-            new_index = global_counters[asset_type]
-            new_index_str = str(new_index).zfill(3)
+        global_counters = {asset: 0 for asset in ASSET_TYPES}
 
-            for file in files_in_group:
+        for folder in subfolders:
+            folder_path = os.path.join(root_directory, folder)
+            self.log(f"\nProcessing Folder: {folder}")
+
+            files_in_folder = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+
+            file_groups = {}
+            for file in files_in_folder:
                 match = FILE_PATTERN.match(file)
-                suffix = match.group(3)
+                if match:
+                    asset_type = match.group(1)
+                    orig_index = match.group(2)
 
-                final_name = f"{asset_type}_{new_index_str}{suffix}"
-                temp_name = f"__TEMP_RENAME_{file}"
+                    group_key = (asset_type, orig_index)
+                    if group_key not in file_groups:
+                        file_groups[group_key] = []
+                    file_groups[group_key].append(file)
 
-                old_path = os.path.join(folder_path, file)
-                temp_path = os.path.join(folder_path, temp_name)
+            if not file_groups:
+                self.log("  No matching GTA V assets found in this folder.")
+                continue
 
-                if DRY_RUN:
-                    print(f"  [Dry Run] {file} -> {final_name}")
-                else:
-                    # Rename to temp path to avoid collision overwrite errors
-                    os.rename(old_path, temp_path)
-                    temp_renames.append((temp_path, final_name, file))
-                    print(f"  [Temp] {file} -> {temp_name}")
+            sorted_group_keys = sorted(file_groups.keys(), key=lambda x: int(x[1]))
+            temp_renames = []
 
-            # Increment the global counter for this asset type
-            global_counters[asset_type] += 1
+            for group_key in sorted_group_keys:
+                asset_type, orig_index = group_key
+                files_in_group = file_groups[group_key]
 
-        # Pass 2: Rename from temp names to final names
-        if not DRY_RUN:
-            for temp_path, final_name, orig_file in temp_renames:
-                final_path = os.path.join(os.path.dirname(temp_path), final_name)
-                os.rename(temp_path, final_path)
-                print(f"  [Final] {orig_file} -> {final_name}")
+                new_index = global_counters[asset_type]
+                new_index_str = str(new_index).zfill(3)
+
+                for file in files_in_group:
+                    match = FILE_PATTERN.match(file)
+                    suffix = match.group(3)
+
+                    final_name = f"{asset_type}_{new_index_str}{suffix}"
+                    temp_name = f"__TEMP_RENAME_{file}"
+
+                    old_path = os.path.join(folder_path, file)
+                    temp_path = os.path.join(folder_path, temp_name)
+
+                    if self.dry_run.get():
+                        self.log(f"  [Dry Run] {file} -> {final_name}")
+                    else:
+                        os.rename(old_path, temp_path)
+                        temp_renames.append((temp_path, final_name, file))
+                        self.log(f"  [Temp] {file} -> {temp_name}")
+
+                global_counters[asset_type] += 1
+
+            if not self.dry_run.get():
+                for temp_path, final_name, orig_file in temp_renames:
+                    final_path = os.path.join(os.path.dirname(temp_path), final_name)
+                    os.rename(temp_path, final_path)
+                    self.log(f"  [Final] {orig_file} -> {final_name}")
+
+        self.log("\nProcessing complete.")
+        messagebox.showinfo("Success", "Processing complete!")
 
 if __name__ == "__main__":
-    process_clothing_pack(ROOT_DIR)
-    print("\nProcessing complete.")
+    root = tk.Tk()
+    app = ClothingPackOrdererGUI(root)
+    root.mainloop()
