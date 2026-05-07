@@ -14,8 +14,8 @@ ASSET_TYPES = ['jbib', 'teef', 'feet', 'lowr', 'accs', 'berd', 'hand', 'uppr', '
 # 2. The asset type (e.g., jbib)
 # 3. The original index/number (e.g., 000)
 # 4. The rest of the filename (the suffix, e.g., _u.ydd)
-regex_pattern = f"^(.*?)({'|'.join(ASSET_TYPES)})_(\\d+)(.*)$"
-FILE_PATTERN = re.compile(regex_pattern)
+regex_pattern = f"^(.*?)({'|'.join(ASSET_TYPES)})_?(\\d+)(.*)$"
+FILE_PATTERN = re.compile(regex_pattern, re.IGNORECASE)
 
 def natural_sort_key(s):
     """
@@ -100,17 +100,27 @@ class ClothingPackOrdererGUI:
             files_in_folder = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
             file_groups = {}
+            unmatched_files = []
             for file in files_in_folder:
                 match = FILE_PATTERN.match(file)
                 if match:
                     prefix = match.group(1)
-                    asset_type = match.group(2)
+                    # Use lower() to keep counters consistent regardless of original case
+                    asset_type = match.group(2).lower()
                     orig_index = match.group(3)
 
                     group_key = (asset_type, orig_index)
                     if group_key not in file_groups:
                         file_groups[group_key] = []
-                    file_groups[group_key].append(file)
+                    file_groups[group_key].append((file, match.group(2))) # Keep original case for renaming
+                else:
+                    # Ignore common system files or non-GTA files, but track others
+                    if not file.startswith('.') and not file.endswith('.txt'):
+                        unmatched_files.append(file)
+
+            if unmatched_files:
+                sample = unmatched_files[:3]
+                self.log(f"  [Debug] Ignored some files (e.g., {', '.join(sample)})")
 
             if not file_groups:
                 self.log("  No matching GTA V assets found in this folder.")
