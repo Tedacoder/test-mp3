@@ -7,6 +7,11 @@ import sys
 # Example: ROOT_DIR = "C:/Path/To/Your/Clothing/Pack"
 ROOT_DIR = "."
 
+# DRY_RUN configuration toggle.
+# Set to True to only print the planned renames without modifying any files.
+# Set to False to perform the actual file renaming.
+DRY_RUN = True
+
 # Allow passing the root directory as a command line argument
 if len(sys.argv) > 1:
     ROOT_DIR = sys.argv[1]
@@ -18,7 +23,7 @@ ASSET_TYPES = ['jbib', 'teef', 'feet', 'lowr', 'accs', 'berd', 'hand', 'uppr', '
 # It captures:
 # 1. The asset type (e.g., jbib)
 # 2. The original index/number (e.g., 000)
-# 3. The rest of the filename (the suffix, e.g., _u.ydd, _uni.ytd)
+# 3. The rest of the filename (the suffix, e.g., _u.ydd, _uni.ytd, _a_uni.ytd)
 regex_pattern = f"^({'|'.join(ASSET_TYPES)})_(\\d+)(.*)$"
 FILE_PATTERN = re.compile(regex_pattern)
 
@@ -52,6 +57,8 @@ def process_clothing_pack(root_directory):
     global_counters = {asset: 0 for asset in ASSET_TYPES}
 
     print(f"Processing folders in: {os.path.abspath(root_directory)}")
+    if DRY_RUN:
+        print("--- DRY RUN MODE ACTIVE: No files will be modified ---")
 
     for folder in subfolders:
         folder_path = os.path.join(root_directory, folder)
@@ -85,7 +92,7 @@ def process_clothing_pack(root_directory):
         # to avoid collision in case the new name already exists in the folder.
 
         # Pass 1: Rename to temporary names and calculate final names
-        temp_renames = [] # List of tuples: (temp_path, final_name)
+        temp_renames = [] # List of tuples: (temp_path, final_name, orig_file)
 
         for group_key in sorted_group_keys:
             asset_type, orig_index = group_key
@@ -105,21 +112,23 @@ def process_clothing_pack(root_directory):
                 old_path = os.path.join(folder_path, file)
                 temp_path = os.path.join(folder_path, temp_name)
 
-                os.rename(old_path, temp_path)
-                temp_renames.append((temp_path, final_name))
-                print(f"  [Temp] {file} -> {temp_name}")
+                if DRY_RUN:
+                    print(f"  [Dry Run] {file} -> {final_name}")
+                else:
+                    # Rename to temp path to avoid collision overwrite errors
+                    os.rename(old_path, temp_path)
+                    temp_renames.append((temp_path, final_name, file))
+                    print(f"  [Temp] {file} -> {temp_name}")
 
             # Increment the global counter for this asset type
             global_counters[asset_type] += 1
 
         # Pass 2: Rename from temp names to final names
-        for temp_path, final_name in temp_renames:
-            final_path = os.path.join(os.path.dirname(temp_path), final_name)
-            os.rename(temp_path, final_path)
-            # Find the original name from temp_name for better logging
-            temp_name = os.path.basename(temp_path)
-            orig_file = temp_name.replace("__TEMP_RENAME_", "")
-            print(f"  [Final] {orig_file} -> {final_name}")
+        if not DRY_RUN:
+            for temp_path, final_name, orig_file in temp_renames:
+                final_path = os.path.join(os.path.dirname(temp_path), final_name)
+                os.rename(temp_path, final_path)
+                print(f"  [Final] {orig_file} -> {final_name}")
 
 if __name__ == "__main__":
     process_clothing_pack(ROOT_DIR)
