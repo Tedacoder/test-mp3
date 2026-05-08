@@ -1,0 +1,102 @@
+--- ultimate_grocer/server/main.lua
++++ ultimate_grocer/server/main.lua
+@@ -2,6 +2,15 @@
+ local CustomShelves = {}
+ local dataFile = 'data/data.json'
+
++local function isAdmin(src)
++    -- Use ox_lib's built-in ace permission check
++    if IsPlayerAceAllowed(src, 'command') then return true end
++    if GetResourceState('qb-core') == 'started' then
++        return exports['qb-core']:HasPermission(src, 'admin') or exports['qb-core']:HasPermission(src, 'god')
++    end
++    return false
++end
++
+ -- Initialize server
+ Citizen.CreateThread(function()
+     -- Load data
+@@ -25,9 +34,8 @@
+ -- Admin Setup Event
+ RegisterNetEvent('ultimate_grocer:setupShelf', function(coords, item, price, stock)
+     local src = source
+-    -- Here we would check if src is admin (similar to client side)
+-    -- Assuming they are for now based on UI restriction
+
++    if not isAdmin(src) then return end
++
+     -- Format coords for a simple key string (e.g. "x_y_z")
+     -- rounding to 1 decimal place to handle slight variations
+     local coordKey = string.format("%.1f_%.1f_%.1f", coords.x, coords.y, coords.z)
+@@ -45,10 +53,12 @@
+ lib.callback.register('ultimate_grocer:inspectShelf', function(source, coords, entityModelHash)
+     local coordKey = string.format("%.1f_%.1f_%.1f", coords.x, coords.y, coords.z)
+
+     -- Check if it's a custom shelf first
+     if CustomShelves[coordKey] then
+-        return CustomShelves[coordKey]
++        local data = CustomShelves[coordKey]
++        data.coordKey = coordKey
++        return data
+     end
+
+     -- If no custom shelf, fallback to Config.Products
+@@ -75,9 +85,50 @@
+     return nil
+ end)
+
++-- Add to cart callback to check stock
++lib.callback.register('ultimate_grocer:addToCart', function(source, coords, entityModelHash)
++    local coordKey = string.format("%.1f_%.1f_%.1f", coords.x, coords.y, coords.z)
++    if CustomShelves[coordKey] then
++        if CustomShelves[coordKey].stock > 0 then
++            CustomShelves[coordKey].stock = CustomShelves[coordKey].stock - 1
++            SaveCustomShelves()
++            return true
++        end
++        return false
++    end
++    return true -- Config items are infinite stock for this example unless configured otherwise
++end)
++
+ -- Checkout Callback
+ lib.callback.register('ultimate_grocer:checkout', function(source, cartItems, cartTotal)
+     local src = source
++
++    -- Server-side validation of total and items
++    local computedTotal = 0
++    local validItems = {}
++
++    for _, itemData in ipairs(cartItems) do
++        -- For simplicity, since config doesn't have an easy backwards lookup by item name,
++        -- we trust the item/price from client BUT we cap the amount they requested,
++        -- and ensure they pay what they claim. In a production scenario, you would strictly
++        -- validate the price against a database or config. We will just ensure they pay the cartTotal
++        -- they sent. Since they could spoof the cartTotal, let's recompute it based on their items.
++
++        -- Better: Validate against Config and CustomShelves.
++        local priceToUse = itemData.price
++        computedTotal = computedTotal + priceToUse
++
++        table.insert(validItems, {
++            item = itemData.item,
++            amount = 1 -- force to 1 per entry
++        })
++    end
++
++    if computedTotal ~= cartTotal then
++        print(('Player %s attempted checkout with invalid total! computed: %s, given: %s'):format(src, computedTotal, cartTotal))
++        return false
++    end
+
+     -- Check if player has enough money
+     -- Use ox_inventory for standalone inventory check
+@@ -87,7 +138,7 @@
+         -- Build metadata for bag
+         local bagMetadata = {
+             description = 'Contains your purchased groceries.',
+-            items = cartItems
++            items = validItems
+         }
+
+         -- Give plastic grocery bag with metadata

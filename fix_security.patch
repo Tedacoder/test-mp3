@@ -1,0 +1,47 @@
+--- ultimate_grocer/client/main.lua
++++ ultimate_grocer/client/main.lua
+@@ -1,4 +1,7 @@
+-local QBCore = exports['qb-core']:GetCoreObject() -- Get core object if using QB (for admin checks if needed)
++local QBCore = nil
++if GetResourceState('qb-core') == 'started' then
++    QBCore = exports['qb-core']:GetCoreObject()
++end
+ -- Using ox_lib and ox_target standalone as much as possible
+
+ local currentCart = nil
+@@ -11,7 +14,7 @@
+     -- For client side UI, we can just allow the menu to open and the server rejects it if not admin.
+     -- But a basic client check:
+     if LocalPlayer.state.isLoggedIn then
+-        local playerData = QBCore.Functions.GetPlayerData()
++        local playerData = QBCore and QBCore.Functions.GetPlayerData() or nil
+         if playerData and playerData.job and (playerData.job.name == 'admin' or playerData.group == 'admin' or playerData.group == 'god') then
+             return true
+         end
+@@ -141,12 +144,19 @@
+                             -- Trigger server to add item (to check stock, etc. - simple implementation here)
+                             -- In a real scenario, we might just store locally and charge at the end,
+                             -- but checking stock requires server
+-                            table.insert(cartItems, {
+-                                item = shelfData.item,
+-                                price = shelfData.price,
+-                                amount = 1 -- Hardcoded to 1 for simplicity, could prompt
+-                            })
+-                            cartTotal = cartTotal + shelfData.price
+-                            lib.notify({title = 'Cart', description = 'Added ' .. shelfData.item .. ' to cart.', type = 'success'})
++                            lib.callback('ultimate_grocer:addToCart', false, function(success)
++                                if success then
++                                    table.insert(cartItems, {
++                                        item = shelfData.item,
++                                        price = shelfData.price,
++                                        amount = 1,
++                                        coordKey = shelfData.coordKey or nil -- pass coordKey if it's a custom shelf
++                                    })
++                                    cartTotal = cartTotal + shelfData.price
++                                    lib.notify({title = 'Cart', description = 'Added ' .. shelfData.item .. ' to cart.', type = 'success'})
++                                else
++                                    lib.notify({title = 'Error', description = 'Not enough stock!', type = 'error'})
++                                end
++                            end, coords, GetEntityModel(entity))
+                         end
+                     })
