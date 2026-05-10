@@ -11,19 +11,17 @@ shared_scripts {
 }
 
 client_scripts {
-    'client/main.lua',
-    'client/items.lua'
+    'client/main.lua'
 }
 
 server_scripts {
-    '@oxmysql/lib/MySQL.lua',
-    'server/main.lua',
-    'server/items.lua'
+    '@ox_mysql/lib/MySQL.lua',
+    'server/main.lua'
 }
 
 dependencies {
     'ox_lib',
-    'oxmysql',
+    'ox_mysql',
     'ox_target'
 }
 

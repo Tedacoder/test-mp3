@@ -1,0 +1,17 @@
+--- fxmanifest.lua
++++ fxmanifest.lua
+@@ -10,10 +10,12 @@
+
+ client_scripts {
+     'config.lua',
+-    'client/main.lua'
++    'client/main.lua',
++    'client/items.lua'
+ }
+
+ server_scripts {
+     '@oxmysql/lib/MySQL.lua',
+     'config.lua',
+-    'server/main.lua'
++    'server/main.lua',
++    'server/items.lua'
