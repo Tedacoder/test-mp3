@@ -14,7 +14,8 @@ ASSET_TYPES = ['jbib', 'teef', 'feet', 'lowr', 'accs', 'berd', 'hand', 'uppr', '
 # 2. The asset type (e.g., jbib)
 # 3. The original index/number (e.g., 000)
 # 4. The rest of the filename (the suffix, e.g., _u.ydd)
-regex_pattern = f"^(.*?)({'|'.join(ASSET_TYPES)})_?(\\d+)(.*)$"
+# 1. prefix, 2. asset_type, 3. middle (e.g. _ or _diff_), 4. index, 5. suffix
+regex_pattern = f"^(.*?)({'|'.join(ASSET_TYPES)})(.*?)(\\d+)(.*)$"
 FILE_PATTERN = re.compile(regex_pattern, re.IGNORECASE)
 
 def natural_sort_key(s):
@@ -97,30 +98,37 @@ class ClothingPackOrdererGUI:
             folder_path = os.path.join(root_directory, folder)
             self.log(f"\nProcessing Folder: {folder}")
 
-            files_in_folder = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+            # Recursively find all files in the subfolder
+            files_in_folder = []
+            for root_dir, dirs, files in os.walk(folder_path):
+                for file in files:
+                    # store relative path to the file to handle nested folders
+                    rel_path = os.path.relpath(os.path.join(root_dir, file), folder_path)
+                    files_in_folder.append((rel_path, file))
 
             file_groups = {}
             unmatched_files = []
-            for file in files_in_folder:
+            for rel_path, file in files_in_folder:
                 match = FILE_PATTERN.match(file)
                 if match:
                     prefix = match.group(1)
-                    # Use lower() to keep counters consistent regardless of original case
                     asset_type = match.group(2).lower()
-                    orig_index = match.group(3)
+                    middle = match.group(3)
+                    orig_index = match.group(4)
 
                     group_key = (asset_type, orig_index)
                     if group_key not in file_groups:
                         file_groups[group_key] = []
-                    file_groups[group_key].append((file, match.group(2))) # Keep original case for renaming
+                    file_groups[group_key].append((rel_path, file, match.group(2), middle))
                 else:
                     # Ignore common system files or non-GTA files, but track others
                     if not file.startswith('.') and not file.endswith('.txt'):
                         unmatched_files.append(file)
 
             if unmatched_files:
-                sample = unmatched_files[:3]
-                self.log(f"  [Debug] Ignored some files (e.g., {', '.join(sample)})")
+                # We show up to 10 ignored files now for better clarity
+                sample = unmatched_files[:10]
+                self.log(f"  [Debug] Ignored {len(unmatched_files)} files (showing first few):\n   " + "\n   ".join(sample))
 
             if not file_groups:
                 self.log("  No matching GTA V assets found in this folder.")
@@ -136,31 +144,34 @@ class ClothingPackOrdererGUI:
                 new_index = global_counters[asset_type]
                 new_index_str = str(new_index).zfill(3)
 
-                for file in files_in_group:
+                for rel_path, file, orig_asset_case, middle in files_in_group:
                     match = FILE_PATTERN.match(file)
                     prefix = match.group(1)
-                    suffix = match.group(4)
+                    suffix = match.group(5)
 
-                    final_name = f"{prefix}{asset_type}_{new_index_str}{suffix}"
+                    final_name = f"{prefix}{orig_asset_case}{middle}{new_index_str}{suffix}"
                     temp_name = f"__TEMP_RENAME_{file}"
 
-                    old_path = os.path.join(folder_path, file)
-                    temp_path = os.path.join(folder_path, temp_name)
+                    # Full path to the directory containing the file
+                    file_dir = os.path.dirname(os.path.join(folder_path, rel_path))
+
+                    old_path = os.path.join(file_dir, file)
+                    temp_path = os.path.join(file_dir, temp_name)
 
                     if self.dry_run.get():
-                        self.log(f"  [Dry Run] {file} -> {final_name}")
+                        self.log(f"  [Dry Run] {rel_path} -> {final_name}")
                     else:
                         os.rename(old_path, temp_path)
-                        temp_renames.append((temp_path, final_name, file))
-                        self.log(f"  [Temp] {file} -> {temp_name}")
+                        temp_renames.append((temp_path, final_name, rel_path))
+                        self.log(f"  [Temp] {rel_path} -> {temp_name}")
 
                 global_counters[asset_type] += 1
 
             if not self.dry_run.get():
-                for temp_path, final_name, orig_file in temp_renames:
+                for temp_path, final_name, rel_path in temp_renames:
                     final_path = os.path.join(os.path.dirname(temp_path), final_name)
                     os.rename(temp_path, final_path)
-                    self.log(f"  [Final] {orig_file} -> {final_name}")
+                    self.log(f"  [Final] {rel_path} -> {final_name}")
 
         self.log("\nProcessing complete.")
         messagebox.showinfo("Success", "Processing complete!")
