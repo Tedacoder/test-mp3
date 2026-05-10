@@ -2,36 +2,45 @@ lib.locale()
 
 -- Framework specific checking - adaptable for QBCore/ESX/Qbox
 local function getPlayerJob(source)
-    if Config.Framework == 'qbx' then
+    local qb = GetResourceState('qb-core') == 'started'
+    local esx = GetResourceState('es_extended') == 'started'
+    local qbox = GetResourceState('qbx_core') == 'started'
+
+    if qbox then
         local player = exports.qbx_core:GetPlayer(source)
         if player and player.PlayerData and player.PlayerData.job then
             return player.PlayerData.job.name
         end
-    elseif Config.Framework == 'qbcore' then
+    elseif qb then
         local QBCore = exports['qb-core']:GetCoreObject()
         local player = QBCore.Functions.GetPlayer(source)
         if player and player.PlayerData and player.PlayerData.job then
             return player.PlayerData.job.name
         end
-    elseif Config.Framework == 'esx' then
+    elseif esx then
         local ESX = exports['es_extended']:getSharedObject()
         local player = ESX.GetPlayerFromId(source)
         if player and player.job then
             return player.job.name
         end
     end
+
     return nil
 end
 
 local function removeMoney(source, amount)
-    if Config.Framework == 'qbx' then
+    local qb = GetResourceState('qb-core') == 'started'
+    local esx = GetResourceState('es_extended') == 'started'
+    local qbox = GetResourceState('qbx_core') == 'started'
+
+    if qbox then
         local player = exports.qbx_core:GetPlayer(source)
         return player.Functions.RemoveMoney('cash', amount, 'vehicle-inspection') or player.Functions.RemoveMoney('bank', amount, 'vehicle-inspection')
-    elseif Config.Framework == 'qbcore' then
+    elseif qb then
         local QBCore = exports['qb-core']:GetCoreObject()
         local player = QBCore.Functions.GetPlayer(source)
         return player.Functions.RemoveMoney('cash', amount, 'vehicle-inspection') or player.Functions.RemoveMoney('bank', amount, 'vehicle-inspection')
-    elseif Config.Framework == 'esx' then
+    elseif esx then
         local ESX = exports['es_extended']:getSharedObject()
         local player = ESX.GetPlayerFromId(source)
         if player.getMoney() >= amount then
@@ -42,35 +51,39 @@ local function removeMoney(source, amount)
             return true
         end
     end
+
     return false
 end
 
 local function giveItem(source, item, amount, metadata)
-    if Config.Inventory == 'ox_inventory' then
+    -- Attempt ox_inventory first as it's typically preferred if running
+    if GetResourceState('ox_inventory') == 'started' then
         exports.ox_inventory:AddItem(source, item, amount, metadata)
         return true
-    elseif Config.Inventory == 'qs-inventory' then
-        exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
+    end
+
+    local qb = GetResourceState('qb-core') == 'started'
+    local esx = GetResourceState('es_extended') == 'started'
+    local qbox = GetResourceState('qbx_core') == 'started'
+
+    if qbox then
+        local player = exports.qbx_core:GetPlayer(source)
+        player.Functions.AddItem(item, amount, false, metadata)
+        TriggerClientEvent('inventory:client:ItemBox', source, exports.qbx_core:GetCoreObject().Shared.Items[item], "add")
         return true
-    elseif Config.Inventory == 'qb-inventory' or Config.Framework == 'qbx' or Config.Framework == 'qbcore' then
-        if Config.Framework == 'qbx' then
-            local player = exports.qbx_core:GetPlayer(source)
-            player.Functions.AddItem(item, amount, false, metadata)
-            TriggerClientEvent('inventory:client:ItemBox', source, exports.qbx_core:GetSharedItems()[item], "add")
-            return true
-        elseif Config.Framework == 'qbcore' then
-            local QBCore = exports['qb-core']:GetCoreObject()
-            local player = QBCore.Functions.GetPlayer(source)
-            player.Functions.AddItem(item, amount, false, metadata)
-            TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[item], "add")
-            return true
-        end
-    elseif Config.Framework == 'esx' then
+    elseif qb then
+        local QBCore = exports['qb-core']:GetCoreObject()
+        local player = QBCore.Functions.GetPlayer(source)
+        player.Functions.AddItem(item, amount, false, metadata)
+        TriggerClientEvent('inventory:client:ItemBox', source, QBCore.Shared.Items[item], "add")
+        return true
+    elseif esx then
         local ESX = exports['es_extended']:getSharedObject()
         local player = ESX.GetPlayerFromId(source)
         player.addInventoryItem(item, amount)
         return true
     end
+
     return false
 end
 
@@ -91,16 +104,6 @@ lib.callback.register('vehicle_inspection:checkSticker', function(source, plate)
     if result then
         if result.failed_parts then
             result.failed_parts = json.decode(result.failed_parts)
-        end
-
-        -- Pre-format dates on the server to prevent client-side os.date nil crashes
-        result.formatted_expiry = result.expiry and os.date('%m/%d/%Y', result.expiry) or 'N/A'
-        if result.failed_date then
-            result.formatted_failed_date = os.date('%m/%d/%Y', result.failed_date)
-            result.formatted_impound_date = os.date('%m/%d/%Y', result.failed_date + Config.Timeframes.GracePeriod)
-        else
-            result.formatted_failed_date = 'N/A'
-            result.formatted_impound_date = 'N/A'
         end
         return result
     end

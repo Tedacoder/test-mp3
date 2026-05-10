@@ -194,18 +194,33 @@ local function performInspection(vehicle)
     end
 end
 
--- Ox Target for Mechanic Inspection
-exports.ox_target:addGlobalVehicle({
-    {
-        name = 'mechanic_inspect',
-        icon = 'fa-solid fa-clipboard-check',
-        label = locale('inspect_vehicle'),
-        items = Config.Items.Clipboard,
-        onSelect = function(data)
-            performInspection(data.entity)
-        end
+-- Target for Mechanic Inspection
+local function SetupMechanicTarget()
+    local options = {
+        {
+            name = 'mechanic_inspect',
+            icon = 'fa-solid fa-clipboard-check',
+            label = locale('inspect_vehicle'),
+            item = Config.Items.Clipboard, -- qb-target/qtarget uses item
+            items = Config.Items.Clipboard, -- ox_target uses items
+            action = function(entity)
+                performInspection(entity)
+            end,
+            onSelect = function(data)
+                performInspection(data.entity)
+            end
+        }
     }
-})
+
+    if Config.Target == 'ox_target' then
+        exports.ox_target:addGlobalVehicle(options)
+    elseif Config.Target == 'qb-target' then
+        exports['qb-target']:AddGlobalVehicle({ options = options, distance = 3.0 })
+    elseif Config.Target == 'qtarget' then
+        exports.qtarget:Vehicle({ options = options, distance = 3.0 })
+    end
+end
+SetupMechanicTarget()
 
 local function checkSticker(vehicle)
     if not vehicle or vehicle == 0 then return end
@@ -238,7 +253,7 @@ local function checkSticker(vehicle)
         local data = lib.callback.await('vehicle_inspection:checkSticker', false, plate)
         if data then
             local statusLocale = locale('status_' .. string.lower(data.status)) or data.status
-            local expiryDate = data.expiry and os.date('%m/%d/%Y', data.expiry) or 'N/A'
+            local expiryDate = data.formatted_expiry or 'N/A'
 
             local extraWarning = ''
             if data.status == 'Fake' then
@@ -253,8 +268,8 @@ local function checkSticker(vehicle)
             })
 
             if data.status == 'Failed' then
-                local failedDate = data.failed_date and os.date('%m/%d/%Y', data.failed_date) or 'N/A'
-                local impoundDate = data.failed_date and os.date('%m/%d/%Y', data.failed_date + Config.Timeframes.GracePeriod) or 'N/A'
+                local failedDate = data.formatted_failed_date or 'N/A'
+                local impoundDate = data.formatted_impound_date or 'N/A'
                 local parts = type(data.failed_parts) == 'table' and table.concat(data.failed_parts, ', ') or data.failed_parts
 
                 -- Print to chat as a report for police
@@ -274,17 +289,31 @@ local function checkSticker(vehicle)
     end
 end
 
--- Ox Target for Police Sticker Check
-exports.ox_target:addGlobalVehicle({
-    {
-        name = 'police_check_sticker',
-        icon = 'fa-solid fa-magnifying-glass',
-        label = locale('check_sticker'),
-        onSelect = function(data)
-            checkSticker(data.entity)
-        end
+-- Target for Police Sticker Check
+local function SetupPoliceTarget()
+    local options = {
+        {
+            name = 'police_check_sticker',
+            icon = 'fa-solid fa-magnifying-glass',
+            label = locale('check_sticker'),
+            action = function(entity)
+                checkSticker(entity)
+            end,
+            onSelect = function(data)
+                checkSticker(data.entity)
+            end
+        }
     }
-})
+
+    if Config.Target == 'ox_target' then
+        exports.ox_target:addGlobalVehicle(options)
+    elseif Config.Target == 'qb-target' then
+        exports['qb-target']:AddGlobalVehicle({ options = options, distance = 3.0 })
+    elseif Config.Target == 'qtarget' then
+        exports.qtarget:Vehicle({ options = options, distance = 3.0 })
+    end
+end
+SetupPoliceTarget()
 
 -- Enforce Custom Plate Style
 if Config.PlateStyle then
@@ -393,15 +422,30 @@ local function viewReport(vehicle)
     end
 end
 
--- Ox Target for Mechanic View Report
-exports.ox_target:addGlobalVehicle({
-    {
-        name = 'mechanic_view_report',
-        icon = 'fa-solid fa-clipboard-list',
-        label = locale('view_report'),
-        items = Config.Items.Clipboard,
-        onSelect = function(data)
-            viewReport(data.entity)
-        end
+-- Target for Mechanic View Report
+local function SetupViewReportTarget()
+    local options = {
+        {
+            name = 'mechanic_view_report',
+            icon = 'fa-solid fa-clipboard-list',
+            label = locale('view_report'),
+            item = Config.Items.Clipboard,
+            items = Config.Items.Clipboard,
+            action = function(entity)
+                viewReport(entity)
+            end,
+            onSelect = function(data)
+                viewReport(data.entity)
+            end
+        }
     }
-})
+
+    if Config.Target == 'ox_target' then
+        exports.ox_target:addGlobalVehicle(options)
+    elseif Config.Target == 'qb-target' then
+        exports['qb-target']:AddGlobalVehicle({ options = options, distance = 3.0 })
+    elseif Config.Target == 'qtarget' then
+        exports.qtarget:Vehicle({ options = options, distance = 3.0 })
+    end
+end
+SetupViewReportTarget()

@@ -1,0 +1,41 @@
+--- vehicle_inspection/server/main.lua
++++ vehicle_inspection/server/main.lua
+@@ -63,6 +63,16 @@
+         if result.failed_parts then
+             result.failed_parts = json.decode(result.failed_parts)
+         end
++
++        -- Pre-format dates on the server to prevent client-side os.date nil crashes
++        result.formatted_expiry = result.expiry and os.date('%m/%d/%Y', result.expiry) or 'N/A'
++        if result.failed_date then
++            result.formatted_failed_date = os.date('%m/%d/%Y', result.failed_date)
++            result.formatted_impound_date = os.date('%m/%d/%Y', result.failed_date + Config.Timeframes.GracePeriod)
++        else
++            result.formatted_failed_date = 'N/A'
++            result.formatted_impound_date = 'N/A'
++        end
+         return result
+     end
+     return nil
+--- vehicle_inspection/client/main.lua
++++ vehicle_inspection/client/main.lua
+@@ -238,7 +238,7 @@
+         local data = lib.callback.await('vehicle_inspection:checkSticker', false, plate)
+         if data then
+             local statusLocale = locale('status_' .. string.lower(data.status)) or data.status
+-            local expiryDate = data.expiry and os.date('%m/%d/%Y', data.expiry) or 'N/A'
++            local expiryDate = data.formatted_expiry or 'N/A'
+
+             local extraWarning = ''
+             if data.status == 'Fake' then
+@@ -253,8 +253,8 @@
+             })
+
+             if data.status == 'Failed' then
+-                local failedDate = data.failed_date and os.date('%m/%d/%Y', data.failed_date) or 'N/A'
+-                local impoundDate = data.failed_date and os.date('%m/%d/%Y', data.failed_date + Config.Timeframes.GracePeriod) or 'N/A'
++                local failedDate = data.formatted_failed_date or 'N/A'
++                local impoundDate = data.formatted_impound_date or 'N/A'
+                 local parts = type(data.failed_parts) == 'table' and table.concat(data.failed_parts, ', ') or data.failed_parts
+
+                 -- Print to chat as a report for police

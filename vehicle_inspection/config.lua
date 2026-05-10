@@ -48,3 +48,8 @@ Config.Items = {
 -- Set to false to disable enforcing a plate style.
 -- Set to a number (e.g., 3) to enforce that texture ID from vehshare.ytd.
 Config.PlateStyle = 3
+
+-- System Dependencies
+Config.Framework = 'qbx' -- Options: 'qbx', 'qbcore', 'esx', 'standalone'
+Config.Inventory = 'qs-inventory' -- Options: 'ox_inventory', 'qs-inventory', 'qb-inventory'
+Config.Target = 'ox_target' -- Options: 'ox_target', 'qb-target', 'qtarget'
