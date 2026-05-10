@@ -2,14 +2,22 @@ local qbox = GetResourceState('qbx_core') == 'started'
 local qb = GetResourceState('qb-core') == 'started'
 local esx = GetResourceState('es_extended') == 'started'
 
-if qbox or qb then
-    local core = qbox and exports.qbx_core or exports['qb-core']:GetCoreObject()
-
-    core.Functions.CreateUseableItem('cosmetic_part', function(source, item)
+if qbox then
+    exports.qbx_core:CreateUseableItem('cosmetic_part', function(source, item)
         TriggerClientEvent('vehicle_inspection:client:repairWindows', source)
     end)
 
-    core.Functions.CreateUseableItem('tyre_replacement', function(source, item)
+    exports.qbx_core:CreateUseableItem('tyre_replacement', function(source, item)
+        TriggerClientEvent('vehicle_inspection:client:repairTires', source)
+    end)
+elseif qb then
+    local QBCore = exports['qb-core']:GetCoreObject()
+
+    QBCore.Functions.CreateUseableItem('cosmetic_part', function(source, item)
+        TriggerClientEvent('vehicle_inspection:client:repairWindows', source)
+    end)
+
+    QBCore.Functions.CreateUseableItem('tyre_replacement', function(source, item)
         TriggerClientEvent('vehicle_inspection:client:repairTires', source)
     end)
 elseif esx then
