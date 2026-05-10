@@ -38,8 +38,9 @@ local function performInspection(vehicle)
         },
         prop = isMechanic and {
             model = `p_amb_clipboard_01`,
-            pos = vec3(0.03, 0.08, 0.02),
-            rot = vec3(-90.0, 0.0, 0.0)
+            bone = 18905,
+            pos = vec3(0.10, 0.02, 0.08),
+            rot = vec3(-80.0, 0.0, 0.0)
         } or nil,
     }) then
         local failedParts = {}
@@ -304,3 +305,103 @@ if Config.PlateStyle then
         end
     end)
 end
+
+local function viewReport(vehicle)
+    if not vehicle or vehicle == 0 then return end
+
+    local isMechanic = lib.callback.await('vehicle_inspection:checkJob', false, 'mechanic')
+    if not isMechanic then
+        lib.notify({title = 'Error', description = 'You are not authorized.', type = 'error'})
+        return
+    end
+
+    local plate = GetVehicleNumberPlateText(vehicle)
+    if not plate then return end
+    plate = string.gsub(plate, '^%s*(.-)%s*$', '%1')
+
+    if lib.progressBar({
+        duration = 2000,
+        label = locale('checking_report'),
+        useWhileDead = false,
+        canCancel = true,
+        disable = {
+            car = true,
+            move = true,
+            combat = true,
+        },
+        anim = {
+            dict = 'missheistdockssetup1clipboard@base',
+            clip = 'base'
+        },
+        prop = {
+            model = `p_amb_clipboard_01`,
+            bone = 18905,
+            pos = vec3(0.10, 0.02, 0.08),
+            rot = vec3(-80.0, 0.0, 0.0)
+        },
+    }) then
+        local data = lib.callback.await('vehicle_inspection:checkSticker', false, plate)
+        if data and data.status then
+            -- Let's open a context menu to show the details
+            local partsOptions = {}
+            local failedPartsTbl = {}
+            if data.failed_parts and type(data.failed_parts) == 'table' then
+                for _, part in ipairs(data.failed_parts) do
+                    failedPartsTbl[part] = true
+                end
+            end
+
+            local allParts = {
+                locale('part_engine'),
+                locale('part_body'),
+                locale('part_tank'),
+                locale('part_brakes'),
+                locale('part_lighting'),
+                locale('part_tires'),
+                locale('part_windows'),
+                locale('part_doors')
+            }
+
+            for _, part in ipairs(allParts) do
+                local isFailed = failedPartsTbl[part]
+                local icon = isFailed and 'fa-solid fa-xmark' or 'fa-solid fa-check'
+                local color = isFailed and '#ff3333' or '#33cc33'
+                local desc = isFailed and locale('status_failed') or locale('status_passed')
+
+                table.insert(partsOptions, {
+                    title = part,
+                    description = desc,
+                    icon = icon,
+                    iconColor = color,
+                })
+            end
+
+            lib.registerContext({
+                id = 'inspection_report_menu',
+                title = string.format(locale('report_title'), plate),
+                options = partsOptions
+            })
+
+            lib.showContext('inspection_report_menu')
+        else
+            lib.notify({
+                title = 'Diagnostic Report',
+                description = locale('status_none'),
+                type = 'inform'
+            })
+        end
+    end
+end
+
+-- Ox Target for Mechanic View Report
+exports.ox_target:addGlobalVehicle({
+    {
+        name = 'mechanic_view_report',
+        icon = 'fa-solid fa-clipboard-list',
+        label = locale('view_report'),
+        items = Config.Items.Clipboard,
+        onSelect = function(data)
+            viewReport(data.entity)
+        end
+    }
+})
