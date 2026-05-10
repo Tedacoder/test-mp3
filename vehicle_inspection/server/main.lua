@@ -113,6 +113,22 @@ end)
 lib.callback.register('vehicle_inspection:submitInspection', function(source, plate, status, failedParts, targetServerId)
     local src = source
     local target = targetServerId or src
+
+    if target ~= src then
+        local srcPed = GetPlayerPed(src)
+        local targetPed = GetPlayerPed(target)
+        if srcPed ~= 0 and targetPed ~= 0 then
+            local srcCoords = GetEntityCoords(srcPed)
+            local targetCoords = GetEntityCoords(targetPed)
+            local distance = #(srcCoords - targetCoords)
+            if distance > 5.0 then
+                return false, "Target player is too far away."
+            end
+        else
+            return false, "Target player not found."
+        end
+    end
+
     local currentTime = os.time()
     local shopId = getPlayerJob(src) -- or use an actual shop ID if available
 

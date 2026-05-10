@@ -7,8 +7,7 @@ version '1.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
-    'config.lua',
-    'locales/*.json'
+    'config.lua'
 }
 
 client_scripts {
@@ -24,4 +23,8 @@ dependencies {
     'ox_lib',
     'ox_mysql',
     'ox_target'
+}
+
+files {
+    'locales/*.json'
 }
