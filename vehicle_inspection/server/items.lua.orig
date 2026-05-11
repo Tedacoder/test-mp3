@@ -18,14 +18,6 @@ elseif Config.Inventory == 'qs-inventory' then
     exports['qs-inventory']:CreateUsableItem('tyre_replacement', function(source, item)
         TriggerClientEvent('vehicle_inspection:client:repairTires', source)
     end)
-elseif Config.Inventory == 'qb-inventory' and Config.Framework == 'qbx' then
-    -- For qbx servers using qb-inventory or bridging it, or natively through qbx_core
-    exports.qbx_core:CreateUseableItem('cosmetic_part', function(source, item)
-        TriggerClientEvent('vehicle_inspection:client:repairWindows', source)
-    end)
-    exports.qbx_core:CreateUseableItem('tyre_replacement', function(source, item)
-        TriggerClientEvent('vehicle_inspection:client:repairTires', source)
-    end)
 elseif Config.Inventory == 'qb-inventory' and Config.Framework == 'qbcore' then
     local QBCore = exports['qb-core']:GetCoreObject()
     QBCore.Functions.CreateUseableItem('cosmetic_part', function(source, item)

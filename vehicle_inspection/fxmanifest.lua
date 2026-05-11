@@ -24,7 +24,6 @@ server_scripts {
 dependencies {
     'ox_lib',
     'oxmysql',
-    'ox_target'
 }
 
 files {
