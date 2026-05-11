@@ -1,14 +1,14 @@
 if Config.Inventory == 'ox_inventory' then
-    exports('repairWindowsItem', function(event, item, inventory, slot, data)
+    exports('cosmetic_part', function(event, item, inventory, slot, data)
         if event == 'usingItem' then
             TriggerClientEvent('vehicle_inspection:client:repairWindows', inventory.id)
-            return true
+            return false
         end
     end)
-    exports('repairTiresItem', function(event, item, inventory, slot, data)
+    exports('tyre_replacement', function(event, item, inventory, slot, data)
         if event == 'usingItem' then
             TriggerClientEvent('vehicle_inspection:client:repairTires', inventory.id)
-            return true
+            return false
         end
     end)
 elseif Config.Inventory == 'qs-inventory' then

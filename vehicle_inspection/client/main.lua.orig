@@ -201,6 +201,10 @@ local function SetupMechanicTarget()
             name = 'mechanic_inspect',
             icon = 'fa-solid fa-clipboard-check',
             label = locale('inspect_vehicle'),
+            canInteract = function(entity)
+                return lib.callback.await('vehicle_inspection:checkJob', false, 'mechanic')
+            end,
+            job = 'mechanic',
             item = Config.Items.Clipboard,
             items = Config.Items.Clipboard,
             action = function(entity)
@@ -296,6 +300,10 @@ local function SetupPoliceTarget()
             name = 'police_check_sticker',
             icon = 'fa-solid fa-magnifying-glass',
             label = locale('check_sticker'),
+            canInteract = function(entity)
+                return lib.callback.await('vehicle_inspection:checkJob', false, 'police')
+            end,
+            job = 'police',
             action = function(entity)
                 checkSticker(entity)
             end,
@@ -429,6 +437,10 @@ local function SetupViewReportTarget()
             name = 'mechanic_view_report',
             icon = 'fa-solid fa-clipboard-list',
             label = locale('view_report'),
+            canInteract = function(entity)
+                return lib.callback.await('vehicle_inspection:checkJob', false, 'mechanic')
+            end,
+            job = 'mechanic',
             item = Config.Items.Clipboard,
             items = Config.Items.Clipboard,
             action = function(entity)
