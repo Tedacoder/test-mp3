@@ -18,14 +18,6 @@ elseif Config.Inventory == 'qs-inventory' then
     exports['qs-inventory']:CreateUsableItem('tyre_replacement', function(source, item)
         TriggerClientEvent('vehicle_inspection:client:repairTires', source)
     end)
-elseif Config.Inventory == 'qb-inventory' and Config.Framework == 'qbx' then
-    -- For qbx servers using qb-inventory or bridging it, or natively through qbx_core
-    exports.qbx_core:CreateUseableItem('cosmetic_part', function(source, item)
-        TriggerClientEvent('vehicle_inspection:client:repairWindows', source)
-    end)
-    exports.qbx_core:CreateUseableItem('tyre_replacement', function(source, item)
-        TriggerClientEvent('vehicle_inspection:client:repairTires', source)
-    end)
 elseif Config.Inventory == 'qb-inventory' and Config.Framework == 'qbcore' then
     local QBCore = exports['qb-core']:GetCoreObject()
     QBCore.Functions.CreateUseableItem('cosmetic_part', function(source, item)
@@ -34,7 +26,7 @@ elseif Config.Inventory == 'qb-inventory' and Config.Framework == 'qbcore' then
     QBCore.Functions.CreateUseableItem('tyre_replacement', function(source, item)
         TriggerClientEvent('vehicle_inspection:client:repairTires', source)
     end)
-elseif Config.Framework == 'esx' then
+elseif Config.Framework == 'esx' and Config.Inventory ~= 'ox_inventory' and Config.Inventory ~= 'qs-inventory' then
     local ESX = exports['es_extended']:getSharedObject()
     ESX.RegisterUsableItem('cosmetic_part', function(source)
         TriggerClientEvent('vehicle_inspection:client:repairWindows', source)
@@ -52,6 +44,7 @@ RegisterNetEvent('vehicle_inspection:server:removeItem', function(item)
         exports['qs-inventory']:RemoveItem(src, item, 1)
     elseif Config.Inventory == 'qb-inventory' or Config.Framework == 'qbcore' or Config.Framework == 'qbx' then
         if Config.Framework == 'qbx' then
+            -- qbx natively enforces ox_inventory, but if using qb bridge we just use qbx_core
             local player = exports.qbx_core:GetPlayer(src)
             player.Functions.RemoveItem(item, 1)
         elseif Config.Framework == 'qbcore' then
