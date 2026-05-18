@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tha Crack Era - Telecom</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body style="display: none;" id="app-root">
@@ -21,7 +23,7 @@
             <div id="status-bar">
                 <span id="time-display">12:00</span>
                 <div class="status-right">
-                    <span id="network-signal">5G</span>
+                    <span id="network-signal"><i class="fa-solid fa-signal"></i> 5G</span>
                     <span id="battery-indicator">100%</span>
                 </div>
             </div>
@@ -30,34 +32,34 @@
                 <!-- Home Screen Grid -->
                 <div id="home-screen">
                     <div class="app-grid">
-                        <div class="app-icon" data-app="messages"><div class="icon-inner msg-icon"></div>Messages</div>
-                        <div class="app-icon" data-app="camera"><div class="icon-inner cam-icon"></div>Camera</div>
-                        <div class="app-icon" data-app="photos"><div class="icon-inner photo-icon"></div>Photos</div>
-                        <div class="app-icon" data-app="clock"><div class="icon-inner clock-icon"></div>Clock</div>
+                        <div class="app-icon" data-app="messages"><div class="icon-inner msg-icon"><i class="fa-solid fa-comment"></i></div>Messages</div>
+                        <div class="app-icon" data-app="camera"><div class="icon-inner cam-icon"><i class="fa-solid fa-camera"></i></div>Camera</div>
+                        <div class="app-icon" data-app="photos"><div class="icon-inner photo-icon"><i class="fa-solid fa-image" style="color: #444;"></i></div>Photos</div>
+                        <div class="app-icon" data-app="clock"><div class="icon-inner clock-icon"><i class="fa-regular fa-clock" style="color: #fa8c16;"></i></div>Clock</div>
 
-                        <div class="app-icon" data-app="notes"><div class="icon-inner notes-icon"></div>Notes</div>
-                        <div class="app-icon" data-app="calculator"><div class="icon-inner calc-icon"></div>Calculator</div>
-                        <div class="app-icon" data-app="settings"><div class="icon-inner set-icon"></div>Settings</div>
-                        <div class="app-icon" data-app="gps"><div class="icon-inner gps-icon"></div>Maps</div>
+                        <div class="app-icon" data-app="notes"><div class="icon-inner notes-icon"><i class="fa-solid fa-file-lines" style="color: #b08d00;"></i></div>Notes</div>
+                        <div class="app-icon" data-app="calculator"><div class="icon-inner calc-icon"><i class="fa-solid fa-calculator"></i></div>Calculator</div>
+                        <div class="app-icon" data-app="settings"><div class="icon-inner set-icon"><i class="fa-solid fa-gear"></i></div>Settings</div>
+                        <div class="app-icon" data-app="gps"><div class="icon-inner gps-icon"><i class="fa-solid fa-map-location-dot"></i></div>Maps</div>
 
-                        <div class="app-icon" data-app="store"><div class="icon-inner store-icon"></div>Store</div>
-                        <div class="app-icon" data-app="bank"><div class="icon-inner bank-icon"></div>Bank</div>
-                        <div class="app-icon" data-app="whatnot"><div class="icon-inner whatnot-icon"></div>Whatnot</div>
-                        <div class="app-icon" data-app="facespace"><div class="icon-inner fb-icon"></div>FaceSpace</div>
+                        <div class="app-icon" data-app="store"><div class="icon-inner store-icon"><i class="fa-brands fa-app-store-ios"></i></div>Store</div>
+                        <div class="app-icon" data-app="bank"><div class="icon-inner bank-icon"><i class="fa-solid fa-building-columns" style="color: #FFD700;"></i></div>Bank</div>
+                        <div class="app-icon" data-app="whatnot"><div class="icon-inner whatnot-icon"><i class="fa-solid fa-store" style="color: #000;"></i></div>Whatnot</div>
+                        <div class="app-icon" data-app="facespace"><div class="icon-inner fb-icon"><i class="fa-brands fa-facebook-f"></i></div>FaceSpace</div>
                     </div>
 
                     <!-- Dock (iTones specific typically) -->
                     <div id="app-dock">
-                        <div class="app-icon" data-app="phone"><div class="icon-inner phone-icon"></div></div>
-                        <div class="app-icon" data-app="browser"><div class="icon-inner web-icon"></div></div>
-                        <div class="app-icon" data-app="mail"><div class="icon-inner mail-icon"></div></div>
+                        <div class="app-icon" data-app="phone"><div class="icon-inner phone-icon"><i class="fa-solid fa-phone"></i></div></div>
+                        <div class="app-icon" data-app="browser"><div class="icon-inner web-icon"><i class="fa-solid fa-compass"></i></div></div>
+                        <div class="app-icon" data-app="mail"><div class="icon-inner mail-icon"><i class="fa-solid fa-envelope"></i></div></div>
                     </div>
                 </div>
 
                 <!-- Active App Container -->
                 <div id="app-container" class="hidden">
                     <div class="app-header">
-                        <button id="btn-home"><- Home</button>
+                        <button id="btn-home"><i class="fa-solid fa-chevron-left"></i> Home</button>
                         <h3 id="app-title">App</h3>
                     </div>
                     <div id="app-body" style="padding: 20px; text-align: center; color: #888;">
@@ -69,7 +71,7 @@
             <!-- Hardware Buttons -->
             <div id="physical-buttons">
                 <!-- Hidden by default, shown for Star -->
-                <button id="btn-privacy" class="hidden">Toggle Privacy Screen</button>
+                <button id="btn-privacy" class="hidden"><i class="fa-solid fa-eye-slash"></i> Privacy</button>
             </div>
 
             <!-- Home Indicator (iTones bar) -->
