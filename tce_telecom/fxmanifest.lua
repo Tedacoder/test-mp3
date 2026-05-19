@@ -11,12 +11,14 @@ shared_scripts {
     'shared/utils.lua',
     'bridge/framework/*.lua',
     'bridge/inventory/*.lua',
-    'bridge/target/*.lua'
+    'bridge/target/*.lua',
+    'bridge/banking/*.lua'
 }
 
 client_scripts {
     'client/core.lua',
     'client/hardware.lua',
+    'client/apps.lua',
     'client/camera.lua',
     'client/target.lua',
     'client/infrastructure.lua'

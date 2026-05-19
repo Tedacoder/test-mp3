@@ -7,10 +7,45 @@ Citizen.CreateThread(function()
 
         local ped = PlayerPedId()
         if IsPedSwimmingUnderWater(ped) then
-            -- Note: In a full implementation, you would trigger a server callback
-            -- here to check the player's inventory for a waterproof case.
-            -- If no case is found, trigger a server event to update the phone metadata to `water_damaged = true`
+            if math.random(1, 100) <= Config.WaterDamageChance then
+                -- Trigger server to check for waterproof case item
+                -- If no case, it sets water_damaged metadata to true on the phone item
+                TriggerServerEvent('tce_telecom:server:ProcessWaterDamage')
+            end
         end
+    end
+end)
+
+-- High Speed Crash / Screen Cracking Loop
+Citizen.CreateThread(function()
+    local lastSpeed = 0
+    while true do
+        Wait(500)
+        local ped = PlayerPedId()
+        if IsPedInAnyVehicle(ped, false) then
+            local vehicle = GetVehiclePedIsIn(ped, false)
+            local currentSpeed = GetEntitySpeed(vehicle) * 2.236936 -- convert m/s to mph
+
+            -- Detect rapid deceleration (crash)
+            if lastSpeed > 60.0 and currentSpeed < 10.0 then
+                -- 20% chance to crack screen on severe crash
+                if math.random(1, 100) <= 20 then
+                    TriggerServerEvent('tce_telecom:server:ProcessScreenDamage')
+                end
+            end
+            lastSpeed = currentSpeed
+        else
+            lastSpeed = 0
+        end
+    end
+end)
+
+-- Battery Depletion Loop
+Citizen.CreateThread(function()
+    while true do
+        -- Deplete every 60 seconds based on Config rate
+        Wait(60000)
+        TriggerServerEvent('tce_telecom:server:DepleteBattery', Config.BatteryDecayRate)
     end
 end)
 
