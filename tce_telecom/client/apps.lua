@@ -19,7 +19,8 @@ end)
 
 -- NUI Callback: Delete Contact
 RegisterNUICallback('deleteContact', function(data, cb)
-    local success = lib.callback.await('tce_telecom:server:DeleteContact', false, data.id)
+    local imei = data.imei or "1234567890"
+    local success = lib.callback.await('tce_telecom:server:DeleteContact', false, data.id, imei)
     cb({ success = success })
 end)
 
