@@ -34,3 +34,27 @@ RegisterNUICallback('getDirectory', function(data, cb)
     local directory = lib.callback.await('tce_telecom:server:GetDirectory', false)
     cb(directory)
 end)
+
+-- NUI Callback: Get Jobs
+RegisterNUICallback('getJobs', function(data, cb)
+    local jobs = lib.callback.await('tce_telecom:server:GetJobs', false)
+    cb(jobs)
+end)
+
+-- NUI Callback: Apply for Job
+RegisterNUICallback('applyForJob', function(data, cb)
+    local success = lib.callback.await('tce_telecom:server:ApplyForJob', false, data.id)
+    cb({ success = success })
+end)
+
+-- NUI Callback: Get Social Posts
+RegisterNUICallback('getSocialPosts', function(data, cb)
+    local posts = lib.callback.await('tce_telecom:server:GetSocialPosts', false)
+    cb(posts)
+end)
+
+-- NUI Callback: Create Social Post
+RegisterNUICallback('createSocialPost', function(data, cb)
+    local success = lib.callback.await('tce_telecom:server:CreateSocialPost', false, data.content)
+    cb({ success = success })
+end)

@@ -22,11 +22,15 @@ Citizen.CreateThread(function()
             if pole ~= 0 then
                 -- Check if pole is destroyed/broken
                 if HasEntityBeenDamagedByWeapon(pole, 0, 2) or GetEntityHealth(pole) <= 0 then
-                    local poleCoords = GetEntityCoords(pole)
-                    TriggerServerEvent('tce_telecom:server:PoleDestroyed', poleCoords)
+                    -- Only trigger if this specific entity hasn't already been reported
+                    if not Entity(pole).state.isDestroyed then
+                        local poleCoords = GetEntityCoords(pole)
+                        TriggerServerEvent('tce_telecom:server:PoleDestroyed', poleCoords)
 
-                    -- Reset damage so we don't spam
-                    ClearEntityLastDamageEntity(pole)
+                        -- Set local statebag to prevent endless spam
+                        Entity(pole).state:set('isDestroyed', true, false)
+                        ClearEntityLastDamageEntity(pole)
+                    end
                 end
             end
         end

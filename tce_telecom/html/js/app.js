@@ -137,6 +137,88 @@ function renderContactsApp(data) {
     return html;
 }
 
+function renderJobCenterApp(data) {
+    let html = `
+        <div style="display:flex; flex-direction:column; height:100%;">
+            <h4 style="margin-bottom: 10px; text-align: left;">City Job Center</h4>
+            <div style="overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:8px;">
+    `;
+
+    let jobs = data ? data : [
+        {id: "police", name: "LSPD Officer", salary: 150},
+        {id: "telecom", name: "TCE Field Tech", salary: 95}
+    ];
+
+    jobs.forEach(job => {
+        html += `
+            <div style="display:flex; align-items:center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border-left: 4px solid #007AFF;">
+                <div style="flex-grow:1;">
+                    <div style="color:var(--text-main); font-size:14px; font-weight:500;">${job.name}</div>
+                    <div style="color:var(--text-sub); font-size:11px;">Salary: $${job.salary}/hr</div>
+                </div>
+                <button class="btn-ghost btn-apply-job" data-jobid="${job.id}" style="color:#007AFF; border-color:#007AFF;">Apply</button>
+            </div>
+        `;
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+function renderSocialApp(data) {
+    let html = `
+        <div style="display:flex; flex-direction:column; height:100%;">
+            <h4 style="margin-bottom: 10px; text-align: left; color:#1877F2;">FaceSpace</h4>
+
+            <div style="display:flex; gap:5px; margin-bottom: 15px;">
+                <input type="text" id="social-post-input" placeholder="What's on your mind?" style="flex-grow:1; padding: 8px 12px; border-radius: 15px; border:none; background:rgba(255,255,255,0.1); color:white; outline:none;">
+                <button id="btn-post-social" style="padding: 8px 15px; border-radius: 15px; border:none; background:#1877F2; color:white; font-weight:bold; cursor:pointer;">Post</button>
+            </div>
+
+            <div style="overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:10px;">
+    `;
+
+    let posts = data ? data : [
+        {username: "Jules_Dev", display_name: "Jules", content: "Just moved into the city, let's go! #NewHere"},
+        {username: "LSPD_Official", display_name: "LSPD", content: "Stay safe out there. Lock your doors."},
+        {username: "MechanicMike", display_name: "Mike", content: "Benny's is open! Come get a tune up."}
+    ];
+
+    // Helper function to escape HTML to prevent XSS
+    function escapeHtml(unsafe) {
+        return (unsafe || "").toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    if (posts.length === 0) {
+        html += `<div style="text-align:center; color:var(--text-sub); margin-top:20px;">No posts yet. Be the first!</div>`;
+    } else {
+        posts.forEach(post => {
+            let safeName = escapeHtml(post.display_name);
+            let safeUser = escapeHtml(post.username);
+            let safeContent = escapeHtml(post.content);
+
+            html += `
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; text-align:left;">
+                    <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 8px;">
+                        <div style="width:30px; height:30px; border-radius:50%; background: #1877F2; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">${safeName.charAt(0)}</div>
+                        <div>
+                            <div style="color:var(--text-main); font-size:13px; font-weight:bold;">${safeName}</div>
+                            <div style="color:var(--text-sub); font-size:10px;">@${safeUser}</div>
+                        </div>
+                    </div>
+                    <div style="color:white; font-size:12px; line-height:1.4; overflow-wrap:break-word;">${safeContent}</div>
+                </div>
+            `;
+        });
+    }
+    html += `</div></div>`;
+    return html;
+}
+
 function renderDirectoryApp(data) {
     let html = `
         <div style="display:flex; flex-direction:column; height:100%;">
@@ -316,6 +398,7 @@ function setupGamesListeners() {
         resetGame();
         isPlaying = true;
         gameLoop = setInterval(loop, 20); // ~50 fps
+        window.currentGameLoop = gameLoop; // Save to global scope for cleanup
     });
 
     // Tap to flap
@@ -450,11 +533,29 @@ function setupMusicAppListeners() {
     });
 }
 
+// App Cleanup routines
+function cleanupActiveApp() {
+    // 1. Stop background audio streams
+    if (window.currentAudioPlayer) {
+        window.currentAudioPlayer.pause();
+        window.currentAudioPlayer.src = "";
+        window.currentAudioPlayer = null;
+    }
+
+    // 2. Stop running game loops
+    if (window.currentGameLoop) {
+        clearInterval(window.currentGameLoop);
+        window.currentGameLoop = null;
+    }
+}
+
 // App Click Handlers
 document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
     icon.addEventListener('click', (e) => {
         let appName = e.currentTarget.getAttribute('data-app');
         if(!appName) return;
+
+        cleanupActiveApp();
 
         document.getElementById('app-title').innerText = appName.charAt(0).toUpperCase() + appName.slice(1);
         let appBody = document.getElementById('app-view-body');
@@ -494,6 +595,81 @@ document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
             document.getElementById('app-title').innerText = "Camera";
             appBody.innerHTML = renderCameraApp();
             setupCameraAppListeners();
+        } else if (appName === 'facespace') {
+            document.getElementById('app-title').innerText = "FaceSpace";
+            appBody.innerHTML = renderSocialApp(null);
+
+            function bindSocialEvents() {
+                let postBtn = document.getElementById('btn-post-social');
+                if(postBtn) {
+                    postBtn.addEventListener('click', () => {
+                        let content = document.getElementById('social-post-input').value;
+                        if(content) {
+                            fetch(`https://${GetParentResourceName()}/createSocialPost`, { method: 'POST', body: JSON.stringify({content: content}) })
+                            .then(() => {
+                                // Refresh posts
+                                fetch(`https://${GetParentResourceName()}/getSocialPosts`, { method: 'POST', body: JSON.stringify({}) })
+                                .then(res => res.json()).then(newData => {
+                                    appBody.innerHTML = renderSocialApp(newData);
+                                    bindSocialEvents(); // Rebind after DOM redraw
+                                });
+                            });
+                        }
+                    });
+                }
+            }
+
+            // In FiveM:
+            if (window.invokeNative) {
+                fetch(`https://${GetParentResourceName()}/getSocialPosts`, { method: 'POST', body: JSON.stringify({}) })
+                .then(res => res.json()).then(data => {
+                    appBody.innerHTML = renderSocialApp(data);
+                    bindSocialEvents();
+                });
+            }
+        } else if (appName === 'settings') {
+            document.getElementById('app-title').innerText = "Jobs";
+            appBody.innerHTML = renderJobCenterApp(null);
+
+            function bindJobEvents() {
+                document.querySelectorAll('.btn-apply-job').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        let jobId = e.currentTarget.getAttribute('data-jobid');
+                        // Fake fetch for browser testing
+                        if(!window.invokeNative) {
+                            e.currentTarget.innerText = "Applied";
+                            e.currentTarget.disabled = true;
+                            e.currentTarget.style.opacity = '0.5';
+                            return;
+                        }
+
+                        fetch(`https://${GetParentResourceName()}/applyForJob`, { method: 'POST', body: JSON.stringify({id: jobId}) })
+                        .then(res => res.json()).then(data => {
+                            if(data.success) {
+                                e.currentTarget.innerText = "Applied";
+                                e.currentTarget.disabled = true;
+                                e.currentTarget.style.opacity = '0.5';
+                            } else {
+                                e.currentTarget.innerText = "Failed";
+                                e.currentTarget.style.borderColor = "#f87171";
+                                e.currentTarget.style.color = "#f87171";
+                            }
+                        });
+                    });
+                });
+            }
+
+            // Bind dummy events for browser preview immediately
+            bindJobEvents();
+
+            // In FiveM:
+            if (window.invokeNative) {
+                fetch(`https://${GetParentResourceName()}/getJobs`, { method: 'POST', body: JSON.stringify({}) })
+                .then(res => res.json()).then(data => {
+                    appBody.innerHTML = renderJobCenterApp(data);
+                    bindJobEvents();
+                });
+            }
         } else if (appName === 'linkplayer') {
             document.getElementById('app-title').innerText = "LinkPlayer";
             appBody.innerHTML = renderLinkPlayerApp();
@@ -512,12 +688,15 @@ document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
 
 // App Back/Close Buttons
 document.getElementById('btn-home').addEventListener('click', () => {
+    cleanupActiveApp();
     document.getElementById('app-container').classList.remove('active');
 });
 
 // Close phone using escape key
 document.addEventListener('keyup', function(e) {
     if (e.key === 'Escape') {
+        cleanupActiveApp();
+
         // Dummy fetch for browser testing, will fail in browser but work in FiveM
         if (window.invokeNative) {
             fetch(`https://${GetParentResourceName()}/closePhone`, {
