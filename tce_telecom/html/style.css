@@ -532,10 +532,18 @@ body {
 #stardex-layout {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: url('https://i.imgur.com/bWq8D8a.jpg') center/cover;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   display: flex;
   flex-direction: column;
   z-index: 10000;
+}
+
+#stardex-layout::before {
+  content: "";
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at center, rgba(155, 91, 255, 0.15) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 #stardex-desktop {

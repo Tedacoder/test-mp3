@@ -20,7 +20,6 @@ client_scripts {
     'client/hardware.lua',
     'client/apps.lua',
     'client/camera.lua',
-    'client/target.lua',
     'client/infrastructure.lua'
 }
 
@@ -29,7 +28,6 @@ server_scripts {
     'server/core.lua',
     'server/db.lua',
     'server/items.lua',
-    'server/billing.lua',
     'server/hardware.lua',
     'server/apps/*.lua',
     'server/infrastructure.lua'
