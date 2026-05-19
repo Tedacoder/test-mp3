@@ -18,13 +18,23 @@ function setupPhoneState(phoneData) {
 
     // Set Brand Styling (Swap CSS Classes)
     if (phoneData.brand === 'star') {
-        container.classList.remove('os-itones');
-        container.classList.add('os-star');
+        container.classList.remove('itone');
+        container.classList.add('star');
+        document.getElementById('hardware-notch-itone').classList.add('hidden');
+        document.getElementById('hardware-notch-star').classList.remove('hidden');
+        document.getElementById('widget-row-itone').classList.add('hidden');
+        document.getElementById('widget-row-star').classList.remove('hidden');
         document.getElementById('btn-privacy').classList.remove('hidden');
+        document.getElementById('app-badge').innerText = "★";
     } else {
-        container.classList.remove('os-star');
-        container.classList.add('os-itones');
+        container.classList.remove('star');
+        container.classList.add('itone');
+        document.getElementById('hardware-notch-star').classList.add('hidden');
+        document.getElementById('hardware-notch-itone').classList.remove('hidden');
+        document.getElementById('widget-row-star').classList.add('hidden');
+        document.getElementById('widget-row-itone').classList.remove('hidden');
         document.getElementById('btn-privacy').classList.add('hidden');
+        document.getElementById('app-badge').innerText = "◎";
     }
 
     // Set Battery
@@ -38,23 +48,23 @@ function setupPhoneState(phoneData) {
     }
 
     // Ensure we start on home screen
-    document.getElementById('app-container').classList.add('hidden');
+    document.getElementById('app-container').classList.remove('active');
 }
 
 // App Click Handlers
-document.querySelectorAll('.app-icon').forEach(icon => {
+document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
     icon.addEventListener('click', (e) => {
         let appName = e.currentTarget.getAttribute('data-app');
         if(!appName) return;
 
         document.getElementById('app-title').innerText = appName.charAt(0).toUpperCase() + appName.slice(1);
-        document.getElementById('app-container').classList.remove('hidden');
+        document.getElementById('app-container').classList.add('active');
     });
 });
 
-// Home Button
+// App Back/Close Buttons
 document.getElementById('btn-home').addEventListener('click', () => {
-    document.getElementById('app-container').classList.add('hidden');
+    document.getElementById('app-container').classList.remove('active');
 });
 
 // Close phone using escape key

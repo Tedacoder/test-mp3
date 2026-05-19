@@ -1,84 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tha Crack Era - Telecom</title>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Tha Crack Era - Telecom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body style="display: none;" id="app-root">
 
-    <div id="phone-container" class="os-itones">
-        <!-- Hardware Overlays -->
-        <div id="damage-overlay" class="hidden"></div>
-        <div id="glare-overlay"></div>
+  <div class="phones-wrapper">
+    <!-- The Phone Container dynamically switches classes (itone vs star) -->
+    <div id="phone-container" class="phone itone" data-device="itone">
+      <div class="phone-screen">
 
-        <!-- Hardware Elements (Injected based on OS) -->
-        <div id="hardware-notch" class="notch-itones"></div>
-
-        <!-- Phone UI Layout -->
-        <div id="mobile-layout" class="theme-light">
-            <div id="status-bar">
-                <span id="time-display">12:00</span>
-                <div class="status-right">
-                    <span id="network-signal"><i class="fa-solid fa-signal"></i> 5G</span>
-                    <span id="battery-indicator">100%</span>
-                </div>
-            </div>
-
-            <div id="screen-content">
-                <!-- Home Screen Grid -->
-                <div id="home-screen">
-                    <div class="app-grid">
-                        <div class="app-icon" data-app="messages"><div class="icon-inner msg-icon"><i class="fa-solid fa-comment"></i></div>Messages</div>
-                        <div class="app-icon" data-app="camera"><div class="icon-inner cam-icon"><i class="fa-solid fa-camera"></i></div>Camera</div>
-                        <div class="app-icon" data-app="photos"><div class="icon-inner photo-icon"><i class="fa-solid fa-image" style="color: #444;"></i></div>Photos</div>
-                        <div class="app-icon" data-app="clock"><div class="icon-inner clock-icon"><i class="fa-regular fa-clock" style="color: #fa8c16;"></i></div>Clock</div>
-
-                        <div class="app-icon" data-app="notes"><div class="icon-inner notes-icon"><i class="fa-solid fa-file-lines" style="color: #b08d00;"></i></div>Notes</div>
-                        <div class="app-icon" data-app="calculator"><div class="icon-inner calc-icon"><i class="fa-solid fa-calculator"></i></div>Calculator</div>
-                        <div class="app-icon" data-app="settings"><div class="icon-inner set-icon"><i class="fa-solid fa-gear"></i></div>Settings</div>
-                        <div class="app-icon" data-app="gps"><div class="icon-inner gps-icon"><i class="fa-solid fa-map-location-dot"></i></div>Maps</div>
-
-                        <div class="app-icon" data-app="store"><div class="icon-inner store-icon"><i class="fa-brands fa-app-store-ios"></i></div>Store</div>
-                        <div class="app-icon" data-app="bank"><div class="icon-inner bank-icon"><i class="fa-solid fa-building-columns" style="color: #FFD700;"></i></div>Bank</div>
-                        <div class="app-icon" data-app="whatnot"><div class="icon-inner whatnot-icon"><i class="fa-solid fa-store" style="color: #000;"></i></div>Whatnot</div>
-                        <div class="app-icon" data-app="facespace"><div class="icon-inner fb-icon"><i class="fa-brands fa-facebook-f"></i></div>FaceSpace</div>
-                    </div>
-
-                    <!-- Dock (iTones specific typically) -->
-                    <div id="app-dock">
-                        <div class="app-icon" data-app="phone"><div class="icon-inner phone-icon"><i class="fa-solid fa-phone"></i></div></div>
-                        <div class="app-icon" data-app="browser"><div class="icon-inner web-icon"><i class="fa-solid fa-compass"></i></div></div>
-                        <div class="app-icon" data-app="mail"><div class="icon-inner mail-icon"><i class="fa-solid fa-envelope"></i></div></div>
-                    </div>
-                </div>
-
-                <!-- Active App Container -->
-                <div id="app-container" class="hidden">
-                    <div class="app-header">
-                        <button id="btn-home"><i class="fa-solid fa-chevron-left"></i> Home</button>
-                        <h3 id="app-title">App</h3>
-                    </div>
-                    <div id="app-body" style="padding: 20px; text-align: center; color: #888;">
-                        App functionality under construction.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hardware Buttons -->
-            <div id="physical-buttons">
-                <!-- Hidden by default, shown for Star -->
-                <button id="btn-privacy" class="hidden"><i class="fa-solid fa-eye-slash"></i> Privacy</button>
-            </div>
-
-            <!-- Home Indicator (iTones bar) -->
-            <div id="home-indicator"></div>
+        <!-- iTone Notch -->
+        <div id="hardware-notch-itone" class="phone-header">
+          <div class="itone-notch">
+            <div class="itone-notch-line"></div>
+            <div class="itone-notch-dot"></div>
+          </div>
         </div>
-    </div>
 
-    <script src="js/app.js"></script>
+        <!-- Star Punch Hole -->
+        <div id="hardware-notch-star" class="star-punch hidden"></div>
+
+        <div class="status-bar">
+          <div id="time-display">9:41</div>
+          <div class="status-right">
+            <div class="signal-bars">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div id="battery-indicator" style="font-size: 10px; margin-right: 5px;">100%</div>
+            <div class="status-pill"></div>
+          </div>
+        </div>
+
+        <div id="home-screen" class="home">
+          <div class="home-top">
+            <div>
+              <div class="home-time" id="home-time-display">9:41</div>
+              <div class="home-date">Mon · May 18</div>
+            </div>
+
+            <!-- Widgets -->
+            <div class="home-row" id="widget-row-itone">
+              <div class="widget">
+                <div class="widget-title">Now Playing</div>
+                <div class="widget-main">Neon Skyline</div>
+                <div class="widget-pill">Spatial · 3D Audio</div>
+              </div>
+              <div class="widget">
+                <div class="widget-title">Weather</div>
+                <div class="widget-main">72° · Clear</div>
+                <div class="widget-pill">Low 65° · High 79°</div>
+              </div>
+            </div>
+
+            <div class="home-row hidden" id="widget-row-star">
+              <div class="widget">
+                <div class="widget-title">System Flux</div>
+                <div class="widget-main">CPU 23% · Net OK</div>
+                <div class="widget-pill">Performance Mode</div>
+              </div>
+              <div class="widget">
+                <div class="widget-title">Galaxy Pulse</div>
+                <div class="widget-main">3 new alerts</div>
+                <div class="widget-pill">Tap to expand</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="app-grid">
+              <div class="app-icon" data-app="messages">
+                <i class="fa-solid fa-comment" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Chat</span>
+                <div class="notif-dot"></div>
+              </div>
+              <div class="app-icon" data-app="camera">
+                <i class="fa-solid fa-camera" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Cam</span>
+              </div>
+              <div class="app-icon" data-app="photos">
+                <i class="fa-solid fa-image" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Gallery</span>
+              </div>
+              <div class="app-icon" data-app="clock">
+                <i class="fa-regular fa-clock" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Clock</span>
+              </div>
+
+              <div class="app-icon" data-app="notes">
+                <i class="fa-solid fa-file-lines" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Notes</span>
+              </div>
+              <div class="app-icon" data-app="calculator">
+                <i class="fa-solid fa-calculator" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Calc</span>
+              </div>
+              <div class="app-icon" data-app="settings">
+                <i class="fa-solid fa-gear" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Settings</span>
+              </div>
+              <div class="app-icon" data-app="gps">
+                <i class="fa-solid fa-map-location-dot" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Maps</span>
+              </div>
+
+              <div class="app-icon" data-app="store">
+                <i class="fa-brands fa-app-store-ios" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Store</span>
+              </div>
+              <div class="app-icon" data-app="bank">
+                <i class="fa-solid fa-building-columns" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Bank</span>
+              </div>
+              <div class="app-icon" data-app="whatnot">
+                <i class="fa-solid fa-store" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Whatnot</span>
+              </div>
+              <div class="app-icon" data-app="facespace">
+                <i class="fa-brands fa-facebook-f" style="font-size: 18px; margin-bottom: 2px;"></i>
+                <span>Social</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dock">
+            <div class="dock-icon" data-app="phone"><i class="fa-solid fa-phone"></i></div>
+            <div class="dock-icon" data-app="browser"><i class="fa-solid fa-compass"></i></div>
+            <div class="dock-icon" data-app="mail"><i class="fa-solid fa-envelope"></i></div>
+            <div class="dock-icon" data-app="music"><i class="fa-solid fa-music"></i></div>
+          </div>
+        </div>
+
+        <!-- App View Container -->
+        <div id="app-container" class="app-view">
+          <div class="app-view-header">
+            <div class="app-view-title">
+              <div class="app-view-badge" id="app-badge">◎</div>
+              <div>
+                <div style="font-size: 12px;" id="app-title">App Name</div>
+                <div style="font-size: 10px; color: var(--text-sub);">Encrypted Connection</div>
+              </div>
+            </div>
+            <button class="btn-ghost" id="btn-home">Back</button>
+          </div>
+          <div class="app-view-body">
+            <h3>Loading Interface...</h3>
+            <p>
+              This is where the React/Vue components for the complex modules (like Banking or Jobs)
+              would be mounted and displayed.
+            </p>
+          </div>
+          <div class="app-view-footer">
+            <button class="btn-ghost hidden" id="btn-privacy">Toggle Privacy</button>
+          </div>
+        </div>
+
+        <!-- Screen overlays -->
+        <div id="damage-overlay" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
 </body>
 </html>
