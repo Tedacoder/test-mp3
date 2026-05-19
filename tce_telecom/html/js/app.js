@@ -5,7 +5,11 @@ window.addEventListener('message', (event) => {
     switch(data.action) {
         case 'openPhone':
             document.getElementById('app-root').style.display = 'block';
-            setupPhoneState(data.data);
+            if(data.data.dexMode) {
+                setupDexState(data.data);
+            } else {
+                setupPhoneState(data.data);
+            }
             break;
         case 'closePhone':
             document.getElementById('app-root').style.display = 'none';
@@ -23,7 +27,20 @@ window.addEventListener('message', (event) => {
     }
 });
 
+function setupDexState(phoneData) {
+    document.querySelector('.phones-wrapper').classList.add('hidden');
+    document.getElementById('stardex-layout').classList.remove('hidden');
+    document.getElementById('stardex-battery').innerText = phoneData.battery + '%';
+
+    // If fried, block dex entirely
+    if (phoneData.waterDamaged) {
+        document.getElementById('stardex-layout').innerHTML = '<div style="color:red; width:100%; height:100%; background:black; display:flex; align-items:center; justify-content:center; font-size:48px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:20px;"></i> DEVICE FRIED - DEX UNAVAILABLE</div>';
+    }
+}
+
 function setupPhoneState(phoneData) {
+    document.querySelector('.phones-wrapper').classList.remove('hidden');
+    document.getElementById('stardex-layout').classList.add('hidden');
     const container = document.getElementById('phone-container');
 
     // Water Damage check (Fried State)
@@ -215,6 +232,38 @@ function renderSocialApp(data) {
             `;
         });
     }
+    html += `</div></div>`;
+    return html;
+}
+
+function renderStoreApp(data) {
+    let html = `
+        <div style="display:flex; flex-direction:column; height:100%;">
+            <h4 style="margin-bottom: 10px; text-align: left;">Retail Store</h4>
+            <div style="overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:8px;">
+    `;
+
+    let items = data ? data : [
+        {name: "iTones Pro Max", price: 1200, icon: "fa-mobile-screen"},
+        {name: "Star Galaxy Fold", price: 1150, icon: "fa-mobile-screen-button"},
+        {name: "Heavy Duty Case", price: 45, icon: "fa-shield-halved"},
+        {name: "Power Bank", price: 60, icon: "fa-battery-full"}
+    ];
+
+    items.forEach(item => {
+        html += `
+            <div style="display:flex; align-items:center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px;">
+                <div style="width:40px; height:40px; border-radius:8px; background: #333; display:flex; align-items:center; justify-content:center; color:white; font-size:20px;">
+                    <i class="fa-solid ${item.icon}"></i>
+                </div>
+                <div style="flex-grow:1;">
+                    <div style="color:var(--text-main); font-size:14px; font-weight:500;">${item.name}</div>
+                    <div style="color:#4ade80; font-size:12px; font-weight:bold;">$${item.price}</div>
+                </div>
+                <button class="btn-ghost" style="color:white; background:#007AFF; border:none;" onclick="alert('Purchased ${item.name}')">Buy</button>
+            </div>
+        `;
+    });
     html += `</div></div>`;
     return html;
 }
@@ -579,13 +628,13 @@ document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
                 .then(res => res.json()).then(data => { appBody.innerHTML = renderContactsApp(data); });
             }
         } else if (appName === 'store') {
-            document.getElementById('app-title').innerText = "Directory";
-            appBody.innerHTML = renderDirectoryApp(null);
+            document.getElementById('app-title').innerText = "Store";
+            appBody.innerHTML = renderStoreApp(null);
 
             // In FiveM:
             if (window.invokeNative) {
-                fetch(`https://${GetParentResourceName()}/getDirectory`, { method: 'POST', body: JSON.stringify({}) })
-                .then(res => res.json()).then(data => { appBody.innerHTML = renderDirectoryApp(data); });
+                fetch(`https://${GetParentResourceName()}/getStoreItems`, { method: 'POST', body: JSON.stringify({}) })
+                .then(res => res.json()).then(data => { appBody.innerHTML = renderStoreApp(data); });
             }
         } else if (appName === 'music') {
             document.getElementById('app-title').innerText = "Music";
@@ -690,6 +739,39 @@ document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
 document.getElementById('btn-home').addEventListener('click', () => {
     cleanupActiveApp();
     document.getElementById('app-container').classList.remove('active');
+});
+
+// Star-DeX Click Handlers
+document.querySelectorAll('.stardex-app-icon').forEach(icon => {
+    icon.addEventListener('click', (e) => {
+        let appName = e.currentTarget.getAttribute('data-app');
+        if(!appName) return;
+
+        cleanupActiveApp();
+        document.getElementById('stardex-window-title').innerText = appName.charAt(0).toUpperCase() + appName.slice(1);
+        let appBody = document.getElementById('stardex-window-body');
+
+        if (appName === 'store') {
+            appBody.innerHTML = renderStoreApp(null);
+            if (window.invokeNative) {
+                fetch(`https://${GetParentResourceName()}/getStoreItems`, { method: 'POST', body: JSON.stringify({}) })
+                .then(res => res.json()).then(data => { appBody.innerHTML = renderStoreApp(data); });
+            }
+        } else if (appName === 'bank') {
+            appBody.innerHTML = renderBankApp(null);
+        } else if (appName === 'facespace') {
+            appBody.innerHTML = renderSocialApp(null);
+        } else {
+            appBody.innerHTML = `<div style="padding:20px;"><h3>Under Construction</h3></div>`;
+        }
+
+        document.getElementById('stardex-app-window').classList.remove('hidden');
+    });
+});
+
+document.getElementById('stardex-btn-close').addEventListener('click', () => {
+    cleanupActiveApp();
+    document.getElementById('stardex-app-window').classList.add('hidden');
 });
 
 // Close phone using escape key

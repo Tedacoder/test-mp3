@@ -528,6 +528,113 @@ body {
     z-index: 999;
 }
 
+/* Star-DeX Desktop UI */
+#stardex-layout {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: url('https://i.imgur.com/bWq8D8a.jpg') center/cover;
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+}
+
+#stardex-desktop {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  padding: 20px;
+  gap: 20px;
+}
+
+.stardex-app-icon {
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  text-shadow: 1px 1px 3px black;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.stardex-app-icon i {
+  font-size: 32px;
+  margin-bottom: 8px;
+  padding: 15px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.stardex-app-icon:hover i { background: rgba(255,255,255,0.2); }
+
+#stardex-taskbar {
+  height: 50px;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(15px);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+}
+
+.stardex-start-btn {
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.stardex-tray {
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  color: white;
+  align-items: center;
+}
+
+#stardex-app-window {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 80%;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.stardex-window-header {
+  height: 30px;
+  background: #333;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  font-size: 14px;
+  user-select: none;
+}
+
+#stardex-btn-close {
+  background: #f87171;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
 /* Animations */
 @keyframes floatPhone {
   0%, 100% {

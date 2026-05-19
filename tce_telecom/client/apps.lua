@@ -58,3 +58,9 @@ RegisterNUICallback('createSocialPost', function(data, cb)
     local success = lib.callback.await('tce_telecom:server:CreateSocialPost', false, data.content)
     cb({ success = success })
 end)
+
+-- NUI Callback: Get Store Items
+RegisterNUICallback('getStoreItems', function(data, cb)
+    local items = lib.callback.await('tce_telecom:server:GetStoreItems', false)
+    cb(items)
+end)

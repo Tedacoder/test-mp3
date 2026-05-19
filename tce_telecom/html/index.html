@@ -172,6 +172,40 @@
     </div>
   </div>
 
+  <!-- Star-DeX Desktop Layout -->
+  <div id="stardex-layout" class="hidden">
+      <div id="stardex-desktop">
+          <div class="stardex-app-icon" data-app="store"><i class="fa-brands fa-app-store-ios"></i> Store</div>
+          <div class="stardex-app-icon" data-app="bank"><i class="fa-solid fa-building-columns"></i> Bank</div>
+          <div class="stardex-app-icon" data-app="facespace"><i class="fa-brands fa-facebook-f"></i> FaceSpace</div>
+          <div class="stardex-app-icon" data-app="settings"><i class="fa-solid fa-gear"></i> Settings</div>
+      </div>
+      <div id="stardex-taskbar">
+          <div class="stardex-start-btn"><i class="fa-solid fa-star"></i></div>
+          <div class="stardex-open-apps">
+              <!-- Open app indicators go here -->
+          </div>
+          <div class="stardex-tray">
+              <span id="stardex-time">12:00</span>
+              <span id="stardex-battery">100%</span>
+              <span><i class="fa-solid fa-signal"></i></span>
+          </div>
+      </div>
+
+      <!-- Shared App Container for Dex Mode -->
+      <div id="stardex-app-window" class="hidden">
+          <div class="stardex-window-header">
+              <span id="stardex-window-title">App</span>
+              <div class="stardex-window-controls">
+                  <button id="stardex-btn-close"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+          </div>
+          <div id="stardex-window-body" style="height: calc(100% - 30px); background: #fff; color: #000; overflow: hidden;">
+              <!-- App Content -->
+          </div>
+      </div>
+  </div>
+
   <script src="js/app.js"></script>
 </body>
 </html>
