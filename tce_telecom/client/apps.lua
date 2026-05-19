@@ -28,3 +28,9 @@ RegisterNUICallback('getBankData', function(data, cb)
     local bankData = lib.callback.await('tce_telecom:server:GetBankData', false)
     cb(bankData)
 end)
+
+-- NUI Callback: Get Directory
+RegisterNUICallback('getDirectory', function(data, cb)
+    local directory = lib.callback.await('tce_telecom:server:GetDirectory', false)
+    cb(directory)
+end)

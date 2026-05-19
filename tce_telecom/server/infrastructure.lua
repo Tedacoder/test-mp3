@@ -3,11 +3,11 @@
 local BlackoutZones = {}
 
 MySQL.ready(function()
-    local zones = MySQL.query.await('SELECT id, coords, radius FROM telecom_infrastructure WHERE is_broken = 1')
+    local zones = MySQL.query.await('SELECT pole_id, coords, radius FROM telecom_infrastructure WHERE is_broken = 1')
     if zones then
         for _, z in ipairs(zones) do
             table.insert(BlackoutZones, {
-                id = z.id,
+                id = z.pole_id,
                 coords = json.decode(z.coords),
                 radius = z.radius
             })

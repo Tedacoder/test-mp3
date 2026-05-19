@@ -30,6 +30,7 @@ server_scripts {
     'server/db.lua',
     'server/items.lua',
     'server/billing.lua',
+    'server/hardware.lua',
     'server/apps/*.lua',
     'server/infrastructure.lua'
 }

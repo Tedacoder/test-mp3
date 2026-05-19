@@ -11,14 +11,14 @@ Citizen.CreateThread(function()
 
         if metadata.water_damaged then
             TriggerClientEvent('tce_telecom:client:Notify', source, "This phone is fried.", "error")
-            return
         end
 
         TriggerClientEvent('tce_telecom:client:OpenPhone', source, {
             brand = 'star',
             imei = metadata.imei,
             battery = metadata.battery,
-            screenCracked = metadata.screen_cracked
+            screenCracked = metadata.screen_cracked,
+            waterDamaged = metadata.water_damaged
         })
     end)
 
@@ -28,14 +28,14 @@ Citizen.CreateThread(function()
 
         if metadata.water_damaged then
             TriggerClientEvent('tce_telecom:client:Notify', source, "This phone is fried.", "error")
-            return
         end
 
         TriggerClientEvent('tce_telecom:client:OpenPhone', source, {
             brand = 'itones',
             imei = metadata.imei,
             battery = metadata.battery,
-            screenCracked = metadata.screen_cracked
+            screenCracked = metadata.screen_cracked,
+            waterDamaged = metadata.water_damaged
         })
     end)
 end)

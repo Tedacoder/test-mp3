@@ -26,6 +26,14 @@ window.addEventListener('message', (event) => {
 function setupPhoneState(phoneData) {
     const container = document.getElementById('phone-container');
 
+    // Water Damage check (Fried State)
+    if (phoneData.waterDamaged) {
+        document.getElementById('damage-overlay').style.background = 'black';
+        document.getElementById('damage-overlay').innerHTML = '<div style="color:red; text-align:center; margin-top:50%; font-size:24px;"><i class="fa-solid fa-triangle-exclamation"></i><br>DEVICE FRIED</div>';
+        document.getElementById('damage-overlay').classList.remove('hidden');
+        return; // Halt further rendering
+    }
+
     // Set Brand Styling (Swap CSS Classes)
     if (phoneData.brand === 'star') {
         container.classList.remove('itone');
@@ -52,6 +60,8 @@ function setupPhoneState(phoneData) {
 
     // Apply Damage Overlay
     if (phoneData.screenCracked) {
+        document.getElementById('damage-overlay').style.background = 'url("assets/cracked_glass.png") center/cover';
+        document.getElementById('damage-overlay').innerHTML = '';
         document.getElementById('damage-overlay').classList.remove('hidden');
     } else {
         document.getElementById('damage-overlay').classList.add('hidden');
@@ -100,14 +110,13 @@ function renderBankApp(data) {
 
 function renderContactsApp(data) {
     let html = `
-        <h4 style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px;">Directory</h4>
+        <h4 style="border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px;">Personal Contacts</h4>
         <div style="overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:8px;">
     `;
 
     let contacts = data ? data : [
         {name: "Alice Smith", number: "555-0192"},
-        {name: "Bob Jones", number: "555-3841"},
-        {name: "Mechanic", number: "555-8899"}
+        {name: "Bob Jones", number: "555-3841"}
     ];
 
     contacts.forEach(c => {
@@ -126,6 +135,195 @@ function renderContactsApp(data) {
         <button style="margin-top:10px; padding:10px; border-radius:10px; background:#007AFF; color:white; border:none; width:100%; cursor:pointer;">+ Add Contact</button>
     `;
     return html;
+}
+
+function renderDirectoryApp(data) {
+    let html = `
+        <div style="display:flex; flex-direction:column; height:100%;">
+            <h4 style="margin-bottom: 10px; text-align: left;">Yellow Pages</h4>
+            <div style="overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:8px;">
+    `;
+
+    let directory = data ? data : [
+        {name: "Los Santos Police", number: "911", is_emergency: true},
+        {name: "Pillbox Medical", number: "911", is_emergency: true},
+        {name: "Benny's Motorworks", number: "555-2311", is_emergency: false},
+        {name: "TCE Telecom", number: "555-0001", is_emergency: false}
+    ];
+
+    directory.forEach(biz => {
+        let badgeColor = biz.is_emergency ? '#f87171' : '#facc15';
+        html += `
+            <div style="display:flex; align-items:center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; border-left: 4px solid ${badgeColor};">
+                <div>
+                    <div style="color:var(--text-main); font-size:14px; font-weight:500;">${biz.name}</div>
+                    <div style="color:var(--text-sub); font-size:11px;">${biz.number}</div>
+                </div>
+                <button style="margin-left:auto; background:#22c55e; border:none; border-radius:50%; width:30px; height:30px; color:white; cursor:pointer;"><i class="fa-solid fa-phone"></i></button>
+            </div>
+        `;
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+function renderLinkPlayerApp() {
+    return `
+        <div style="display:flex; flex-direction:column; height:100%;">
+            <h4 style="margin-bottom: 10px; text-align: left;">LinkPlayer</h4>
+            <p style="font-size:11px; color:var(--text-sub); margin-bottom:15px;">Paste a direct audio URL (.mp3, .ogg, radio stream) below to start streaming.</p>
+            <div style="display:flex; gap:5px; margin-bottom: 15px;">
+                <input type="text" id="link-url-input" placeholder="https://example.com/audio.mp3" style="flex-grow:1; padding: 8px 12px; border-radius: 15px; border:none; background:rgba(255,255,255,0.1); color:white; outline:none;">
+                <button id="btn-play-link" style="padding: 8px 12px; border-radius: 15px; border:none; background:#007AFF; color:white; cursor:pointer;"><i class="fa-solid fa-play"></i></button>
+            </div>
+            <div id="link-status" style="font-size:12px; text-align:center; margin-top:20px; color:#4ade80;">Ready to play.</div>
+            <audio id="linkplayer-audio" controls style="width:100%; margin-top:auto; height:40px; display:none;"></audio>
+        </div>
+    `;
+}
+
+function setupLinkPlayerListeners() {
+    document.getElementById('btn-play-link').addEventListener('click', () => {
+        let url = document.getElementById('link-url-input').value;
+        if (!url) return;
+
+        let player = document.getElementById('linkplayer-audio');
+        let status = document.getElementById('link-status');
+
+        status.innerText = "Buffering stream...";
+        player.src = url;
+        player.style.display = 'block';
+        player.play().then(() => {
+            status.innerText = "Playing stream directly.";
+            window.currentAudioPlayer = player;
+        }).catch(err => {
+            status.innerText = "Error playing media. Invalid URL?";
+            status.style.color = "#f87171";
+        });
+    });
+}
+
+function renderGamesApp() {
+    return `
+        <div style="display:flex; flex-direction:column; height:100%; align-items:center;">
+            <h4 style="margin-bottom: 10px; width:100%; text-align: left;">Flappy Bird</h4>
+            <canvas id="flappyCanvas" width="220" height="350" style="background:#70c5ce; border:2px solid #333; border-radius:10px;"></canvas>
+            <p style="font-size:10px; color:var(--text-sub); margin-top:10px;">Tap anywhere on the app to flap!</p>
+            <button id="btn-start-game" style="margin-top:auto; padding: 10px 20px; border-radius: 15px; border:none; background:#22c55e; color:white; font-weight:bold; cursor:pointer; width:100%;">START GAME</button>
+        </div>
+    `;
+}
+
+function setupGamesListeners() {
+    let canvas = document.getElementById('flappyCanvas');
+    let ctx = canvas.getContext('2d');
+    let gameLoop;
+
+    let bird = { x: 50, y: 150, velocity: 0, gravity: 0.6, jump: -6 };
+    let pipes = [];
+    let score = 0;
+    let isPlaying = false;
+    let frame = 0;
+
+    function resetGame() {
+        bird = { x: 50, y: 150, velocity: 0, gravity: 0.6, jump: -6 };
+        pipes = [];
+        score = 0;
+        frame = 0;
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("Ready?", 75, 170);
+    }
+
+    function draw() {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+
+        // Draw Bird (Yellow Square for simplicity)
+        ctx.fillStyle = "#FFD700";
+        ctx.fillRect(bird.x, bird.y, 20, 20);
+
+        // Draw Pipes
+        ctx.fillStyle = "#22c55e";
+        pipes.forEach(p => {
+            ctx.fillRect(p.x, 0, p.width, p.topHeight); // Top pipe
+            ctx.fillRect(p.x, p.topHeight + p.gap, p.width, canvas.height - p.topHeight - p.gap); // Bottom pipe
+        });
+
+        // Draw Score
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText(score, 10, 25);
+    }
+
+    function update() {
+        if (!isPlaying) return;
+        frame++;
+
+        // Physics
+        bird.velocity += bird.gravity;
+        bird.y += bird.velocity;
+
+        // Generate Pipes
+        if (frame % 90 === 0) {
+            let gap = 90;
+            let topHeight = Math.random() * (canvas.height - gap - 40) + 20;
+            pipes.push({ x: canvas.width, width: 30, topHeight: topHeight, gap: gap, passed: false });
+        }
+
+        // Move Pipes & Check Collisions
+        for (let i = 0; i < pipes.length; i++) {
+            let p = pipes[i];
+            p.x -= 2;
+
+            // Score
+            if (!p.passed && p.x + p.width < bird.x) {
+                score++;
+                p.passed = true;
+            }
+
+            // Collision
+            let hitX = bird.x + 20 > p.x && bird.x < p.x + p.width;
+            let hitY = bird.y < p.topHeight || bird.y + 20 > p.topHeight + p.gap;
+
+            if (hitX && hitY) gameOver();
+        }
+
+        // Floor/Ceiling collision
+        if (bird.y > canvas.height || bird.y < 0) gameOver();
+
+        // Cleanup old pipes
+        pipes = pipes.filter(p => p.x + p.width > 0);
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        clearInterval(gameLoop);
+        ctx.fillStyle = "red";
+        ctx.font = "30px Arial";
+        ctx.fillText("GAME OVER", 20, 170);
+        document.getElementById('btn-start-game').style.display = 'block';
+    }
+
+    function loop() {
+        update();
+        draw();
+    }
+
+    // Controls
+    document.getElementById('btn-start-game').addEventListener('click', (e) => {
+        e.target.style.display = 'none';
+        resetGame();
+        isPlaying = true;
+        gameLoop = setInterval(loop, 20); // ~50 fps
+    });
+
+    // Tap to flap
+    document.getElementById('app-view-body').addEventListener('mousedown', () => {
+        if(isPlaying) bird.velocity = bird.jump;
+    });
+
+    resetGame();
 }
 
 function renderCameraApp() {
@@ -279,6 +477,15 @@ document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
                 fetch(`https://${GetParentResourceName()}/getContacts`, { method: 'POST', body: JSON.stringify({}) })
                 .then(res => res.json()).then(data => { appBody.innerHTML = renderContactsApp(data); });
             }
+        } else if (appName === 'store') {
+            document.getElementById('app-title').innerText = "Directory";
+            appBody.innerHTML = renderDirectoryApp(null);
+
+            // In FiveM:
+            if (window.invokeNative) {
+                fetch(`https://${GetParentResourceName()}/getDirectory`, { method: 'POST', body: JSON.stringify({}) })
+                .then(res => res.json()).then(data => { appBody.innerHTML = renderDirectoryApp(data); });
+            }
         } else if (appName === 'music') {
             document.getElementById('app-title').innerText = "Music";
             appBody.innerHTML = renderMusicApp();
@@ -287,6 +494,14 @@ document.querySelectorAll('.app-icon, .dock-icon').forEach(icon => {
             document.getElementById('app-title').innerText = "Camera";
             appBody.innerHTML = renderCameraApp();
             setupCameraAppListeners();
+        } else if (appName === 'linkplayer') {
+            document.getElementById('app-title').innerText = "LinkPlayer";
+            appBody.innerHTML = renderLinkPlayerApp();
+            setupLinkPlayerListeners();
+        } else if (appName === 'games') {
+            document.getElementById('app-title').innerText = "Games";
+            appBody.innerHTML = renderGamesApp();
+            setupGamesListeners();
         } else {
             appBody.innerHTML = `<h3>Under Construction</h3><p>The ${appName} module is not fully integrated yet.</p>`;
         }
