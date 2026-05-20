@@ -4,8 +4,9 @@ game 'gta5'
 description 'Advanced Food Preparation & Cooking System'
 version '1.0.0'
 
+shared_script '@ox_lib/init.lua'
+
 shared_scripts {
-    '@ox_lib/init.lua',
     'shared/config.lua'
 }
 

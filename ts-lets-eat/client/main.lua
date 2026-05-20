@@ -437,6 +437,7 @@ end
 
 -- Setup Restaurant Storefronts
 CreateThread(function()
+    if not Config.Restaurants then return end
     for restId, data in pairs(Config.Restaurants) do
         if data.storefront and data.storefront.enabled then
             lib.requestModel(data.storefront.pedModel)
@@ -477,7 +478,7 @@ CreateThread(function()
         end
 
         -- Custom Cooking Stations (Zones)
-        if data.cookingStations then
+        if data.cookingStations and type(data.cookingStations) == 'table' then
             for i, station in ipairs(data.cookingStations) do
                 if Config.Target == 'ox_target' then
                     exports.ox_target:addSphereZone({
