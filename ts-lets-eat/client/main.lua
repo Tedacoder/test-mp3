@@ -347,3 +347,167 @@ function OpenWholesaleMenu()
 
     lib.showContext('wholesale_menu')
 end
+
+-- Management Menu
+function OpenStorefrontManagementMenu(restId, data)
+    local items = lib.callback.await('ts-lets-eat:server:GetStorefrontItems', 200, restId)
+
+    local options = {
+        {
+            title = 'Add / Update Item',
+            description = 'Add a new item to the menu or update an existing price.',
+            icon = 'plus',
+            onSelect = function()
+                local input = lib.inputDialog('Add Menu Item', {
+                    {type = 'input', label = 'Item Spawn Name (e.g., bologna_sandwich)', required = true},
+                    {type = 'number', label = 'Price ($)', default = 10, min = 1, required = true}
+                })
+                if not input then return end
+
+                TriggerServerEvent('ts-lets-eat:server:AddStorefrontItem', restId, input[1], input[2])
+            end
+        }
+    }
+
+    for i, itemData in ipairs(items) do
+        local configItem = Config.Items[itemData.name]
+        if configItem then
+            table.insert(options, {
+                title = 'Remove ' .. configItem.label,
+                description = 'Currently listed for $' .. itemData.price,
+                icon = 'trash',
+                onSelect = function()
+                    local alert = lib.alertDialog({
+                        header = 'Remove Item',
+                        content = 'Are you sure you want to remove ' .. configItem.label .. ' from the menu?',
+                        centered = true,
+                        cancel = true
+                    })
+
+                    if alert == 'confirm' then
+                        TriggerServerEvent('ts-lets-eat:server:RemoveStorefrontItem', restId, itemData.name)
+                    end
+                end
+            })
+        end
+    end
+
+    lib.registerContext({
+        id = 'storefront_manage_' .. restId,
+        title = 'Manage ' .. data.label,
+        options = options
+    })
+
+    lib.showContext('storefront_manage_' .. restId)
+end
+
+
+-- Storefront Interaction Menu
+local function OpenStorefrontMenu(restId, data)
+    local items = lib.callback.await('ts-lets-eat:server:GetStorefrontItems', 200, restId)
+    local options = {}
+
+    for i, itemData in ipairs(items) do
+        local configItem = Config.Items[itemData.name]
+        if configItem then
+            table.insert(options, {
+                title = configItem.label,
+                description = 'Price: $' .. itemData.price,
+                onSelect = function()
+                    local input = lib.inputDialog('Purchase ' .. configItem.label, {
+                        {type = 'number', label = 'Quantity', default = 1, min = 1, max = 20}
+                    })
+                    if not input then return end
+
+                    local quantity = input[1]
+                    TriggerServerEvent('ts-lets-eat:server:PurchaseStorefrontItem', restId, i, quantity)
+                end
+            })
+        end
+    end
+
+    lib.registerContext({
+        id = 'storefront_menu_' .. restId,
+        title = data.label .. ' Menu',
+        options = options
+    })
+
+    lib.showContext('storefront_menu_' .. restId)
+end
+
+-- Setup Restaurant Storefronts
+CreateThread(function()
+    for restId, data in pairs(Config.Restaurants) do
+        if data.storefront and data.storefront.enabled then
+            lib.requestModel(data.storefront.pedModel)
+
+            local coords = data.storefront.coords
+            local ped = CreatePed(0, data.storefront.pedModel, coords.x, coords.y, coords.z - 1.0, coords.w, false, false)
+            FreezeEntityPosition(ped, true)
+            SetEntityInvincible(ped, true)
+            SetBlockingOfNonTemporaryEvents(ped, true)
+
+            if Config.Target == 'ox_target' then
+                exports.ox_target:addLocalEntity(ped, {
+                    {
+                        name = 'ts_lets_eat_storefront_' .. restId,
+                        icon = 'fas fa-cash-register',
+                        label = 'Browse Menu',
+                        onSelect = function()
+                            OpenStorefrontMenu(restId, data)
+                        end
+                    },
+                    {
+                        name = 'ts_lets_eat_manage_storefront_' .. restId,
+                        icon = 'fas fa-cog',
+                        label = 'Manage Storefront',
+                        canInteract = function()
+                            -- Since jobs sync can be complex across frameworks purely on client,
+                            -- we check visually. Proper security is server-side.
+                            return true
+                        end,
+                        onSelect = function()
+                            OpenStorefrontManagementMenu(restId, data)
+                        end
+                    }
+                })
+            end
+
+            SetModelAsNoLongerNeeded(data.storefront.pedModel)
+        end
+
+        -- Custom Cooking Stations (Zones)
+        if data.cookingStations then
+            for i, station in ipairs(data.cookingStations) do
+                if Config.Target == 'ox_target' then
+                    exports.ox_target:addSphereZone({
+                        coords = station.coords,
+                        radius = station.radius or 1.0,
+                        debug = false,
+                        options = {
+                            {
+                                name = 'ts_lets_eat_custom_cook_' .. restId .. '_' .. i,
+                                icon = 'fas fa-utensils',
+                                label = 'Cook Food (' .. data.label .. ')',
+                                groups = data.job,
+                                onSelect = function()
+                                    -- Using the coords of the station as the dummy entity coords for prop spawning
+                                    local dummyEntity = CreateObject(`prop_cs_rub_binbag_01`, station.coords.x, station.coords.y, station.coords.z, false, false, false)
+                                    SetEntityVisible(dummyEntity, false)
+                                    FreezeEntityPosition(dummyEntity, true)
+
+                                    OpenCookingMenu(dummyEntity)
+
+                                    -- Cleanup dummy entity after menu closes/cooking finishes
+                                    SetTimeout(60000, function()
+                                        if DoesEntityExist(dummyEntity) then DeleteEntity(dummyEntity) end
+                                    end)
+                                end
+                            }
+                        }
+                    })
+                end
+            end
+        end
+    end
+end)

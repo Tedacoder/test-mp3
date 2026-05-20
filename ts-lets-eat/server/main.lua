@@ -348,6 +348,174 @@ RegisterNetEvent('ts-lets-eat:server:OpenFridge', function(fridgeId)
     -- Note: For qb-inventory, opening is handled directly via `inventory:server:OpenInventory` on the client
 end)
 
+-- Storefront KVP Management
+local function GetDynamicStorefrontItems(restId)
+    local kvpString = GetResourceKvpString('storefront_' .. restId)
+    if kvpString then
+        return json.decode(kvpString)
+    end
+    -- Fallback to config defaults if nothing saved
+    local restaurant = Config.Restaurants[restId]
+    if restaurant and restaurant.storefront and restaurant.storefront.items then
+        return restaurant.storefront.items
+    end
+    return {}
+end
+
+local function SaveDynamicStorefrontItems(restId, itemsTable)
+    SetResourceKvp('storefront_' .. restId, json.encode(itemsTable))
+end
+
+lib.callback.register('ts-lets-eat:server:GetStorefrontItems', function(source, restId)
+    return GetDynamicStorefrontItems(restId)
+end)
+
+-- Job/Admin verification helper for management
+local function IsAuthorized(src, restId)
+    local restaurant = Config.Restaurants[restId]
+    if not restaurant then return false end
+
+    if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+        local Player = QBCore.Functions.GetPlayer(src)
+        if not Player then return false end
+        -- Check if admin
+        if QBCore.Functions.HasPermission(src, 'admin') then return true end
+        -- Check if boss of restaurant
+        if Player.PlayerData.job.name == restaurant.job and Player.PlayerData.job.isboss then return true end
+    elseif Config.Framework == 'esx' then
+        local xPlayer = ESX.GetPlayerFromId(src)
+        if not xPlayer then return false end
+        if xPlayer.getGroup() == 'admin' or xPlayer.getGroup() == 'superadmin' then return true end
+        if xPlayer.job.name == restaurant.job and xPlayer.job.grade_name == 'boss' then return true end
+    end
+
+    return false
+end
+
+RegisterNetEvent('ts-lets-eat:server:AddStorefrontItem', function(restId, itemName, price)
+    local src = source
+    if not IsAuthorized(src, restId) then return end
+
+    local configItem = Config.Items[itemName]
+    if not configItem then
+        TriggerClientEvent('ox_lib:notify', src, {title = 'Error', description = 'Item does not exist in Config.Items', type = 'error'})
+        return
+    end
+
+    local items = GetDynamicStorefrontItems(restId)
+
+    -- Check if it already exists, update price
+    local exists = false
+    for i, v in ipairs(items) do
+        if v.name == itemName then
+            items[i].price = price
+            exists = true
+            break
+        end
+    end
+
+    if not exists then
+        table.insert(items, { name = itemName, price = price })
+    end
+
+    SaveDynamicStorefrontItems(restId, items)
+    TriggerClientEvent('ox_lib:notify', src, {title = 'Success', description = 'Added ' .. configItem.label .. ' for $' .. price, type = 'success'})
+end)
+
+RegisterNetEvent('ts-lets-eat:server:RemoveStorefrontItem', function(restId, itemName)
+    local src = source
+    if not IsAuthorized(src, restId) then return end
+
+    local items = GetDynamicStorefrontItems(restId)
+    for i, v in ipairs(items) do
+        if v.name == itemName then
+            table.remove(items, i)
+            break
+        end
+    end
+
+    SaveDynamicStorefrontItems(restId, items)
+    TriggerClientEvent('ox_lib:notify', src, {title = 'Removed', description = 'Removed item from storefront.', type = 'success'})
+end)
+
+
+-- Storefront Purchasing Logic
+RegisterNetEvent('ts-lets-eat:server:PurchaseStorefrontItem', function(restId, itemIndex, quantity)
+    local src = source
+    local restaurant = Config.Restaurants[restId]
+
+    if not restaurant or not restaurant.storefront.enabled then return end
+
+    -- Fetch the dynamic items from KVP rather than the static config
+    local items = GetDynamicStorefrontItems(restId)
+    local itemData = items[itemIndex]
+    if not itemData then return end
+
+    if type(quantity) ~= 'number' or quantity <= 0 then return end
+
+    -- Verify Distance to prevent global purchasing exploits
+    local ped = GetPlayerPed(src)
+    local pedCoords = GetEntityCoords(ped)
+    local storeCoords = vec3(restaurant.storefront.coords.x, restaurant.storefront.coords.y, restaurant.storefront.coords.z)
+
+    if #(pedCoords - storeCoords) > 10.0 then
+        return
+    end
+
+    local totalCost = itemData.price * quantity
+    local hasMoney = false
+
+    if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+        local Player = QBCore.Functions.GetPlayer(src)
+        if Player.Functions.RemoveMoney('cash', totalCost, "storefront-purchase") or Player.Functions.RemoveMoney('bank', totalCost, "storefront-purchase") then
+            hasMoney = true
+        end
+    elseif Config.Framework == 'esx' then
+        local xPlayer = ESX.GetPlayerFromId(src)
+        if xPlayer.getMoney() >= totalCost then
+            xPlayer.removeMoney(totalCost)
+            hasMoney = true
+        elseif xPlayer.getAccount('bank').money >= totalCost then
+            xPlayer.removeAccountMoney('bank', totalCost)
+            hasMoney = true
+        end
+    end
+
+    if not hasMoney then
+        TriggerClientEvent('ox_lib:notify', src, {
+            title = 'Insufficient Funds',
+            description = 'You cannot afford ' .. quantity .. 'x ' .. Config.Items[itemData.name].label,
+            type = 'error'
+        })
+        return
+    end
+
+    local metadata = { creationTime = os.time() }
+
+    if Config.Inventory == 'ox' then
+        exports.ox_inventory:AddItem(src, itemData.name, quantity, metadata)
+    elseif Config.Inventory == 'qb' then
+        local Player = QBCore.Functions.GetPlayer(src)
+        Player.Functions.AddItem(itemData.name, quantity, false, metadata)
+    elseif Config.Inventory == 'qs' then
+        if Config.Framework == 'esx' then
+            local xPlayer = ESX.GetPlayerFromId(src)
+            if xPlayer.addInventoryItem then
+                xPlayer.addInventoryItem(itemData.name, quantity, metadata)
+            end
+        elseif Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+            local Player = QBCore.Functions.GetPlayer(src)
+            Player.Functions.AddItem(itemData.name, quantity, false, metadata)
+        end
+    end
+
+    TriggerClientEvent('ox_lib:notify', src, {
+        title = 'Purchase Successful',
+        description = 'You bought ' .. quantity .. 'x ' .. Config.Items[itemData.name].label .. ' for $' .. totalCost,
+        type = 'success'
+    })
+end)
+
 -- Hook for ox_inventory to check spoilage dynamically when accessing inventories (if applicable)
 -- Alternatively, this can be handled via a recurring server thread that cleans up expired items.
 CreateThread(function()

@@ -99,6 +99,28 @@ Config.RefrigeratorProps = {
     [`prop_fridge_03`] = true
 }
 
+-- Restaurant Locations & Storefronts
+Config.Restaurants = {
+    ['burgershot'] = {
+        label = 'Burger Shot',
+        job = 'burgershot',
+        -- Storefront NPC where players can buy items if no workers are around
+        storefront = {
+            enabled = true,
+            pedModel = `s_m_y_chef_01`,
+            coords = vec4(-1193.38, -892.29, 13.99, 304.5), -- x, y, z, heading
+            items = {
+                { name = 'bologna_sandwich', price = 15 },
+                { name = 'water', price = 5 }
+            }
+        },
+        -- Custom cooking stations (zones) if native props aren't placed well
+        cookingStations = {
+            { coords = vec3(-1201.78, -897.41, 13.99), radius = 1.0 }
+        }
+    }
+}
+
 -- Dynamic Prop Spawning
 Config.CookingProps = {
     ['frying_pan'] = { hash = `prop_pot_05`, offset = vec3(0.0, 0.0, 1.0), rot = vec3(0.0, 0.0, 0.0) },
