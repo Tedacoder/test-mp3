@@ -211,8 +211,8 @@ Config.Recipes = {
         category = 'Chinese',
         output = 'steamed_bok_choy',
         portions = {
-            ['single'] = { time = 4000, ingredients = { ['bok_choy'] = 1, ['water'] = 1 }, amount = 1 },
-            ['family'] = { time = 12000, ingredients = { ['bok_choy'] = 5, ['water'] = 5 }, amount = 10 }
+            ['single'] = { time = 4000, ingredients = { ['bok_choy'] = 1, ['cooking_water'] = 1 }, amount = 1 },
+            ['family'] = { time = 12000, ingredients = { ['bok_choy'] = 5, ['cooking_water'] = 5 }, amount = 10 }
         },
         prop = 'pot',
         anim = 'stirring'
@@ -252,6 +252,7 @@ Config.Items = {
     ['raw_meat'] = { label = 'Raw Meat', type = 'ingredient', spoil_rate = 'raw_meat' },
     ['vegetables'] = { label = 'Vegetables', type = 'ingredient', spoil_rate = 'raw_seafood' },
     ['bread'] = { label = 'Bread', type = 'ingredient', spoil_rate = 'cooked_meal' },
+    ['cooking_water'] = { label = 'Cooking Water', type = 'ingredient', spoil_rate = 'drinks', register_usable = false },
     ['water'] = { label = 'Water', type = 'ingredient', spoil_rate = 'drinks', category = 'Drinks', register_usable = false },
     ['seasoning'] = { label = 'Seasoning', type = 'ingredient', spoil_rate = 'dessert' },
     ['vinegar'] = { label = 'Vinegar', type = 'ingredient', spoil_rate = 'drinks' },

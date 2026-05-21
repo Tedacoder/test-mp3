@@ -416,37 +416,61 @@ end
 
 
 -- Storefront Interaction Menu
-local function OpenStorefrontMenu(restId, data)
-    local items = lib.callback.await('ts-lets-eat:server:GetStorefrontItems', 200, restId)
-    local options = {}
+-- Format items for NUI
+local function FormatMenuDataForNUI(items)
+    -- Group items broadly or put them in one chunk.
+    -- For simplicity, let's categorize them as "Storefront Items"
+    local menuPage = {
+        category = "Storefront Items",
+        items = {}
+    }
 
     for i, itemData in ipairs(items) do
         local configItem = Config.Items[itemData.name]
         if configItem then
-            table.insert(options, {
-                title = configItem.label,
-                description = 'Price: $' .. itemData.price,
-                onSelect = function()
-                    local input = lib.inputDialog('Purchase ' .. configItem.label, {
-                        {type = 'number', label = 'Quantity', default = 1, min = 1, max = 20}
-                    })
-                    if not input then return end
-
-                    local quantity = input[1]
-                    TriggerServerEvent('ts-lets-eat:server:PurchaseStorefrontItem', restId, i, quantity)
-                end
+            table.insert(menuPage.items, {
+                id = i,
+                name = configItem.label,
+                desc = "Freshly prepared " .. configItem.label,
+                price = itemData.price
             })
         end
     end
 
-    lib.registerContext({
-        id = 'storefront_menu_' .. restId,
-        title = data.label .. ' Menu',
-        options = options
-    })
-
-    lib.showContext('storefront_menu_' .. restId)
+    -- We can paginate if it exceeds limits, but sticking it into one/two categories fits the layout.
+    return { menuPage }
 end
+
+-- Storefront Interaction Menu (NUI)
+local function OpenStorefrontMenu(restId, data)
+    local items = lib.callback.await('ts-lets-eat:server:GetStorefrontItems', 200, restId)
+    local formattedData = FormatMenuDataForNUI(items)
+
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = "openMenu",
+        menuData = formattedData,
+        restId = restId
+    })
+end
+
+RegisterNUICallback("closeMenu", function(data, cb)
+    SetNuiFocus(false, false)
+    cb("ok")
+end)
+
+RegisterNUICallback("orderItem", function(data, cb)
+    if data and data.itemIndex and data.restId then
+        -- Defaulting to a purchase quantity of 1 for the NUI click
+        TriggerServerEvent('ts-lets-eat:server:PurchaseStorefrontItem', data.restId, data.itemIndex, 1)
+    end
+    cb("ok")
+end)
+
+RegisterNUICallback("addMixer", function(data, cb)
+    -- If mixers are implemented in the KVP in the future, handle logic here.
+    cb("ok")
+end)
 
 -- Setup Restaurant Storefronts
 CreateThread(function()
