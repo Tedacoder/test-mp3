@@ -315,17 +315,31 @@ end)
 -- Register usable items based on framework
 CreateThread(function()
     for itemName, itemData in pairs(Config.Items) do
-        if (itemData.type == 'meal' or itemData.category == 'Drinks') and itemData.register_usable ~= false then
-            if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
-                QBCore.Functions.CreateUseableItem(itemName, function(source, item)
-                    local src = source
-                    TriggerClientEvent('ts-lets-eat:client:ConsumeFood', src, itemName)
-                end)
-            elseif Config.Framework == 'esx' then
-                ESX.RegisterUsableItem(itemName, function(source, item, itemInfo)
-                    local src = source
-                    TriggerClientEvent('ts-lets-eat:client:ConsumeFood', src, itemName)
-                end)
+        if itemData.register_usable ~= false then
+            if itemData.type == 'meal' or itemData.category == 'Drinks' then
+                if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+                    QBCore.Functions.CreateUseableItem(itemName, function(source, item)
+                        local src = source
+                        TriggerClientEvent('ts-lets-eat:client:ConsumeFood', src, itemName)
+                    end)
+                elseif Config.Framework == 'esx' then
+                    ESX.RegisterUsableItem(itemName, function(source, item, itemInfo)
+                        local src = source
+                        TriggerClientEvent('ts-lets-eat:client:ConsumeFood', src, itemName)
+                    end)
+                end
+            elseif itemData.type == 'ingredient' then
+                if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+                    QBCore.Functions.CreateUseableItem(itemName, function(source, item)
+                        local src = source
+                        TriggerClientEvent('ts-lets-eat:client:UseIngredient', src, itemName)
+                    end)
+                elseif Config.Framework == 'esx' then
+                    ESX.RegisterUsableItem(itemName, function(source, item, itemInfo)
+                        local src = source
+                        TriggerClientEvent('ts-lets-eat:client:UseIngredient', src, itemName)
+                    end)
+                end
             end
         end
     end

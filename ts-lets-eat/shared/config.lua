@@ -162,6 +162,18 @@ Config.Animations = {
         anim = 'base',
         flags = 49,
         time = 5000
+    },
+    ['pouring'] = {
+        dict = 'amb@world_human_drinking@coffee@male@idle_a',
+        anim = 'idle_c',
+        flags = 49,
+        time = 5000
+    },
+    ['mixing'] = {
+        dict = 'amb@world_human_drinking@coffee@male@idle_a',
+        anim = 'idle_c',
+        flags = 49,
+        time = 5000
     }
 }
 
@@ -241,22 +253,89 @@ Config.Recipes = {
 
 -- Default Item Definitions (For inventory mapping/creation)
 Config.Items = {
-    ['raw_risotto'] = { label = 'Raw Risotto', type = 'ingredient', spoil_rate = 'raw_seafood' },
-    ['lasagna_noodles'] = { label = 'Lasagna Noodles', type = 'ingredient', spoil_rate = 'raw_meat' },
-    ['bologna'] = { label = 'Bologna', type = 'ingredient', spoil_rate = 'raw_meat' },
-    ['raw_scallops'] = { label = 'Raw Scallops', type = 'ingredient', spoil_rate = 'raw_seafood' },
-    ['raw_pig_feet'] = { label = 'Raw Pig Feet', type = 'ingredient', spoil_rate = 'raw_meat' },
-    ['oxtail'] = { label = 'Oxtail', type = 'ingredient', spoil_rate = 'raw_meat' },
-    ['bok_choy'] = { label = 'Bok Choy', type = 'ingredient', spoil_rate = 'raw_seafood' }, -- veggies spoil fast
-    ['red_snapper'] = { label = 'Red Snapper', type = 'ingredient', spoil_rate = 'raw_seafood' },
-    ['raw_meat'] = { label = 'Raw Meat', type = 'ingredient', spoil_rate = 'raw_meat' },
-    ['vegetables'] = { label = 'Vegetables', type = 'ingredient', spoil_rate = 'raw_seafood' },
-    ['bread'] = { label = 'Bread', type = 'ingredient', spoil_rate = 'cooked_meal' },
-    ['cooking_water'] = { label = 'Cooking Water', type = 'ingredient', spoil_rate = 'drinks', register_usable = false },
-    ['water'] = { label = 'Water', type = 'ingredient', spoil_rate = 'drinks', category = 'Drinks', register_usable = false },
-    ['seasoning'] = { label = 'Seasoning', type = 'ingredient', spoil_rate = 'dessert' },
-    ['vinegar'] = { label = 'Vinegar', type = 'ingredient', spoil_rate = 'drinks' },
+    -- 📦 INGREDIENTS (ALL ITEMS WITH PROPS + ANIMS)
+    ['raw_risotto'] = {
+        label = 'Raw Risotto', type = 'ingredient', spoil_rate = 'raw_seafood',
+        prop = 'prop_food_ricebag_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['lasagna_noodles'] = {
+        label = 'Lasagna Noodles', type = 'ingredient', spoil_rate = 'raw_meat',
+        prop = 'prop_pasta_box_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['bologna'] = {
+        label = 'Bologna', type = 'ingredient', spoil_rate = 'raw_meat',
+        prop = 'prop_sandwich_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['raw_scallops'] = {
+        label = 'Raw Scallops', type = 'ingredient', spoil_rate = 'raw_seafood',
+        prop = 'prop_fish_slice_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['raw_pig_feet'] = {
+        label = 'Raw Pig Feet', type = 'ingredient', spoil_rate = 'raw_meat',
+        prop = 'prop_cs_steak', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['oxtail'] = {
+        label = 'Oxtail', type = 'ingredient', spoil_rate = 'raw_meat',
+        prop = 'prop_meat_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['bok_choy'] = {
+        label = 'Bok Choy', type = 'ingredient', spoil_rate = 'raw_seafood',
+        prop = 'prop_veg_crop_03', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['red_snapper'] = {
+        label = 'Red Snapper', type = 'ingredient', spoil_rate = 'raw_seafood',
+        prop = 'prop_fish_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['raw_meat'] = {
+        label = 'Raw Meat', type = 'ingredient', spoil_rate = 'raw_meat',
+        prop = 'prop_cs_steak', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['vegetables'] = {
+        label = 'Vegetables', type = 'ingredient', spoil_rate = 'raw_seafood',
+        prop = 'prop_veg_crop_04', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['bread'] = {
+        label = 'Bread', type = 'ingredient', spoil_rate = 'cooked_meal',
+        prop = 'prop_breadbin_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['cooking_water'] = {
+        label = 'Cooking Water', type = 'ingredient', spoil_rate = 'drinks', register_usable = false,
+        prop = 'prop_ld_flow_bottle', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['water'] = {
+        label = 'Water', type = 'ingredient', spoil_rate = 'drinks', category = 'Drinks', register_usable = false,
+        prop = 'prop_ld_flow_bottle', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['seasoning'] = {
+        label = 'Seasoning', type = 'ingredient', spoil_rate = 'dessert',
+        prop = 'prop_spice_jar_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['vinegar'] = {
+        label = 'Vinegar', type = 'ingredient', spoil_rate = 'drinks',
+        prop = 'prop_vinegar_bottle', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['garlic_powder'] = {
+        label = 'Garlic Powder', type = 'ingredient', spoil_rate = 'dessert',
+        prop = 'prop_spice_jar_01', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['apple_cider_vinegar'] = {
+        label = 'Apple Cider Vinegar', type = 'ingredient', spoil_rate = 'drinks',
+        prop = 'prop_vinegar_bottle', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['olive_oil'] = {
+        label = 'Olive Oil', type = 'ingredient', spoil_rate = 'drinks',
+        prop = 'prop_oil_bottle', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['soy_sauce'] = {
+        label = 'Soy Sauce', type = 'ingredient', spoil_rate = 'drinks',
+        prop = 'prop_soy_sauce_bottle', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
+    ['hot_sauce'] = {
+        label = 'Hot Sauce', type = 'ingredient', spoil_rate = 'drinks',
+        prop = 'prop_hot_sauce_bottle', animDict = 'amb@world_human_drinking@coffee@male@idle_a', animClip = 'idle_c'
+    },
 
+    -- 🍽️ MEALS (NO PROPS)
     ['cooked_risotto'] = { label = 'Cooked Risotto', type = 'meal', category = 'Seafood', spoil_rate = 'cooked_meal' },
     ['cooked_lasagna'] = { label = 'Cooked Lasagna', type = 'meal', category = 'BBQ', spoil_rate = 'cooked_meal' },
     ['cooked_oxtail'] = { label = 'Oxtail Stew', type = 'meal', category = 'Soul Food', spoil_rate = 'cooked_meal' },

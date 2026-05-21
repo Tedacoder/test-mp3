@@ -58,6 +58,32 @@ local function CleanupProp(obj, ptfx, soundId)
     end
 end
 
+local function UseIngredient(itemName)
+    local data = Config.Items[itemName]
+    if not data or not data.prop or not data.animDict or not data.animClip then return end
+
+    local ped = PlayerPedId()
+
+    lib.requestAnimDict(data.animDict)
+    lib.requestModel(GetHashKey(data.prop))
+
+    local prop = CreateObject(GetHashKey(data.prop), 0, 0, 0, true, true, true)
+    AttachEntityToEntity(prop, ped, GetPedBoneIndex(ped, 60309), 0.1, 0.02, -0.02, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+
+    TaskPlayAnim(ped, data.animDict, data.animClip, 3.0, 3.0, -1, 49, 0, false, false, false)
+
+    Wait(2500)
+    ClearPedTasks(ped)
+    if DoesEntityExist(prop) then
+        DeleteEntity(prop)
+    end
+end
+
+RegisterNetEvent('ts-lets-eat:client:UseIngredient', function(itemName)
+    UseIngredient(itemName)
+end)
+
+
 -- Event triggered when player uses the item from inventory
 RegisterNetEvent('ts-lets-eat:client:ConsumeFood', function(itemName)
     local itemConfig = Config.Items[itemName]
