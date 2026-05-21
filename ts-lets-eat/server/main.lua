@@ -270,17 +270,27 @@ RegisterNetEvent('ts-lets-eat:server:PurchaseWholesale', function(item, boxes)
     local hasMoney = false
     local accountType = Config.BusinessSourcing.accountType or 'bank'
 
-    if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
-        local Player = QBCore.Functions.GetPlayer(src)
-        if Player.PlayerData.money[accountType] >= cost then
-            Player.Functions.RemoveMoney(accountType, cost, "wholesale-purchase")
+    if Config.Inventory == 'ox' then
+        -- money is treated as an item in ox_inventory
+        local moneyItem = accountType == 'cash' and 'money' or 'money' -- depending on config, maybe different items
+        local count = exports.ox_inventory:GetItemCount(src, moneyItem)
+        if count >= cost then
+            exports.ox_inventory:RemoveItem(src, moneyItem, cost)
             hasMoney = true
         end
-    elseif Config.Framework == 'esx' then
-        local xPlayer = ESX.GetPlayerFromId(src)
-        if xPlayer.getAccount(accountType).money >= cost then
-            xPlayer.removeAccountMoney(accountType, cost, "Wholesale purchase")
-            hasMoney = true
+    else
+        if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+            local Player = QBCore.Functions.GetPlayer(src)
+            if Player.PlayerData.money[accountType] >= cost then
+                Player.Functions.RemoveMoney(accountType, cost, "wholesale-purchase")
+                hasMoney = true
+            end
+        elseif Config.Framework == 'esx' then
+            local xPlayer = ESX.GetPlayerFromId(src)
+            if xPlayer.getAccount(accountType).money >= cost then
+                xPlayer.removeAccountMoney(accountType, cost, "Wholesale purchase")
+                hasMoney = true
+            end
         end
     end
 
@@ -481,19 +491,27 @@ RegisterNetEvent('ts-lets-eat:server:PurchaseStorefrontItem', function(restId, i
     local totalCost = itemData.price * quantity
     local hasMoney = false
 
-    if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
-        local Player = QBCore.Functions.GetPlayer(src)
-        if Player.Functions.RemoveMoney('cash', totalCost, "storefront-purchase") or Player.Functions.RemoveMoney('bank', totalCost, "storefront-purchase") then
+    if Config.Inventory == 'ox' then
+        local count = exports.ox_inventory:GetItemCount(src, 'money')
+        if count >= totalCost then
+            exports.ox_inventory:RemoveItem(src, 'money', totalCost)
             hasMoney = true
         end
-    elseif Config.Framework == 'esx' then
-        local xPlayer = ESX.GetPlayerFromId(src)
-        if xPlayer.getMoney() >= totalCost then
-            xPlayer.removeMoney(totalCost)
-            hasMoney = true
-        elseif xPlayer.getAccount('bank').money >= totalCost then
-            xPlayer.removeAccountMoney('bank', totalCost)
-            hasMoney = true
+    else
+        if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+            local Player = QBCore.Functions.GetPlayer(src)
+            if Player.Functions.RemoveMoney('cash', totalCost, "storefront-purchase") or Player.Functions.RemoveMoney('bank', totalCost, "storefront-purchase") then
+                hasMoney = true
+            end
+        elseif Config.Framework == 'esx' then
+            local xPlayer = ESX.GetPlayerFromId(src)
+            if xPlayer.getMoney() >= totalCost then
+                xPlayer.removeMoney(totalCost)
+                hasMoney = true
+            elseif xPlayer.getAccount('bank').money >= totalCost then
+                xPlayer.removeAccountMoney('bank', totalCost)
+                hasMoney = true
+            end
         end
     end
 
