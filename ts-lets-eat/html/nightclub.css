@@ -1,0 +1,113 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #fff;
+}
+
+#menu-wrapper {
+    background-color: rgba(20, 20, 20, 0.95);
+    border: 2px solid #ff007f;
+    border-radius: 10px;
+    padding: 20px;
+    width: 800px;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 20px #ff007f;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #ff007f;
+    font-size: 24px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#menu-book {
+    display: flex;
+    flex: 1;
+}
+
+.page {
+    flex: 1;
+    padding: 10px 20px;
+}
+
+#page-left {
+    border-right: 1px solid #ff007f;
+}
+
+.category-title {
+    color: #ff007f;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.item {
+    background-color: rgba(50, 50, 50, 0.8);
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+}
+
+.item-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00ffff;
+}
+
+.item-desc {
+    font-size: 14px;
+    color: #ccc;
+    margin: 5px 0;
+}
+
+.item-price {
+    font-size: 16px;
+    color: #ff007f;
+    font-weight: bold;
+}
+
+.order-btn {
+    background-color: #ff007f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.order-btn:hover {
+    background-color: #ff3399;
+}
+
+#nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+button {
+    background-color: #222;
+    color: #fff;
+    border: 1px solid #ff007f;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #333;
+}
