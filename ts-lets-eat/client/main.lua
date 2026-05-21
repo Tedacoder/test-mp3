@@ -60,13 +60,26 @@ end
 
 -- Event triggered when player uses the item from inventory
 RegisterNetEvent('ts-lets-eat:client:ConsumeFood', function(itemName)
-    -- Play eating animation
-    lib.requestAnimDict('mp_player_inteat@burger')
-    TaskPlayAnim(PlayerPedId(), 'mp_player_inteat@burger', 'mp_player_int_eat_burger_fp', 8.0, -8.0, 3000, 49, 0, false, false, false)
+    local itemConfig = Config.Items[itemName]
+    if not itemConfig then return end
+
+    -- Play eating or drinking animation based on item category
+    local animDict = 'mp_player_inteat@burger'
+    local animName = 'mp_player_int_eat_burger_fp'
+    local actionLabel = 'Eating '
+
+    if itemConfig.category == 'Drinks' or itemName == 'water' or itemName == 'vinegar' then
+        animDict = 'amb@world_human_drinking@coffee@male@idle_a'
+        animName = 'idle_c'
+        actionLabel = 'Drinking '
+    end
+
+    lib.requestAnimDict(animDict)
+    TaskPlayAnim(PlayerPedId(), animDict, animName, 8.0, -8.0, 3000, 49, 0, false, false, false)
 
     if lib.progressBar({
         duration = 3000,
-        label = 'Eating ' .. Config.Items[itemName].label,
+        label = actionLabel .. itemConfig.label,
         useWhileDead = false,
         canCancel = true,
         disable = {

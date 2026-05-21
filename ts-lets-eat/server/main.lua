@@ -89,12 +89,13 @@ RegisterNetEvent('ts-lets-eat:server:FinishCooking', function(recipeName, portio
 
         -- Add the cooked meal with creation timestamp for spoilage tracking
         local metadata = { creationTime = os.time() }
+        local infoData = { creationTime = os.time() } -- QBCore specifically uses 'info' for metadata internally
 
         if Config.Inventory == 'ox' then
             exports.ox_inventory:AddItem(src, recipe.output, portion.amount, metadata)
         elseif Config.Inventory == 'qb' then
             local Player = QBCore.Functions.GetPlayer(src)
-            Player.Functions.AddItem(recipe.output, portion.amount, false, metadata)
+            Player.Functions.AddItem(recipe.output, portion.amount, false, infoData)
         elseif Config.Inventory == 'qs' then
             if Config.Framework == 'esx' then
                 local xPlayer = ESX.GetPlayerFromId(src)
@@ -164,17 +165,8 @@ RegisterNetEvent('ts-lets-eat:server:ConsumeItem', function(itemName)
         isSpoiled = CalculateSpoilage({name = itemName, metadata = serverMetadata})
     end
 
-    if isSpoiled then
-        TriggerClientEvent('ox_lib:notify', src, {
-            title = 'Disgusting',
-            description = 'This food has spoiled and tastes awful.',
-            type = 'error'
-        })
-        -- Maybe apply sick buff
-        return
-    end
-
-    -- Remove the item and verify success
+    -- Remove the item and verify success FIRST
+    -- (We must remove the item regardless of whether it is spoiled or not so players don't have infinite spoiled food)
     local removed = false
     if Config.Inventory == 'ox' then
         local success = exports.ox_inventory:RemoveItem(src, itemName, 1)
@@ -201,6 +193,16 @@ RegisterNetEvent('ts-lets-eat:server:ConsumeItem', function(itemName)
     end
 
     if not removed then
+        return
+    end
+
+    if isSpoiled then
+        TriggerClientEvent('ox_lib:notify', src, {
+            title = 'Disgusting',
+            description = 'This food has spoiled and tastes awful.',
+            type = 'error'
+        })
+        -- Maybe apply sick buff
         return
     end
 
@@ -490,22 +492,20 @@ RegisterNetEvent('ts-lets-eat:server:PurchaseStorefrontItem', function(restId, i
         return
     end
 
-    local metadata = { creationTime = os.time() }
-
     if Config.Inventory == 'ox' then
-        exports.ox_inventory:AddItem(src, itemData.name, quantity, metadata)
+        exports.ox_inventory:AddItem(src, itemData.name, quantity)
     elseif Config.Inventory == 'qb' then
         local Player = QBCore.Functions.GetPlayer(src)
-        Player.Functions.AddItem(itemData.name, quantity, false, metadata)
+        Player.Functions.AddItem(itemData.name, quantity)
     elseif Config.Inventory == 'qs' then
         if Config.Framework == 'esx' then
             local xPlayer = ESX.GetPlayerFromId(src)
             if xPlayer.addInventoryItem then
-                xPlayer.addInventoryItem(itemData.name, quantity, metadata)
+                xPlayer.addInventoryItem(itemData.name, quantity)
             end
         elseif Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
             local Player = QBCore.Functions.GetPlayer(src)
-            Player.Functions.AddItem(itemData.name, quantity, false, metadata)
+            Player.Functions.AddItem(itemData.name, quantity)
         end
     end
 
