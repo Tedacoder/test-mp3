@@ -476,9 +476,21 @@ CreateThread(function()
                         icon = 'fas fa-cog',
                         label = 'Manage Storefront',
                         canInteract = function()
-                            -- Since jobs sync can be complex across frameworks purely on client,
-                            -- we check visually. Proper security is server-side.
-                            return true
+                            if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
+                                local PlayerData = QBCore.Functions.GetPlayerData()
+                                if PlayerData and PlayerData.job then
+                                    if PlayerData.job.name == data.job and PlayerData.job.isboss then return true end
+                                end
+                            elseif Config.Framework == 'esx' then
+                                local PlayerData = ESX.GetPlayerData()
+                                if PlayerData and PlayerData.job then
+                                    if PlayerData.job.name == data.job and PlayerData.job.grade_name == 'boss' then return true end
+                                end
+                            end
+                            -- In clientside checking admin status accurately via core data is tough,
+                            -- so we strictly render this UI based on the job. Admins can just bypass it
+                            -- via an external trigger if needed, or we rely purely on boss permissions.
+                            return false
                         end,
                         onSelect = function()
                             OpenStorefrontManagementMenu(restId, data)

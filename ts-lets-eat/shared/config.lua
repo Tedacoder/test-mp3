@@ -252,7 +252,7 @@ Config.Items = {
     ['raw_meat'] = { label = 'Raw Meat', type = 'ingredient', spoil_rate = 'raw_meat' },
     ['vegetables'] = { label = 'Vegetables', type = 'ingredient', spoil_rate = 'raw_seafood' },
     ['bread'] = { label = 'Bread', type = 'ingredient', spoil_rate = 'cooked_meal' },
-    ['water'] = { label = 'Water', type = 'ingredient', spoil_rate = 'drinks' },
+    ['water'] = { label = 'Water', type = 'ingredient', spoil_rate = 'drinks', category = 'Drinks', register_usable = false },
     ['seasoning'] = { label = 'Seasoning', type = 'ingredient', spoil_rate = 'dessert' },
     ['vinegar'] = { label = 'Vinegar', type = 'ingredient', spoil_rate = 'drinks' },
 

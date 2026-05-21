@@ -89,7 +89,7 @@ RegisterNetEvent('ts-lets-eat:server:FinishCooking', function(recipeName, portio
 
         -- Add the cooked meal with creation timestamp for spoilage tracking
         local metadata = { creationTime = os.time() }
-        local infoData = { creationTime = os.time() } -- QBCore specifically uses 'info' for metadata internally
+        local infoData = { creationTime = os.time(), quality = 100 } -- QBCore specifically uses 'info' for metadata internally
 
         if Config.Inventory == 'ox' then
             exports.ox_inventory:AddItem(src, recipe.output, portion.amount, metadata)
@@ -124,7 +124,7 @@ RegisterNetEvent('ts-lets-eat:server:ConsumeItem', function(itemName)
     local src = source
     local item = Config.Items[itemName]
 
-    if not item or item.type ~= 'meal' then return end
+    if not item or (item.type ~= 'meal' and item.category ~= 'Drinks') then return end
 
     -- Fetch metadata directly from inventory
     local serverMetadata = nil
@@ -315,7 +315,7 @@ end)
 -- Register usable items based on framework
 CreateThread(function()
     for itemName, itemData in pairs(Config.Items) do
-        if itemData.type == 'meal' then
+        if (itemData.type == 'meal' or itemData.category == 'Drinks') and itemData.register_usable ~= false then
             if Config.Framework == 'qbox' or Config.Framework == 'qbcore' then
                 QBCore.Functions.CreateUseableItem(itemName, function(source, item)
                     local src = source
