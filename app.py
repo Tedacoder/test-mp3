@@ -33,8 +33,13 @@ def add_to_inventory():
 
 @app.route('/api/ticket', methods=['GET'])
 def get_ticket():
-    total = sum(inventory[item] for item in current_ticket if item in inventory)
-    ticket_details = [{'name': item, 'price': inventory[item]} for item in current_ticket if item in inventory]
+    total = 0
+    ticket_details = []
+    for item in current_ticket:
+        if item in inventory:
+            price = inventory[item]
+            total += price
+            ticket_details.append({'name': item, 'price': price})
     return jsonify({'items': ticket_details, 'total': total})
 
 @app.route('/api/ticket', methods=['POST'])
