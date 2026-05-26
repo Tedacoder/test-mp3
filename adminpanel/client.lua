@@ -36,7 +36,7 @@ local function toggleAdminMenu()
 end
 
 RegisterCommand("toggleadmin", toggleAdminMenu)
-RegisterKeyMapping("toggleadmin", "Toggle Admin Menu", "keyboard", "F2")
+RegisterKeyMapping("toggleadmin", "Toggle Admin Menu", "keyboard", "F10")
 RegisterCommand("admin", toggleAdminMenu)
 
 -- Emergency escape command to release NUI focus

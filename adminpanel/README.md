@@ -69,7 +69,7 @@
   - `Config.VehiclePresets` — optional vehicle mod presets.
 
 ## Usage
-- **Open Panel:** Press F2 (default) or type `/admin`.
+- **Open Panel:** Press F10 (default) or type `/admin`.
 - **Tabs:**
   - Inventory — View, add, remove items via ox_inventory exports
   - Garage — View/add/remove vehicles from DB
@@ -87,7 +87,7 @@
 Here are the commands you can use in-game to interact with the admin panel system:
 
 - `/admin` or `/toggleadmin` : Opens the admin panel UI.
-- `F2` (Default Keybind) : Toggles the admin panel UI open and closed.
+- `F10` (Default Keybind) : Toggles the admin panel UI open and closed.
 - `/adminfix` : Emergency escape command to release NUI focus if the UI gets stuck.
 - `/checksteam` : Prints your Steam ID to the chat and console to help with setting up permissions.
 - `/stopspec` : Stops spectating a player and returns your camera to normal.

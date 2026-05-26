@@ -5,7 +5,7 @@ Config.PanelTitle = "HARD STREETZ OF PHILLY V2"
 
 -- Gods: full access (add your staff hexes)
 Config.Gods = {
-    ["steam:11000016E16BFB7"] = true
+    ["steam:11000016e16bfb7"] = true
 }
 
 -- Discord webhook for logs (optional)
