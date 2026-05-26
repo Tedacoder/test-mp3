@@ -3,6 +3,7 @@ window.addEventListener('message', (event) => {
   if (event.data.action === 'openPanel') {
     document.querySelector('.admin-container').classList.add('show');
     document.body.style.display = 'block';
+    document.body.classList.add('panel-open');
 
     // Update title
     const titleEl = document.getElementById('sidebarTitle');
@@ -17,6 +18,7 @@ window.addEventListener('message', (event) => {
     }, 100);
   } else if (event.data.action === 'closePanel') {
     document.querySelector('.admin-container').classList.remove('show');
+    document.body.classList.remove('panel-open');
   }
 
   // Admin chat updates
@@ -698,8 +700,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Close menu function
   window.closeMenu = function() {
-    fetch(`https://${GetParentResourceName()}/closeMenu`, { method: "POST" });
+    document.querySelector('.admin-container').classList.remove('show');
+    document.body.classList.remove('panel-open');
+    fetch(`https://${GetParentResourceName()}/closeMenu`, {
+        method: "POST",
+        body: JSON.stringify({})
+    });
   };
+
+  // Escape key listener to close menu
+  document.addEventListener('keydown', function(event) {
+      if (event.key === "Escape") {
+          window.closeMenu();
+      }
+  });
 
   // Admin chat enter key
   const chatInput = document.getElementById("adminChatInput");

@@ -105,6 +105,10 @@ body.theme-red {
     box-sizing: border-box;
   }
 
+  body.panel-open {
+    background: rgba(15, 15, 15, 0.85); /* Dark semi-transparent overlay only when open */
+  }
+
   .admin-container {
     display: none;
     flex-direction: row;
