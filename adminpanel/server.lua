@@ -107,14 +107,30 @@ local function getIds(src)
 end
 local function isGod(src)
   local ids = getIds(src)
-  local result = ids.steam and Config.Gods[ids.steam] == true or false
-  print("[Permission] isGod check for src:", src, "steam:", ids.steam, "result:", result)
+  local result = false
+  local matchedId = "none"
+
+  if ids.steam and Config.Gods[ids.steam] then
+      result = true
+      matchedId = ids.steam
+  elseif ids.license and Config.Gods[ids.license] then
+      result = true
+      matchedId = ids.license
+  elseif ids.discord and Config.Gods[ids.discord] then
+      result = true
+      matchedId = ids.discord
+  end
+
+  print(("[Permission] isGod check for src: %s | Match: %s | Result: %s"):format(src, matchedId, tostring(result)))
   return result
 end
 local function hasPermission(src, perm)
   if isGod(src) then return true end
   local ids = getIds(src)
-  local perms = ids.steam and Config.AdminPermissions[ids.steam]
+  -- Check permissions against steam, license, or discord
+  local perms = (ids.steam and Config.AdminPermissions[ids.steam])
+             or (ids.license and Config.AdminPermissions[ids.license])
+             or (ids.discord and Config.AdminPermissions[ids.discord])
   local result = perms and perms[perm] == true or false
   print("[Permission] hasPermission check for src:", src, "perm:", perm, "result:", result)
   return result
@@ -124,7 +140,9 @@ end
 lib.callback.register('admin:canOpenPanel', function(source)
     local isGodResult = isGod(source)
     local ids = getIds(source)
-    local perms = ids.steam and Config.AdminPermissions[ids.steam]
+    local perms = (ids.steam and Config.AdminPermissions[ids.steam])
+               or (ids.license and Config.AdminPermissions[ids.license])
+               or (ids.discord and Config.AdminPermissions[ids.discord])
 
     -- If they are god, or they have ANY permissions, they can open the panel
     if isGodResult then return true end
