@@ -98,7 +98,7 @@ body.theme-red {
 
   html, body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: #222;
+    background: transparent;
     color: var(--color-text);
     margin: 0;
     padding: 0;
