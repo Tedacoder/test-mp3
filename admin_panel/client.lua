@@ -7,24 +7,32 @@ local menuOpen = false
 
 -- Shared toggle
 local function toggleAdminMenu()
-  menuOpen = not menuOpen
-
   if menuOpen then
-    SetNuiFocus(true, true)
-    SendNUIMessage({
-        action = "openPanel",
-        title = Config.PanelTitle or "Admin Panel"
-    })
-    TriggerServerEvent("admin:getActivePlayers")
-    TriggerServerEvent("admin:getJobs")
-    TriggerServerEvent("admin:getCheatAlerts")
-    TriggerServerEvent("admin:getReports")
-    TriggerServerEvent("admin:getAdminChat")
-    TriggerServerEvent("admin:getLogsFeed")
-  else
+    menuOpen = false
     SetNuiFocus(false, false)
     SendNUIMessage({ action = "closePanel" })
+    return
   end
+
+  -- Check permission before opening
+  local canOpen = lib.callback.await('admin:canOpenPanel', false)
+  if not canOpen then
+      SendNUIMessage({ type = "toast", message = "You do not have permission to open the admin panel." })
+      return
+  end
+
+  menuOpen = true
+  SetNuiFocus(true, true)
+  SendNUIMessage({
+      action = "openPanel",
+      title = Config.PanelTitle or "Admin Panel"
+  })
+  TriggerServerEvent("admin:getActivePlayers")
+  TriggerServerEvent("admin:getJobs")
+  TriggerServerEvent("admin:getCheatAlerts")
+  TriggerServerEvent("admin:getReports")
+  TriggerServerEvent("admin:getAdminChat")
+  TriggerServerEvent("admin:getLogsFeed")
 end
 
 RegisterCommand("toggleadmin", toggleAdminMenu)
@@ -92,6 +100,7 @@ nui("bringPlayer", function(d) TriggerServerEvent("admin:bringPlayer", d.targetI
 nui("spectatePlayer", function(d) TriggerServerEvent("admin:spectatePlayer", d.targetId) end)
 nui("healPlayer", function(d) TriggerServerEvent("admin:healPlayer", d.targetId) end)
 nui("killPlayer", function(d) TriggerServerEvent("admin:killPlayer", d.targetId) end)
+nui("bulkAction", function(d) TriggerServerEvent("admin:bulkAction", d) end)
 
 -- Close panel
 nui("closeMenu", function(data, cb)

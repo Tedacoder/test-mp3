@@ -291,6 +291,17 @@ function exportLogs() {
       });
 
       function renderPlayerSelect(players) {
+        // Render bulk selection list
+        const bulkList = document.getElementById("bulkPlayerList");
+        if (bulkList) {
+          bulkList.innerHTML = "";
+          players.forEach(p => {
+            const div = document.createElement("div");
+            div.innerHTML = `<label><input type="checkbox" class="bulk-cb" value="${p.id}"> ${p.name} [${p.id}]</label>`;
+            bulkList.appendChild(div);
+          });
+        }
+
         // Update all player dropdowns across all tabs
         const dropdowns = [
           'playerSelectMaster',
@@ -315,6 +326,57 @@ function exportLogs() {
 
         console.log('[Player List] Populated', dropdowns.length, 'dropdowns with', players.length, 'players');
       }
+
+    // Bulk selection logic
+    const bulkSelectAll = document.getElementById("bulkSelectAll");
+    if (bulkSelectAll) {
+      bulkSelectAll.addEventListener("change", (e) => {
+        const checkboxes = document.querySelectorAll(".bulk-cb");
+        checkboxes.forEach(cb => cb.checked = e.target.checked);
+      });
+    }
+
+    function getSelectedBulkPlayers() {
+      const selected = [];
+      document.querySelectorAll(".bulk-cb:checked").forEach(cb => selected.push(cb.value));
+      return selected;
+    }
+
+    window.bulkKick = function() {
+      const selected = getSelectedBulkPlayers();
+      if (selected.length === 0) return alert("Select at least one player.");
+      const reason = document.getElementById("actionReason").value || "Bulk kicked by admin";
+      fetch(`https://${GetParentResourceName()}/bulkAction`, {
+        method: "POST",
+        body: JSON.stringify({ action: "kick", targets: selected, reason })
+      });
+    }
+
+    window.bulkBan = function() {
+      const selected = getSelectedBulkPlayers();
+      if (selected.length === 0) return alert("Select at least one player.");
+      const reason = document.getElementById("actionReason").value || "Bulk banned by admin";
+      fetch(`https://${GetParentResourceName()}/bulkAction`, {
+        method: "POST",
+        body: JSON.stringify({ action: "ban", targets: selected, reason, duration: 86400 })
+      });
+    }
+
+    window.bulkGiveItem = function() {
+      const selected = getSelectedBulkPlayers();
+      if (selected.length === 0) return alert("Select at least one player.");
+      const item = prompt("Enter item name to give to all selected players:");
+      if (!item) return;
+      const amountStr = prompt(`Enter amount of ${item} to give:`, "1");
+      const amount = parseInt(amountStr);
+      if (isNaN(amount) || amount <= 0) return alert("Invalid amount.");
+
+      fetch(`https://${GetParentResourceName()}/bulkAction`, {
+        method: "POST",
+        body: JSON.stringify({ action: "giveItem", targets: selected, item, amount })
+      });
+    }
+
     // Vehicle search/filter
     const garageList = document.getElementById("garageList");
     const garageSearch = document.createElement("input");
