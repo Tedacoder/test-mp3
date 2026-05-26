@@ -11,7 +11,10 @@ local function toggleAdminMenu()
 
   if menuOpen then
     SetNuiFocus(true, true)
-    SendNUIMessage({ action = "openPanel" })
+    SendNUIMessage({
+        action = "openPanel",
+        title = Config.PanelTitle or "Admin Panel"
+    })
     TriggerServerEvent("admin:getActivePlayers")
     TriggerServerEvent("admin:getJobs")
     TriggerServerEvent("admin:getCheatAlerts")

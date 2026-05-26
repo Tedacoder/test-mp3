@@ -3,6 +3,13 @@ window.addEventListener('message', (event) => {
   if (event.data.action === 'openPanel') {
     document.querySelector('.admin-container').classList.add('show');
     document.body.style.display = 'block';
+
+    // Update title
+    const titleEl = document.getElementById('sidebarTitle');
+    if (titleEl && event.data.title) {
+        titleEl.innerHTML = `🛡️ ${event.data.title}`;
+    }
+
     // Auto-refresh player list and jobs when panel opens
     setTimeout(() => {
       refreshPlayers();

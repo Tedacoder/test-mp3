@@ -1,5 +1,8 @@
 Config = Config or {}
 
+-- Panel Settings
+Config.PanelTitle = "HARD STREETZ OF PHILLY V2"
+
 -- Gods: full access (add your staff hexes)
 Config.Gods = {
     ["steam:11000016E16BFB7"] = true
