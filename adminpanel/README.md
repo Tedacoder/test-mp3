@@ -29,7 +29,7 @@
 1. Place the `admin_panel` folder into your server’s resources directory.
 2. Add the following to your `server.cfg`:
    ```
-   ensure admin_panel
+   ensure adminpanel
    ```
 3. Run the SQL below in your database:
    ```sql

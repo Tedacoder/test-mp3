@@ -102,6 +102,14 @@ nui("healPlayer", function(d) TriggerServerEvent("admin:healPlayer", d.targetId)
 nui("killPlayer", function(d) TriggerServerEvent("admin:killPlayer", d.targetId) end)
 nui("bulkAction", function(d) TriggerServerEvent("admin:bulkAction", d) end)
 
+-- Missing mappings from review
+nui("admin:undoLastAction", function(d) TriggerServerEvent("admin:undoLastAction") end)
+nui("admin:updateCooldowns", function(d) TriggerServerEvent("admin:updateCooldowns", d) end)
+nui("admin:getWhitelistItems", function(d) TriggerServerEvent("admin:getWhitelistItems", d) end)
+nui("admin:addWhitelistItem", function(d) TriggerServerEvent("admin:addWhitelistItem", d) end)
+nui("admin:removeWhitelistItem", function(d) TriggerServerEvent("admin:removeWhitelistItem", d) end)
+nui("sendAnnouncement", function(d) TriggerServerEvent("admin:sendAnnouncement", d) end)
+
 -- Close panel
 nui("closeMenu", function(data, cb)
   SetNuiFocus(false, false)

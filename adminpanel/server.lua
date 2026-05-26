@@ -1,5 +1,26 @@
-local QBCore = exports['qb-core']:GetCoreObject()
 Config = Config or {}
+
+-- Framework Detection
+local core = nil
+local fwType = nil
+
+CreateThread(function()
+    if GetResourceState('qbx_core') == 'started' then
+        fwType = 'qbox'
+        core = exports.qbx_core
+        print("[AdminPanel] Detected Qbox Framework")
+    elseif GetResourceState('qb-core') == 'started' then
+        fwType = 'qbcore'
+        core = exports['qb-core']:GetCoreObject()
+        print("[AdminPanel] Detected QBCore Framework")
+    elseif GetResourceState('es_extended') == 'started' then
+        fwType = 'esx'
+        core = exports['es_extended']:getSharedObject()
+        print("[AdminPanel] Detected ESX Framework")
+    else
+        print("[AdminPanel] WARNING: No recognized framework (Qbox, QBCore, ESX) found!")
+    end
+end)
 
 -- State
 local actionCooldowns = {}
@@ -21,6 +42,34 @@ local function sanitize(str, max)
   if not str then return "" end
   str = tostring(str):gsub("[%z\1-\31]", ""):gsub("[\r\n]", " ")
   return str:sub(1, max or 128)
+end
+
+-- Helper for generating random plates
+local function generatePlate()
+    local charset = {}
+    for i = 65, 90 do table.insert(charset, string.char(i)) end
+    for i = 48, 57 do table.insert(charset, string.char(i)) end
+    math.randomseed(os.time())
+    local plate = ""
+    for i = 1, 8 do
+        plate = plate .. charset[math.random(1, #charset)]
+    end
+    return plate
+end
+
+-- Helper for getting framework jobs
+local function getFrameworkJobs()
+    if fwType == 'qbox' then
+        return exports.qbx_core:GetJobs()
+    elseif fwType == 'qbcore' then
+        return core.Shared.Jobs
+    elseif fwType == 'esx' then
+        -- ESX doesn't have a direct shared equivalent, but many servers store it globally
+        -- as a fallback, we attempt to retrieve it or return empty table
+        if core.GetJobs then return core.GetJobs() end
+        return {}
+    end
+    return {}
 end
 
 -- Command to check your steam ID (helps with debugging permissions)
@@ -109,7 +158,33 @@ local function getPlayerSafe(targetId)
           }
       }
   end
-  return QBCore.Functions.GetPlayer(tonumber(targetId))
+
+  if fwType == 'qbox' then
+      return exports.qbx_core:GetPlayer(tonumber(targetId))
+  elseif fwType == 'qbcore' then
+      return core.Functions.GetPlayer(tonumber(targetId))
+  elseif fwType == 'esx' then
+      local xPlayer = core.GetPlayerFromId(tonumber(targetId))
+      if xPlayer then
+          -- Provide a QBCore-like interface wrapper for ESX
+          return {
+              PlayerData = {
+                  citizenid = xPlayer.identifier,
+                  license = xPlayer.identifier,
+                  job = { name = xPlayer.job.name, grade = { level = xPlayer.job.grade } },
+                  money = { cash = xPlayer.getMoney(), bank = xPlayer.getAccount('bank').money },
+                  gang = { name = "none" }
+              },
+              Functions = {
+                  SetJob = function(job, grade) xPlayer.setJob(job, grade) end,
+                  AddMoney = function(type, amt, reason)
+                      if type == "cash" then xPlayer.addMoney(amt) else xPlayer.addAccountMoney(type, amt) end
+                  end
+              }
+          }
+      end
+  end
+  return nil
 end
 local function getName(src)
   if tonumber(src) == 999 then return "Test Dummy" end
@@ -262,11 +337,19 @@ RegisterNetEvent("admin:getActivePlayers", function()
   -- Wait a moment to ensure FiveM's native GetPlayers captures correctly
   local pList = GetPlayers()
   if not pList or #pList == 0 then
-      -- Fallback to QBCore functions if native fails
-      local qbPlayers = QBCore.Functions.GetPlayers()
-      for _, id in ipairs(qbPlayers) do
-        local numId = tonumber(id)
-        players[#players+1] = { id = numId, name = GetPlayerName(numId) }
+      -- Fallback to framework functions if native fails
+      if fwType == 'qbcore' then
+          local qbPlayers = core.Functions.GetPlayers()
+          for _, id in ipairs(qbPlayers) do
+            local numId = tonumber(id)
+            players[#players+1] = { id = numId, name = GetPlayerName(numId) }
+          end
+      elseif fwType == 'esx' then
+          local esxPlayers = core.GetPlayers()
+          for _, id in ipairs(esxPlayers) do
+            local numId = tonumber(id)
+            players[#players+1] = { id = numId, name = GetPlayerName(numId) }
+          end
       end
   else
       for _, id in ipairs(pList) do
@@ -360,7 +443,7 @@ RegisterNetEvent("admin:addVehicle", function(targetId, vehicleModel, plate, gar
   if not canDoAction(src, "addVehicle") then return notify(src, "Slow down.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
   vehicleModel = sanitize(vehicleModel, 40); plate = sanitize(plate or "", 12); garage = sanitize(garage or "pillboxgarage", 32)
-  local plateText = (plate ~= "" and plate) or string.upper(QBCore.Shared.RandomStr(3) .. QBCore.Shared.RandomInt(3))
+  local plateText = (plate ~= "" and plate) or generatePlate()
   local mods = (Config.VehiclePresets and Config.VehiclePresets[preset or ""]) or {}
   local hash = GetHashKey(vehicleModel)
   MySQL.insert.await('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, garage, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', {
@@ -384,7 +467,7 @@ end)
 RegisterNetEvent("admin:getJobs", function()
   local src = source
   if not (hasPermission(src, "manageJobs") or isGod(src)) then return notify(src, "No permission.") end
-  TriggerClientEvent("admin:receiveJobs", src, QBCore.Shared.Jobs)
+  TriggerClientEvent("admin:receiveJobs", src, getFrameworkJobs())
 end)
 RegisterNetEvent("admin:setJob", function(targetId, job, grade)
   local src = source
@@ -392,7 +475,15 @@ RegisterNetEvent("admin:setJob", function(targetId, job, grade)
   if not canDoAction(src, "setJob") then return notify(src, "Slow down.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
   job = sanitize(job, 32); grade = tonumber(grade) or 0
-  if not QBCore.Shared.Jobs[job] or not QBCore.Shared.Jobs[job].grades[grade] then return notify(src, "Invalid job/grade.") end
+
+  local jobsList = getFrameworkJobs()
+  -- If we have a jobs list, validate it. Otherwise skip validation (e.g. basic ESX fallback)
+  if jobsList and next(jobsList) ~= nil then
+      if not jobsList[job] or not jobsList[job].grades[tostring(grade)] and not jobsList[job].grades[grade] then
+          return notify(src, "Invalid job/grade.")
+      end
+  end
+
   Player.Functions.SetJob(job, grade)
   notify(src, ("Set job to %s grade %d"):format(job, grade))
   logAdminAction(src, "setJob", targetId, ("Set job to %s grade %d"):format(job, grade))

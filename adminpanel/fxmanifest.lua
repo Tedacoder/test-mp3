@@ -28,7 +28,6 @@ files {
 }
 
 dependencies {
-    'qb-core',
     'ox_inventory',
     'oxmysql',
     'ox_lib'
