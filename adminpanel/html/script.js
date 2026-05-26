@@ -14,7 +14,7 @@ window.addEventListener('message', (event) => {
     // Auto-refresh player list and jobs when panel opens
     setTimeout(() => {
       refreshPlayers();
-      fetch(`https://${GetParentResourceName()}/getJobs`, { method: "POST" });
+      fetch(`https://${GetParentResourceName()}/getJobs`, { method: "POST", body: JSON.stringify({}) });
     }, 100);
   } else if (event.data.action === 'closePanel') {
     document.querySelector('.admin-container').classList.remove('show');
@@ -264,7 +264,7 @@ function exportLogs() {
           }
         // Undo last action
         window.undoLastAction = function() {
-          fetch(`https://${GetParentResourceName()}/admin:undoLastAction`, { method: "POST" });
+          fetch(`https://${GetParentResourceName()}/admin:undoLastAction`, { method: "POST", body: JSON.stringify({}) });
         }
       // Player search/filter
       const playerSelect = document.getElementById("playerSelectMaster");
@@ -367,9 +367,9 @@ function exportLogs() {
     window.bulkGiveItem = function() {
       const selected = getSelectedBulkPlayers();
       if (selected.length === 0) return alert("Select at least one player.");
-      const item = prompt("Enter item name to give to all selected players:");
+      const item = await showPromptModal("Enter item name to give to all selected players:");
       if (!item) return;
-      const amountStr = prompt(`Enter amount of ${item} to give:`, "1");
+      const amountStr = await showPromptModal(`Enter amount of ${item} to give:`, "1");
       const amount = parseInt(amountStr);
       if (isNaN(amount) || amount <= 0) return alert("Invalid amount.");
 
@@ -678,7 +678,7 @@ function sendAnnouncement() {
 
 // Refresh players
 function refreshPlayers() {
-  fetch(`https://${GetParentResourceName()}/getActivePlayers`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/getActivePlayers`, { method: "POST", body: JSON.stringify({}) });
 }
 
 // DOMContentLoaded
@@ -788,7 +788,7 @@ window.removeWhitelistItem = function() {
 let entityInspectorActive = false;
 
 function refreshCoords() {
-  fetch(`https://${GetParentResourceName()}/getCoords`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/getCoords`, { method: "POST", body: JSON.stringify({}) });
 }
 
 function copyVector3() {
@@ -854,7 +854,7 @@ function toggleEntityInspector() {
 }
 
 function inspectClosestEntity() {
-  fetch(`https://${GetParentResourceName()}/inspectClosestEntity`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/inspectClosestEntity`, { method: "POST", body: JSON.stringify({}) });
 }
 
 function clearEntityInfo() {
@@ -883,27 +883,27 @@ function detectDecorsOnVehicle() {
 }
 
 function toggleNoclip() {
-  fetch(`https://${GetParentResourceName()}/toggleNoclip`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/toggleNoclip`, { method: "POST", body: JSON.stringify({}) });
 }
 
 function toggleGodMode() {
-  fetch(`https://${GetParentResourceName()}/toggleGodMode`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/toggleGodMode`, { method: "POST", body: JSON.stringify({}) });
 }
 
 function toggleInvisible() {
-  fetch(`https://${GetParentResourceName()}/toggleInvisible`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/toggleInvisible`, { method: "POST", body: JSON.stringify({}) });
 }
 
 function fixVehicle() {
-  fetch(`https://${GetParentResourceName()}/fixVehicle`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/fixVehicle`, { method: "POST", body: JSON.stringify({}) });
 }
 
 function deleteAimedEntity() {
-  fetch(`https://${GetParentResourceName()}/deleteAimedEntity`, { method: "POST" });
+  fetch(`https://${GetParentResourceName()}/deleteAimedEntity`, { method: "POST", body: JSON.stringify({}) });
 }
 
 function spawnVehicleAtCoords() {
-  const model = prompt("Enter vehicle model:");
+  const model = await showPromptModal("Enter vehicle model:");
   if (model) {
     fetch(`https://${GetParentResourceName()}/spawnVehicleAtCoords`, {
       method: "POST",
@@ -960,7 +960,10 @@ window.addEventListener("message", (event) => {
     const info = event.data.info;
     const previewDiv = document.getElementById("playerPreviewInfo");
     if (previewDiv && info) {
-      let html = `<div style="text-align:left;">`;
+      if (document.getElementById("playerActionsInfo")) {
+        document.getElementById("playerActionsInfo").style.display = "block";
+                                      }
+                              let html = `<div style="text-align:left;">`;
       html += `<div style="font-weight:bold;color:var(--color-primary);margin-bottom:8px;">${info.name}</div>`;
       html += `<div style="font-size:12px;line-height:1.8;">`;
       html += `<div><span style="color:var(--color-text-dim);">ID:</span> ${info.id}</div>`;
@@ -973,3 +976,47 @@ window.addEventListener("message", (event) => {
     }
   }
 });
+
+
+function showPromptModal(title, defaultValue = "") {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("promptModal");
+    const titleEl = document.getElementById("promptTitle");
+    const inputEl = document.getElementById("promptInput");
+    const confirmBtn = document.getElementById("promptConfirm");
+    const cancelBtn = document.getElementById("promptCancel");
+
+    titleEl.textContent = title;
+    inputEl.value = defaultValue;
+    modal.classList.remove("hidden");
+    inputEl.focus();
+
+    const cleanup = () => {
+      modal.classList.add("hidden");
+      confirmBtn.removeEventListener("click", onConfirm);
+      cancelBtn.removeEventListener("click", onCancel);
+    };
+
+    const onConfirm = () => {
+      resolve(inputEl.value);
+      cleanup();
+    };
+
+    const onCancel = () => {
+      resolve(null);
+      cleanup();
+    };
+
+    confirmBtn.addEventListener("click", onConfirm);
+    cancelBtn.addEventListener("click", onCancel);
+  });
+}
+
+
+function viewInventory() {
+  const cidInput = document.getElementById("cidPlayerActions").value;
+  const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
+  const targetId = cidDropdown || cidInput;
+  if (!targetId) return showToast("Please select a player");
+  fetch(`https://${GetParentResourceName()}/getInventory`, { method: "POST", body: JSON.stringify({ targetId }) });
+}

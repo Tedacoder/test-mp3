@@ -465,7 +465,7 @@ RegisterNetEvent("admin:addVehicle", function(targetId, vehicleModel, plate, gar
   local mods = (Config.VehiclePresets and Config.VehiclePresets[preset or ""]) or {}
   local hash = GetHashKey(vehicleModel)
   MySQL.insert.await('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, garage, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', {
-    Player.PlayerData.license, Player.PlayerData.citizenid, vehicleModel, hash, json.encode(mods), plateText, garage, 0
+    Player.PlayerData.license, Player.PlayerData.citizenid, vehicleModel, hash, json.encode(mods), plateText, garage, 1
   })
   notify(src, ("Added %s [%s] to %s garage"):format(vehicleModel, plateText, garage))
   logAdminAction(src, "addVehicle", targetId, ("Added %s [%s] to %s (preset: %s)"):format(vehicleModel, plateText, garage, preset or "none"))
@@ -631,6 +631,7 @@ RegisterNetEvent("admin:healPlayer", function(targetId)
   if not hasPermission(src, "healPlayers") then return notify(src, "No permission.") end
   if not canDoAction(src, "heal") then return notify(src, "Slow down.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
+  ExecuteCommand("revive " .. targetId)
   TriggerClientEvent("admin:_heal", targetId)
   notify(src, "Healed player.")
   logAdminAction(src, "heal", targetId, "Healed player")

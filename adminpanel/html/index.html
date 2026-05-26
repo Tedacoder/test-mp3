@@ -55,6 +55,17 @@
             <p id="cheatAlertsCount" style="font-size:32px;margin:0;color:var(--color-primary);">0</p>
           </div>
         </div>
+
+        <div id="playerActionsInfo" style="background:rgba(255,255,255,0.05);padding:12px;border-radius:4px;margin-bottom:12px;display:none;">
+          <h3 style="margin-top:0;">Current Player Info</h3>
+          <div style="color:var(--color-text);line-height:1.8;">
+            <div><b>Name:</b> <span id="actionsPlayerName">-</span></div>
+            <div><b>Current Job:</b> <span id="actionsPlayerJob">-</span></div>
+            <div><b>Cash:</b> $<span id="actionsPlayerCash">0</span></div>
+            <div><b>Bank:</b> $<span id="actionsPlayerBank">0</span></div>
+          </div>
+        </div>
+
         <h2>Quick Actions</h2>
         <div class="actions">
           <button onclick="switchTab('inventory')">📦 Manage Inventory</button>
@@ -151,6 +162,7 @@
           <button onclick="killPlayer()">Kill</button>
           <button onclick="bringPlayer()">Bring</button>
           <button onclick="gotoPlayer()">Go To</button>
+          <button onclick="viewInventory()" style="background:#8e44ad;color:#fff;">View Inventory</button>
           <button id="spectateBtn" onclick="spectatePlayer()">Spectate</button>
           <button onclick="freezePlayer()">Freeze</button>
           <button onclick="undoLastAction()" style="margin-left:10px;background:#e67e22;color:#fff;">Undo Last Action</button>
@@ -164,6 +176,29 @@
           <button onclick="bulkGiveItem()" style="background:#27ae60;color:#fff;">Bulk Give Item</button>
         </div>
       </section>
+
+
+        <div style="margin-top:16px;">
+          <h3 style="margin-bottom:8px;">Quick Reference</h3>
+          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); navigator.clipboard.writeText(this.value)">
+            <option value="">Select a Car to Copy</option>
+            <option value="adder">Adder</option>
+            <option value="t20">T20</option>
+            <option value="sultanrs">Sultan RS</option>
+            <option value="elegy">Elegy</option>
+            <option value="panto">Panto</option>
+            <option value="bmx">BMX</option>
+          </select>
+          <select id="itemReferenceDropdown" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); navigator.clipboard.writeText(this.value)">
+            <option value="">Select an Item to Copy</option>
+            <option value="water">Water</option>
+            <option value="sandwich">Sandwich</option>
+            <option value="phone">Phone</option>
+            <option value="radio">Radio</option>
+            <option value="id_card">ID Card</option>
+            <option value="driver_license">Driver License</option>
+          </select>
+        </div>
 
       <!-- Management -->
       <section id="managementTab" class="tab-content hidden">
@@ -344,5 +379,16 @@
   <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
   <script src="script.js"></script>
+  <!-- Prompt Modal -->
+  <div id="promptModal" class="modal hidden">
+    <div class="modal-content" style="text-align: center; max-width: 400px; width: 100%;">
+      <p id="promptTitle" style="margin-bottom: 15px; font-weight: bold;"></p>
+      <input type="text" id="promptInput" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;" />
+      <div class="modal-actions" style="justify-content: center; gap: 10px;">
+        <button id="promptConfirm" style="background: var(--color-primary);">OK</button>
+        <button id="promptCancel" style="background: #444;">Cancel</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
