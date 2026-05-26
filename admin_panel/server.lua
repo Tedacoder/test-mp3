@@ -66,9 +66,28 @@ local function notify(src, msg)
 end
 local function getPlayerSafe(targetId)
   if not targetId then return nil end
+  -- Allow offline testing with dummy ID 999
+  if tonumber(targetId) == 999 then
+      return {
+          PlayerData = {
+              citizenid = "DUMMY123",
+              license = "license:dummy123",
+              job = { name = "unemployed", grade = { level = 0 } },
+              money = { cash = 100, bank = 500 },
+              gang = { name = "none" }
+          },
+          Functions = {
+              SetJob = function(job, grade) print("[Dummy] Job set to", job, grade) end,
+              AddMoney = function(type, amt, reason) print("[Dummy] Money added:", type, amt) end
+          }
+      }
+  end
   return QBCore.Functions.GetPlayer(tonumber(targetId))
 end
-local function getName(src) return sanitize(GetPlayerName(src) or "unknown", 64) end
+local function getName(src)
+  if tonumber(src) == 999 then return "Test Dummy" end
+  return sanitize(GetPlayerName(src) or "unknown", 64)
+end
 local function canDoAction(src, action)
   local s = tostring(src)
   actionCooldowns[s] = actionCooldowns[s] or {}
@@ -213,10 +232,26 @@ RegisterNetEvent("admin:getActivePlayers", function()
   end
   local players = {}
   -- Include ALL players including the admin themselves
-  for _, id in ipairs(GetPlayers()) do
-    local numId = tonumber(id)
-    players[#players+1] = { id = numId, name = GetPlayerName(numId) }
-    print("[Player List] Adding player:", numId, GetPlayerName(numId))
+  -- Wait a moment to ensure FiveM's native GetPlayers captures correctly
+  local pList = GetPlayers()
+  if not pList or #pList == 0 then
+      -- Fallback to QBCore functions if native fails
+      local qbPlayers = QBCore.Functions.GetPlayers()
+      for _, id in ipairs(qbPlayers) do
+        local numId = tonumber(id)
+        players[#players+1] = { id = numId, name = GetPlayerName(numId) }
+      end
+  else
+      for _, id in ipairs(pList) do
+        local numId = tonumber(id)
+        players[#players+1] = { id = numId, name = GetPlayerName(numId) }
+        print("[Player List] Adding player:", numId, GetPlayerName(numId))
+      end
+  end
+
+  -- Add a fake dummy player if running on a local test server for testing mechanics
+  if GetConvar("sv_hostname", ""):lower():find("test") or GetConvar("sv_hostname", ""):lower():find("dev") or #players <= 1 then
+      players[#players+1] = { id = 999, name = "Test Dummy (Offline)" }
   end
   print("[Player List] Sending", #players, "players to src:", src)
   TriggerClientEvent("admin:receiveActivePlayers", src, players)
