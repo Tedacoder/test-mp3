@@ -170,6 +170,78 @@ document.getElementById('btnBan').addEventListener('click', async () => {
     fetch(`https://${GetParentResourceName()}/banPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, reason, duration }) });
 });
 
+
+document.getElementById('btnKick').addEventListener('click', async () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    const reason = await showPromptModal("Enter kick reason:");
+    if (!reason) return;
+    fetch(`https://${GetParentResourceName()}/kickPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, reason }) });
+});
+
+document.getElementById('btnWarn').addEventListener('click', async () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    const reason = await showPromptModal("Enter warning reason:");
+    if (!reason) return;
+    fetch(`https://${GetParentResourceName()}/warnPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, reason }) });
+});
+
+document.getElementById('btnGiveMoney').addEventListener('click', async () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    const account = await showPromptModal("Account type (cash or bank):", "cash");
+    if (!account) return;
+    const amountStr = await showPromptModal("Amount to give:", "1000");
+    const amount = parseInt(amountStr) || 0;
+    fetch(`https://${GetParentResourceName()}/giveMoney`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, account, amount }) });
+});
+
+document.getElementById('btnGiveClothing').addEventListener('click', () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    fetch(`https://${GetParentResourceName()}/giveClothing`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+});
+
+document.getElementById('btnAddVehicle').addEventListener('click', async () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    const model = await showPromptModal("Vehicle Model (e.g. adder):");
+    if (!model) return;
+    const garage = await showPromptModal("Garage ID:", "pillboxgarage");
+    if (!garage) return;
+    fetch(`https://${GetParentResourceName()}/addVehicle`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, vehicleModel: model, plate: "", garage, preset: "" }) });
+});
+
+document.getElementById('btnSetJob').addEventListener('click', async () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    const job = await showPromptModal("Job name:");
+    if (!job) return;
+    const gradeStr = await showPromptModal("Job grade (number):", "0");
+    const grade = parseInt(gradeStr) || 0;
+    fetch(`https://${GetParentResourceName()}/setJob`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, job, grade }) });
+});
+
+
+document.getElementById('btnKill').addEventListener('click', () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    fetch(`https://${GetParentResourceName()}/killPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+});
+
+document.getElementById('btnBring').addEventListener('click', () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    fetch(`https://${GetParentResourceName()}/bringPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+});
+
+document.getElementById('btnGoTo').addEventListener('click', () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    fetch(`https://${GetParentResourceName()}/gotoPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+});
+
+document.getElementById('btnRemoveJob').addEventListener('click', () => {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    fetch(`https://${GetParentResourceName()}/removeJob`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+});
+
+document.getElementById('btnUndo').addEventListener('click', () => {
+    fetch(`https://${GetParentResourceName()}/admin:undoLastAction`, { method: "POST", body: JSON.stringify({}) });
+});
+
 function showPromptModal(title, defaultValue = "") {
   return new Promise((resolve) => {
     const modal = document.getElementById("promptModal");

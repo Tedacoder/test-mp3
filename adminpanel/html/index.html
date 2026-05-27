@@ -69,11 +69,25 @@
             <!-- Quick Controls -->
             <div class="flex flex-col gap-2">
                 <h4 class="text-xs font-bold uppercase text-gray-500 tracking-wider">Quick Controls</h4>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="btnHeal" class="py-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/5 active:scale-95"><i class="fas fa-heart-beat mr-2"></i>Heal / Revive</button>
-                    <button id="btnSpectate" class="py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/5 active:scale-95"><i class="fas fa-eye mr-2"></i>Spectate</button>
-                    <button id="btnFreeze" class="py-2.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-cyan-500/5 active:scale-95"><i class="fas fa-snowflake mr-2"></i>Freeze</button>
-                    <button id="btnBan" class="py-2.5 rounded-xl border border-rose-600/20 bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-rose-600/5 active:scale-95"><i class="fas fa-gavel mr-2"></i>Ban Player</button>
+                <div class="grid grid-cols-2 gap-2 overflow-y-auto max-h-[150px] custom-scrollbar pr-1">
+                    <button id="btnHeal" class="py-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-heart-beat mr-2"></i>Heal</button>
+                    <button id="btnSpectate" class="py-2 rounded-xl border border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-eye mr-2"></i>Spectate</button>
+                    <button id="btnFreeze" class="py-2 rounded-xl border border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-snowflake mr-2"></i>Freeze</button>
+                    <button id="btnBan" class="py-2 rounded-xl border border-rose-600/20 bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-gavel mr-2"></i>Ban Player</button>
+                    <button id="btnKill" class="py-2 rounded-xl border border-red-500/20 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-skull mr-2"></i>Kill Player</button>
+                    <button id="btnBring" class="py-2 rounded-xl border border-blue-400/20 bg-blue-400/10 hover:bg-blue-400/20 text-blue-300 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-people-arrows mr-2"></i>Bring Player</button>
+                    <button id="btnGoTo" class="py-2 rounded-xl border border-teal-500/20 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-location-arrow mr-2"></i>Go To</button>
+                    <button id="btnRemoveJob" class="py-2 rounded-xl border border-zinc-500/20 bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-user-times mr-2"></i>Remove Job</button>
+
+                    <button id="btnKick" class="py-2 rounded-xl border border-orange-500/20 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-user-slash mr-2"></i>Kick Player</button>
+                    <button id="btnWarn" class="py-2 rounded-xl border border-yellow-500/20 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-exclamation-triangle mr-2"></i>Warn Player</button>
+                    <button id="btnUndo" class="py-2 rounded-xl border border-pink-500/20 bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 font-bold text-xs tracking-wide transition-all active:scale-95 col-span-2"><i class="fas fa-undo mr-2"></i>Undo Last Action</button>
+
+                    <button id="btnGiveMoney" class="py-2 rounded-xl border border-green-500/20 bg-green-500/10 hover:bg-green-500/20 text-green-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-money-bill-wave mr-2"></i>Give Money</button>
+                    <button id="btnGiveClothing" class="py-2 rounded-xl border border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-tshirt mr-2"></i>Give Clothing</button>
+
+                    <button id="btnAddVehicle" class="py-2 rounded-xl border border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-car mr-2"></i>Give Vehicle</button>
+                    <button id="btnSetJob" class="py-2 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-bold text-xs tracking-wide transition-all active:scale-95"><i class="fas fa-briefcase mr-2"></i>Set Job</button>
                 </div>
             </div>
         </section>

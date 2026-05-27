@@ -26,6 +26,7 @@ local function toggleAdminMenu()
 
   menuOpen = true
   SetNuiFocus(true, true)
+  SetNuiFocusKeepInput(false)
   SendNUIMessage({
       action = "openPanel",
       title = Config.PanelTitle or "Admin Panel"
@@ -498,3 +499,17 @@ RegisterNUICallback('requestCoordCopy', function(data, cb)
 
     cb({ status = true })
 end)
+
+function RotationToDirection(rotation)
+    local adjustedRotation = vector3(
+        (math.pi / 180) * rotation.x,
+        (math.pi / 180) * rotation.y,
+        (math.pi / 180) * rotation.z
+    )
+    local direction = vector3(
+        -math.sin(adjustedRotation.z) * math.abs(math.cos(adjustedRotation.x)),
+        math.cos(adjustedRotation.z) * math.abs(math.cos(adjustedRotation.x)),
+        math.sin(adjustedRotation.x)
+    )
+    return direction
+end
