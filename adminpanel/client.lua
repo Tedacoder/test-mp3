@@ -78,7 +78,7 @@ end
 nui("banPlayer", function(d) TriggerServerEvent("admin:banPlayer", d.targetId, d.reason, d.duration) end)
 nui("kickPlayer", function(d) TriggerServerEvent("admin:kickPlayer", d.targetId, d.reason) end)
 nui("warnPlayer", function(d) TriggerServerEvent("admin:warnPlayer", d.targetId, d.reason) end)
-nui("removeItem", function(d) TriggerServerEvent("admin:removeItem", d.targetId, d.item, d.amount, d.silent) end)
+nui("removeItem", function(d) TriggerServerEvent("admin:removeItem", d.targetId, d.item, d.amount, d.silent, d.slot, d.metadata) end)
 nui("removeVehicle", function(d) TriggerServerEvent("admin:removeVehicle", d.targetId, d.plate) end)
 nui("freezePlayer", function(d) TriggerServerEvent("admin:freezePlayer", d.targetId) end)
 
@@ -86,7 +86,15 @@ nui("freezePlayer", function(d) TriggerServerEvent("admin:freezePlayer", d.targe
 nui("getActivePlayers", function() TriggerServerEvent("admin:getActivePlayers") end)
 nui("getJobs", function() TriggerServerEvent("admin:getJobs") end)
 nui("getPlayerInfo", function(d) TriggerServerEvent("admin:getPlayerInfo", d) end)
-nui("getInventory", function(d) TriggerServerEvent("admin:getInventory", d.targetId) end)
+nui("getInventory", function(d)
+    if GetResourceState('ox_lib') == 'started' then
+        lib.callback('adminpanel:server:getInventory', false, function(items)
+            SendNUIMessage({ type = "updateInventory", targetId = d.targetId, items = items })
+        end, d.targetId)
+    else
+        TriggerServerEvent("admin:getInventory", d.targetId)
+    end
+end)
 nui("addItem", function(d) TriggerServerEvent("admin:addItem", d.targetId, d.item, d.amount) end)
 nui("addVehicle", function(d) TriggerServerEvent("admin:addVehicle", d.targetId, d.vehicleModel, d.plate, d.garage, d.preset) end)
 nui("giveMoney", function(d) TriggerServerEvent("admin:giveMoney", d.targetId, d.account, d.amount) end)
@@ -128,13 +136,23 @@ RegisterNetEvent("admin:receiveActivePlayers", function(players) SendNUIMessage(
 RegisterNetEvent("admin:openInventoryUI", function(targetId, items) SendNUIMessage({ type = "updateInventory", targetId = targetId, items = items }) end)
 RegisterNetEvent("admin:receivePlayerVehicles", function(targetId, vehicles) SendNUIMessage({ type = "updateGarage", targetId = targetId, vehicles = vehicles }) end)
 RegisterNetEvent("admin:receiveJobs", function(jobs) SendNUIMessage({ type = "jobsList", jobs = jobs }) end)
-RegisterNetEvent("admin:receivePlayerInfo", function(info) SendNUIMessage({ type = "playerInfo", info = info }) end)
+RegisterNetEvent("admin:receivePlayerInfo", function(info)
+    if GetInGamePlayerMugshot then
+        info.avatarUrl = GetInGamePlayerMugshot(info.id or info.source)
+    end
+    SendNUIMessage({ type = "playerInfo", info = info })
+end)
 RegisterNetEvent("admin:updateCheatAlerts", function(alerts) SendNUIMessage({ type = "updateCheatAlerts", alerts = alerts }) end)
 RegisterNetEvent("admin:updateReports", function(reports) SendNUIMessage({ type = "updateReports", reports = reports }) end)
 RegisterNetEvent("admin:updateAdminChat", function(messages) SendNUIMessage({ type = "updateAdminChat", messages = messages }) end)
 RegisterNetEvent("admin:updateLogsFeed", function(lines) SendNUIMessage({ type = "updateLogsFeed", lines = lines }) end)
 RegisterNetEvent("admin:refreshPermissions", function(perms) SendNUIMessage({ type = "refreshPermissions", perms = perms }) end)
-RegisterNetEvent("admin:updatePlayerPreview", function(info) SendNUIMessage({ type = "updatePlayerPreview", info = info }) end)
+RegisterNetEvent("admin:updatePlayerPreview", function(info)
+    if GetInGamePlayerMugshot then
+        info.avatarUrl = GetInGamePlayerMugshot(info.id)
+    end
+    SendNUIMessage({ type = "updatePlayerPreview", info = info })
+end)
 
 -- Player-side effects
 RegisterNetEvent("admin:receiveWarning", function(text)
@@ -156,29 +174,7 @@ RegisterNetEvent("admin:teleportClient", function(coords)
   SetEntityCoords(PlayerPedId(), coords.x + 0.0, coords.y + 0.0, coords.z + 0.0, false, false, false, true)
 end)
 
--- Spectate
-local spectating = false
-RegisterNetEvent("admin:_spectate", function(targetId)
-  local target = GetPlayerFromServerId(targetId)
-  local targetPed = GetPlayerPed(target)
-  if targetPed ~= 0 and DoesEntityExist(targetPed) then
-    NetworkSetInSpectatorMode(true, targetPed)
-    spectating = true
-    SendNUIMessage({ type = "toast", message = "Spectating started. Press F3 to stop." })
-  else
-    SendNUIMessage({ type = "toast", message = "Target not available to spectate." })
-  end
-end)
 
-RegisterCommand("stopspec", function()
-  if spectating then
-    NetworkSetInSpectatorMode(false, 0)
-    spectating = false
-    SendNUIMessage({ type = "toast", message = "Spectating stopped." })
-  end
-end)
-
-RegisterKeyMapping("stopspec", "Stop Spectating", "keyboard", "F3")
 
 -- Freeze toggle (used in confirmation flow)
 local frozen = false
@@ -374,7 +370,13 @@ nui("toggleNoclip", function()
   local ped = PlayerPedId()
   SetEntityVisible(ped, not noclipActive, 0)
   SetEntityInvincible(ped, noclipActive)
+  SetEntityCollision(ped, not noclipActive, not noclipActive)
   FreezeEntityPosition(ped, noclipActive)
+  if not noclipActive then
+      SetEntityVelocity(ped, 0.0, 0.0, 0.0)
+      ClearPedTasksImmediately(ped)
+      SetEntityCoords(ped, GetEntityCoords(ped), false, false, false, false)
+  end
   SendNUIMessage({ type = "toast", message = noclipActive and "Noclip enabled" or "Noclip disabled" })
 
   CreateThread(function()
@@ -466,4 +468,33 @@ nui("spawnVehicleAtCoords", function(d)
   SetPedIntoVehicle(ped, veh, -1)
   SetModelAsNoLongerNeeded(model)
   SendNUIMessage({ type = "toast", message = "Vehicle spawned!" })
+end)
+
+RegisterNUICallback('requestCoordCopy', function(data, cb)
+    local playerPed = PlayerPedId()
+    local coords = GetEntityCoords(playerPed)
+    local heading = GetEntityHeading(playerPed)
+    local outputString = ""
+
+    if data.format == "vector3" then
+        outputString = string.format("vec3(%.2f, %.2f, %.2f)", coords.x, coords.y, coords.z)
+    elseif data.format == "vector4" then
+        outputString = string.format("vec4(%.2f, %.2f, %.2f, %.2f)", coords.x, coords.y, coords.z, heading)
+    elseif data.format == "table" then
+        outputString = string.format("{x = %.2f, y = %.2f, z = %.2f, h = %.2f}", coords.x, coords.y, coords.z, heading)
+    end
+
+    if GetResourceState('ox_lib') == 'started' then
+        lib.setClipboard(outputString)
+        lib.notify({
+            title = 'Developer Tools',
+            description = 'Formatted coordinates copied to clipboard!',
+            type = 'success'
+        })
+    else
+        print(("^2[CLIPBOARD FALLBACK]^7 Copied Coords: %s"):format(outputString))
+        SendNUIMessage({ type = "toast", message = "Coords copied (Check F8 Console)" })
+    end
+
+    cb({ status = true })
 end)

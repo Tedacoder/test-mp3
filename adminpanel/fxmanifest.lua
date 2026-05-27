@@ -7,11 +7,14 @@ version '1.0.0'
 shared_scripts {
     '@ox_lib/init.lua',
     'config.lua',
-    'sh_garage_bridge.lua'
+    'sh_garage_bridge.lua',
+    'sh_medical_bridge.lua',
+    'sh_spectate.lua'
 }
 
 client_scripts {
-    'client.lua'
+    'client.lua',
+    'cl_avatars.lua'
 }
 
 server_scripts {

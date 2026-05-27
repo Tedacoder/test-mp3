@@ -2,7 +2,7 @@
 
 if IsDuplicityVersion() then
     -- SERVER SIDE
-    function SaveVehicleToGarage(targetSource, vehicleModel)
+    function SaveVehicleToGarage(targetSource, vehicleModel, garageId)
         local Player = getPlayerSafe(targetSource)
         if not Player then return false end
 
@@ -12,14 +12,15 @@ if IsDuplicityVersion() then
         local defaultMods = json.encode({ model = vehicleModel, plate = plate })
 
         if Config.GarageType == "qbx" or Config.GarageType == "qbcore" then
-            MySQL.insert('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, state) VALUES (?, ?, ?, ?, ?, ?, ?)', {
+            MySQL.insert('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, state, garage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', {
                 Player.PlayerData.license,
                 citizenid,
                 vehicleModel,
                 GetHashKey(vehicleModel),
                 defaultMods,
                 plate,
-                1
+                1,
+                garageId or 'pillboxgarage'
             }, function(id)
                 if id then
                     TriggerClientEvent('adminpanel:client:copyToClipboard', targetSource, vehicleModel)

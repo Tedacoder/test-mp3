@@ -1,438 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-  <div class="admin-container">
-    <aside class="sidebar">
-      <h2 id="sidebarTitle" style="margin-bottom:18px;">🛡️ Admin Panel</h2>
-      <nav class="sidebar-nav">
-        <button class="tab-btn active" data-tab="dashboard"><span>🏠</span> Dashboard</button>
-        <button class="tab-btn" data-tab="adminChat"><span>💬</span> Admin Chat</button>
-        <button class="tab-btn" data-tab="inventory"><span>📦</span> Inventory</button>
-        <button class="tab-btn" data-tab="garage"><span>🚗</span> Garage</button>
-        <button class="tab-btn" data-tab="playerActions"><span>🧑‍✈️</span> Player Actions</button>
-        <button class="tab-btn" data-tab="management"><span>⚙️</span> Management</button>
-        <button class="tab-btn" data-tab="permissions"><span>🔑</span> Permissions</button>
-        <button class="tab-btn" data-tab="reports"><span>📢</span> Reports</button>
-        <button class="tab-btn" data-tab="cheatAlerts"><span>🚨</span> Cheat Alerts</button>
-        <button class="tab-btn" data-tab="logs"><span>📄</span> Logs</button>
-        <button class="tab-btn" data-tab="announcements"><span>📣</span> Announcements</button>
-        <button class="tab-btn" data-tab="whitelist"><span>🧬</span> Whitelist</button>
-        <button class="tab-btn" data-tab="devTools"><span>🛠️</span> Dev Tools</button>
-      </nav>
-      <div style="margin-top:24px;">
-        <h3 style="font-size:14px;margin-bottom:8px;">🎨 Theme</h3>
-        <select id="themeSelector" style="width:100%;padding:8px;border-radius:6px;border:none;background:var(--color-secondary);color:var(--color-text);margin-bottom:10px;">
-          <option value="default">Default (Orange)</option>
-          <option value="blue">Blue</option>
-          <option value="purple">Purple</option>
-          <option value="green">Green</option>
-          <option value="red">Red</option>
-        </select>
-        <button class="close-btn" onclick="closeMenu()">Close</button>
-      </div>
-    </aside>
+<body style="display: none; background: transparent; height: 100vh; width: 100vw; margin: 0; padding: 0;">
 
-    <main class="content">
-      <!-- Dashboard -->
-      <section id="dashboardTab" class="tab-content">
-        <h1>Admin Dashboard</h1>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;">
-          <div style="background:var(--color-sidebar);padding:16px;border-radius:8px;text-align:center;">
-            <h3 style="margin:0 0 8px 0;color:var(--color-text-dim);">Online Players</h3>
-            <p id="onlinePlayersCount" style="font-size:32px;margin:0;color:var(--color-primary);">0</p>
-          </div>
-          <div style="background:var(--color-sidebar);padding:16px;border-radius:8px;text-align:center;">
-            <h3 style="margin:0 0 8px 0;color:var(--color-text-dim);">Active Reports</h3>
-            <p id="activeReportsCount" style="font-size:32px;margin:0;color:var(--color-primary);">0</p>
-          </div>
-          <div style="background:var(--color-sidebar);padding:16px;border-radius:8px;text-align:center;">
-            <h3 style="margin:0 0 8px 0;color:var(--color-text-dim);">Cheat Alerts</h3>
-            <p id="cheatAlertsCount" style="font-size:32px;margin:0;color:var(--color-primary);">0</p>
-          </div>
-        </div>
+<div id="admin-root" class="fixed inset-0 flex items-center justify-center p-6 font-sans select-none overflow-hidden z-[99999]" style="display: none;">
+    <div class="w-[95vw] h-[85vh] max-w-[1600px] max-h-[900px] flex rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#0c0c10]/95 backdrop-blur-xl shadow-2xl overflow-hidden text-gray-200">
 
-
-        <h2>Quick Actions</h2>
-        <div class="actions">
-          <button onclick="switchTab('inventory')">📦 Manage Inventory</button>
-          <button onclick="switchTab('playerActions')">🧑‍✈️ Player Actions</button>
-          <button onclick="switchTab('reports')">📢 View Reports</button>
-          <button onclick="switchTab('adminChat')">💬 Admin Chat</button>
-          <button onclick="refreshPlayers()" style="background:var(--color-primary);">🔄 Refresh All Data</button>
-        </div>
-        <h2>Recent Activity</h2>
-        <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;">
-          <div id="recentActivity" style="background:var(--color-sidebar);padding:12px;border-radius:8px;max-height:200px;overflow-y:auto;">
-            <p style="color:var(--color-text-dim);">No recent activity</p>
-          </div>
-          <div id="playerPreview" style="background:var(--color-sidebar);padding:12px;border-radius:8px;text-align:center;">
-            <h3 style="margin:0 0 10px 0;color:var(--color-text-dim);">Selected Player</h3>
-            <div id="playerPreviewInfo" style="color:var(--color-text-dim);font-size:14px;">
-              <p>No player selected</p>
+        <!-- Left Sidebar Navigation -->
+        <aside class="w-20 flex flex-col justify-between items-center py-6 border-r border-[rgba(255,255,255,0.04)] bg-black/20">
+            <div class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-indigo-500 cursor-pointer" onclick="closeMenu()">
+                Ω
             </div>
-          </div>
-        </div>
-      </section>
-
-            <!-- Announcements -->
-            <section id="announcementsTab" class="tab-content hidden">
-              <h1>Server Announcements</h1>
-              <div class="announce-box" style="margin-bottom:10px;">
-                <input type="text" id="announcementInput" placeholder="Type your announcement..." style="width:70%;padding:8px;" />
-                <button onclick="sendAnnouncement()" style="background:#e67e22;color:#fff;padding:8px 16px;margin-left:8px;">Send</button>
-              </div>
-              <div id="announcementHistory" style="background:#2c3e50;padding:10px;border-radius:6px;max-height:120px;overflow-y:auto;"></div>
-            </section>
-      <header class="topbar">
-        <select id="playerSelectMaster"></select>
-        <button onclick="refreshPlayers()">Refresh</button>
-        <div id="playerInfoPanel" class="player-info-panel" style="display:none;margin-top:10px;background:#f4f4f4;padding:8px;border-radius:6px;"></div>
-      </header>
-
-      <!-- Inventory -->
-      <section id="inventoryTab" class="tab-content hidden">
-        <h1>Inventory Viewer</h1>
-        <div class="controls">
-          <input type="text" id="search" placeholder="Search items..." />
-        </div>
-        <label for="cidInventory">Player CID:</label>
-        <input type="text" id="cidInventory" placeholder="Enter CID" style="margin-bottom:8px;" />
-        <select id="cidInventoryDropdown" style="margin-bottom:8px;"></select>
-        <section class="inventory-grid" id="inventoryGrid"></section>
-        <footer class="actions">
-          <input type="text" id="itemName" placeholder="Item name" />
-          <input type="number" id="itemAmount" placeholder="Amount" />
-          <button onclick="addItem()">Add</button>
-          <button onclick="removeItem(false)">Remove</button>
-          <button onclick="removeItem(true)">Silent Remove</button>
-          <button onclick="undoLastAction()" style="margin-left:10px;background:#e67e22;color:#fff;">Undo Last Action</button>
-        </footer>
-      </section>
-
-      <!-- Garage -->
-      <section id="garageTab" class="tab-content hidden">
-        <h1>Garage Manager</h1>
-        <label for="cidGarage">Player CID:</label>
-        <input type="text" id="cidGarage" placeholder="Enter CID" style="margin-bottom:8px;" />
-        <select id="cidGarageDropdown" style="margin-bottom:8px;"></select>
-        <ul id="garageList"></ul>
-        <div class="garage-actions">
-          <input type="text" id="vehicleModel" placeholder="Vehicle model" />
-          <input type="text" id="vehiclePlate" placeholder="Plate (optional)" />
-          <select id="garageSelect">
-            <option value="pillboxgarage">Pillbox</option>
-            <option value="sandygarage">Sandy</option>
-            <option value="paletogarage">Paleto</option>
-          </select>
-          <select id="presetSelect">
-            <option value="">No Preset</option>
-            <option value="superfast">Super Fast</option>
-            <option value="offroad">Offroad</option>
-          </select>
-          <button onclick="addVehicleFromUI()">Add Vehicle</button>
-        </div>
-      </section>
-
-      <!-- Player Actions -->
-      <section id="playerActionsTab" class="tab-content hidden">
-        <h1>Player Actions</h1>
-        <label for="cidPlayerActions">Player CID:</label>
-        <input type="text" id="cidPlayerActions" placeholder="Enter CID" style="margin-bottom:8px;" />
-        <select id="cidPlayerActionsDropdown" style="margin-bottom:8px;"></select>
-        <input type="text" id="actionReason" placeholder="Reason (optional)" />
-        <div id="playerActionsInfo" style="background:rgba(255,255,255,0.05);padding:12px;border-radius:4px;margin-bottom:12px;display:none;">
-          <h3 style="margin-top:0;">Current Player Info</h3>
-          <div style="color:var(--color-text);line-height:1.8;">
-            <div><b>Name:</b> <span id="actionsPlayerName">-</span></div>
-            <div><b>Current Job:</b> <span id="actionsPlayerJob">-</span></div>
-            <div><b>Cash:</b> $<span id="actionsPlayerCash">0</span></div>
-            <div><b>Bank:</b> $<span id="actionsPlayerBank">0</span></div>
-          </div>
-        </div>
-        <div class="action-buttons">
-          <button onclick="warnPlayer()">Warn</button>
-          <button onclick="kickPlayer()">Kick</button>
-          <button onclick="banPlayer()">Ban</button>
-          <button onclick="healPlayer()">Heal</button>
-          <button onclick="killPlayer()">Kill</button>
-          <button onclick="bringPlayer()">Bring</button>
-          <button onclick="gotoPlayer()">Go To</button>
-          <button onclick="viewInventory()" style="background:#8e44ad;color:#fff;">View Inventory</button>
-          <button id="spectateBtn" onclick="spectatePlayer()">Spectate</button>
-          <button onclick="freezePlayer()">Freeze</button>
-          <button onclick="undoLastAction()" style="margin-left:10px;background:#e67e22;color:#fff;">Undo Last Action</button>
-        </div>
-        <div class="bulk-actions" style="margin-top:16px;">
-          <h3>Bulk Actions</h3>
-          <label><input type="checkbox" id="bulkSelectAll"> Select All Players</label>
-          <div id="bulkPlayerList" style="max-height:120px;overflow-y:auto;margin-bottom:8px;"></div>
-          <button onclick="bulkKick()" style="background:#c0392b;color:#fff;">Bulk Kick</button>
-          <button onclick="bulkBan()" style="background:#c0392b;color:#fff;">Bulk Ban</button>
-          <button onclick="bulkGiveItem()" style="background:#27ae60;color:#fff;">Bulk Give Item</button>
-        </div>
-      </section>
-
-
-        <div style="margin-top:16px;">
-          <h3 style="margin-bottom:8px;">Quick Reference</h3>
-          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
-            <option value="">Select a Car to Copy</option>
-            <option value="adder">Adder</option>
-            <option value="t20">T20</option>
-            <option value="sultanrs">Sultan RS</option>
-            <option value="elegy">Elegy</option>
-            <option value="panto">Panto</option>
-            <option value="bmx">BMX</option>
-          </select>
-          <select id="itemReferenceDropdown" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
-            <option value="">Select an Item to Copy</option>
-            <option value="water">Water</option>
-            <option value="sandwich">Sandwich</option>
-            <option value="phone">Phone</option>
-            <option value="radio">Radio</option>
-            <option value="id_card">ID Card</option>
-            <option value="driver_license">Driver License</option>
-          </select>
-        </div>
-
-      <!-- Management -->
-      <section id="managementTab" class="tab-content hidden">
-        <h1>Management</h1>
-        <div style="margin-top:16px;">
-          <h3 style="margin-bottom:8px;">Quick Reference</h3>
-          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
-            <option value="">Select a Car to Copy</option>
-            <option value="adder">Adder</option>
-            <option value="t20">T20</option>
-            <option value="sultanrs">Sultan RS</option>
-            <option value="elegy">Elegy</option>
-            <option value="panto">Panto</option>
-            <option value="bmx">BMX</option>
-          </select>
-          <select id="itemReferenceDropdown" onchange="fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
-            <option value="">Select an Item to Copy</option>
-            <option value="water">Water</option>
-            <option value="sandwich">Sandwich</option>
-            <option value="phone">Phone</option>
-            <option value="radio">Radio</option>
-            <option value="id_card">ID Card</option>
-            <option value="driver_license">Driver License</option>
-          </select>
-        </div>
-
-        <div style="margin-top:16px;">
-          <h3 style="margin-bottom:8px;">Quick Reference</h3>
-          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
-            <option value="">Select a Car to Copy</option>
-            <option value="adder">Adder</option>
-            <option value="t20">T20</option>
-            <option value="sultanrs">Sultan RS</option>
-            <option value="elegy">Elegy</option>
-            <option value="panto">Panto</option>
-            <option value="bmx">BMX</option>
-          </select>
-          <select id="itemReferenceDropdown" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
-            <option value="">Select an Item to Copy</option>
-            <option value="water">Water</option>
-            <option value="sandwich">Sandwich</option>
-            <option value="phone">Phone</option>
-            <option value="radio">Radio</option>
-            <option value="id_card">ID Card</option>
-            <option value="driver_license">Driver License</option>
-          </select>
-        </div>
-
-        <label for="cidManagement">Player CID:</label>
-        <input type="text" id="cidManagement" placeholder="Enter CID" style="margin-bottom:8px;" />
-        <select id="cidManagementDropdown" style="margin-bottom:8px;"></select>
-        <button onclick="loadPlayerManagementInfo()" style="margin-bottom:12px;background:var(--color-primary);">Load Player Info</button>
-
-        <div id="playerManagementInfo" style="background:rgba(255,255,255,0.05);padding:12px;border-radius:4px;margin-bottom:12px;display:none;">
-          <h3 style="margin-top:0;">Current Player Info</h3>
-          <div style="color:var(--color-text);line-height:1.8;">
-            <div><b>Name:</b> <span id="mgmtPlayerName">-</span></div>
-            <div><b>Current Job:</b> <span id="mgmtPlayerJob">-</span></div>
-            <div><b>Job Grade:</b> <span id="mgmtPlayerGrade">-</span></div>
-            <div><b>Cash:</b> $<span id="mgmtPlayerCash">0</span></div>
-            <div><b>Bank:</b> $<span id="mgmtPlayerBank">0</span></div>
-          </div>
-        </div>
-
-        <h2>Economy</h2>
-        <select id="moneyType"><option value="cash">Cash</option><option value="bank">Bank</option></select>
-        <input type="number" id="moneyAmount" placeholder="Amount" />
-        <button onclick="giveMoney()">Give Money</button>
-
-        <h2>Clothing</h2>
-        <button onclick="giveClothing()">Give Clothing (/pedmenu cid)</button>
-
-        <h2>Job Management</h2>
-        <select id="jobSelect">
-          <option value="">Select Job...</option>
-        </select>
-        <select id="jobGradeSelect">
-          <option value="0">Grade 0</option>
-        </select>
-        <button onclick="setJob()">Set Job</button>
-        <button onclick="removeJob()">Remove Job</button>
-      </section>
-
-      <!-- Permissions -->
-      <section id="permissionsTab" class="tab-content hidden">
-        <h1>Permissions Editor</h1>
-        <div id="permGrid"></div>
-        <h2>Cooldown Adjustment (Gods Only)</h2>
-        <div id="cooldownGrid">
-          <!-- Cooldown sliders will be injected here -->
-        </div>
-        <button id="saveCooldownsBtn" style="margin-top:10px;background:#27ae60;color:#fff;">Save Cooldowns</button>
-      </section>
-
-      <!-- Reports -->
-      <section id="reportsTab" class="tab-content hidden">
-        <h1>Player Reports</h1>
-        <ul id="reportList" class="list"></ul>
-      </section>
-
-      <!-- Cheat Alerts -->
-      <section id="cheatAlertsTab" class="tab-content hidden">
-        <h1>Cheat Alerts</h1>
-        <ul id="cheatAlertList" class="list"></ul>
-      </section>
-
-      <!-- Admin Chat -->
-      <section id="adminChatTab" class="tab-content hidden">
-        <h1>Admin Chat</h1>
-        <div id="adminChatMessages" class="chat-box"></div>
-        <div class="chat-input">
-          <input type="text" id="adminChatInput" placeholder="Type a message..." />
-          <button onclick="sendAdminChat()">Send</button>
-        </div>
-      </section>
-
-      <!-- Logs -->
-      <section id="logsTab" class="tab-content hidden">
-        <h1>Admin Logs</h1>
-        <button id="exportLogsBtn" style="margin-bottom:10px;background:#2980b9;color:#fff;">Export Logs</button>
-        <div id="auditTrailBox" class="audit-trail-box" style="margin-bottom:10px;"></div>
-        <div id="logsBox" class="log-box"></div>
-      </section>
-
-      <!-- Whitelist Management -->
-      <section id="whitelistTab" class="tab-content hidden">
-        <h1>Whitelist Management</h1>
-        <label for="cidWhitelist">Player CID:</label>
-        <input type="text" id="cidWhitelist" placeholder="Enter CID" style="margin-bottom:8px;" />
-        <select id="cidWhitelistDropdown" style="margin-bottom:8px;"></select>
-        <div id="whitelistPanel">
-          <div class="whitelist-controls">
-            <select id="whitelistType">
-              <option value="tattoo">Tattoo</option>
-              <option value="skin">Skin</option>
-              <option value="clothing">Clothing</option>
-              <option value="hair">Hair</option>
-            </select>
-            <input type="text" id="whitelistItemId" placeholder="Item ID or Name" />
-            <button onclick="addWhitelistItem()">Add</button>
-            <button onclick="removeWhitelistItem()">Remove</button>
-          </div>
-          <div id="whitelistItemsList" style="margin-top:10px;"></div>
-        </div>
-      </section>
-
-      <!-- Developer Tools -->
-      <section id="devToolsTab" class="tab-content hidden">
-        <h1>Developer Tools</h1>
-
-        <h2>📍 Vector & Heading Tools</h2>
-        <div style="background:var(--color-sidebar);padding:12px;border-radius:8px;margin-bottom:16px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div>
-              <label style="display:block;margin-bottom:4px;color:var(--color-text-dim);">Current Position:</label>
-              <input type="text" id="currentVector" readonly style="width:100%;padding:6px;border-radius:4px;border:none;background:var(--color-background);color:var(--color-text);font-family:monospace;" />
+            <nav class="flex flex-col gap-6 w-full items-center">
+                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-white bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all"><i class="fas fa-users text-lg"></i></button>
+                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white transition-all"><i class="fas fa-car text-lg"></i></button>
+                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white transition-all"><i class="fas fa-file-alt text-lg"></i></button>
+                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white transition-all"><i class="fas fa-cog text-lg"></i></button>
+            </nav>
+            <div class="flex flex-col items-center gap-2 p-3 w-16 rounded-xl bg-black/40 border border-[rgba(255,255,255,0.03)] text-center">
+                <div class="text-[10px] uppercase tracking-wider text-purple-400 font-bold">Vitals</div>
+                <div id="vitalsCount" class="text-sm font-black text-white">0</div>
+                <div class="text-[9px] text-gray-500 font-medium">Players</div>
             </div>
-            <div>
-              <label style="display:block;margin-bottom:4px;color:var(--color-text-dim);">Current Heading:</label>
-              <input type="text" id="currentHeading" readonly style="width:100%;padding:6px;border-radius:4px;border:none;background:var(--color-background);color:var(--color-text);font-family:monospace;" />
+        </aside>
+
+        <!-- Player List -->
+        <section class="w-[32%] p-6 flex flex-col gap-4 border-r border-[rgba(255,255,255,0.04)]">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Player List</h2>
+                <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10 text-gray-400 font-mono">ID / Name</span>
             </div>
-          </div>
-          <div class="actions">
-            <button onclick="refreshCoords()" style="background:var(--color-primary);">🔄 Refresh Coords</button>
-            <button onclick="copyVector3()">📋 Copy vector3</button>
-            <button onclick="copyVector4()">📋 Copy vector4</button>
-            <button onclick="copyVectorTable()">📋 Copy Table</button>
-            <button onclick="copyHeading()">📋 Copy Heading</button>
-          </div>
-        </div>
+            <div id="dynamicPlayerList" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 custom-scrollbar">
+                <!-- Players will be injected here -->
+            </div>
+        </section>
 
-        <h2>🔍 Entity Inspector</h2>
-        <div style="background:var(--color-sidebar);padding:12px;border-radius:8px;margin-bottom:16px;">
-          <div class="actions" style="margin-bottom:10px;">
-            <button onclick="toggleEntityInspector()" id="entityInspectorBtn">🎯 Start Inspector</button>
-            <button onclick="inspectClosestEntity()">🔎 Inspect Closest</button>
-            <button onclick="clearEntityInfo()">🗑️ Clear</button>
-          </div>
-          <div id="entityInfo" style="background:var(--color-background);padding:10px;border-radius:4px;max-height:300px;overflow-y:auto;font-family:monospace;font-size:13px;line-height:1.6;">
-            <p style="color:var(--color-text-dim);">Aim at an entity and click to inspect it, or use "Inspect Closest" button.</p>
-          </div>
-        </div>
+        <!-- Player Inspector -->
+        <section class="w-[38%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <div class="flex gap-4 items-center">
+                <div class="w-20 h-20 flex items-center justify-center bg-zinc-900/50 rounded-xl overflow-hidden border border-white/5 relative">
+                    <img id="inspectorAvatar" src="images/default_avatar.png" class="w-full h-full object-cover scale-110" alt="Character Face Link" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png';"/>
+                </div>
+                <div>
+                    <h2 class="text-xs uppercase tracking-wider text-gray-500 font-bold">Player Inspector</h2>
+                    <div class="text-xl font-black text-white tracking-wide mt-0.5"><span id="inspectorName">Select a player</span> <span id="inspectorId" class="text-purple-400 font-mono text-sm ml-1"></span></div>
+                    <div id="inspectorJob" class="text-sm text-gray-400 font-medium tracking-wide"></div>
+                </div>
+            </div>
 
-        <h2>🏷️ Decor Detection</h2>
-        <div style="background:var(--color-sidebar);padding:12px;border-radius:8px;margin-bottom:16px;">
-          <p style="color:var(--color-text-dim);margin-bottom:10px;">Detect and list all decors on an entity (vehicle, ped, object)</p>
-          <div class="actions">
-            <button onclick="detectDecorsOnAimed()">🎯 Detect Decors (Aimed)</button>
-            <button onclick="detectDecorsOnSelf()">👤 Detect Decors (Self)</button>
-            <button onclick="detectDecorsOnVehicle()">🚗 Detect Decors (Vehicle)</button>
-          </div>
-          <div id="decorInfo" style="background:var(--color-background);padding:10px;border-radius:4px;margin-top:10px;max-height:300px;overflow-y:auto;font-family:monospace;font-size:13px;line-height:1.6;">
-            <p style="color:var(--color-text-dim);">No decors detected yet.</p>
-          </div>
-        </div>
+            <!-- Inventory -->
+            <div class="flex-1 flex flex-col gap-3">
+                <div class="text-xs uppercase font-bold tracking-widest text-gray-400 flex justify-between items-center">
+                    <span>ox_inventory</span>
+                    <span class="text-gray-600 font-mono">Right-click to remove</span>
+                </div>
+                <div id="dynamicInventoryGrid" class="grid grid-cols-5 gap-2 p-3 rounded-xl border border-white/5 bg-black/30 overflow-y-auto custom-scrollbar max-h-[300px]">
+                    <!-- Inventory slots injected here -->
+                </div>
+            </div>
 
-        <h2>🎮 Quick Developer Actions</h2>
-        <div class="actions">
-          <button onclick="toggleNoclip()">✈️ Toggle Noclip</button>
-          <button onclick="toggleGodMode()">🛡️ Toggle God Mode</button>
-          <button onclick="toggleInvisible()">👻 Toggle Invisible</button>
-          <button onclick="fixVehicle()">🔧 Fix Vehicle</button>
-          <button onclick="deleteAimedEntity()">🗑️ Delete Aimed Entity</button>
-          <button onclick="spawnVehicleAtCoords()">🚗 Spawn Vehicle Here</button>
-        </div>
-      </section>
-    </main>
-  </div>
+            <!-- Quick Controls -->
+            <div class="flex flex-col gap-2">
+                <h4 class="text-xs font-bold uppercase text-gray-500 tracking-wider">Quick Controls</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btnHeal" class="py-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/5 active:scale-95"><i class="fas fa-heart-beat mr-2"></i>Heal / Revive</button>
+                    <button id="btnSpectate" class="py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/5 active:scale-95"><i class="fas fa-eye mr-2"></i>Spectate</button>
+                    <button id="btnFreeze" class="py-2.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-cyan-500/5 active:scale-95"><i class="fas fa-snowflake mr-2"></i>Freeze</button>
+                    <button id="btnBan" class="py-2.5 rounded-xl border border-rose-600/20 bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 font-bold text-sm tracking-wide transition-all shadow-lg shadow-rose-600/5 active:scale-95"><i class="fas fa-gavel mr-2"></i>Ban Player</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Dashboard -->
+        <section class="w-[30%] p-6 flex flex-col gap-4 bg-black/10">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xs uppercase tracking-wider text-gray-500 font-bold">Live Streaming Logs</h2>
+                <div class="w-2 h-2 rounded-full bg-purple-500 animate-ping"></div>
+            </div>
+            <div id="dynamicLogs" class="flex-1 p-4 rounded-xl border border-white/5 bg-black/50 font-mono text-[11px] leading-relaxed text-zinc-400 overflow-y-auto custom-scrollbar">
+                <!-- Logs injected here -->
+            </div>
 
 
-  <!-- Confirmation Modal (single instance, correct IDs) -->
-  <div id="confirmModal" class="modal hidden">
-    <div class="modal-content">
-      <p id="confirmText">Are you sure?</p>
-      <div class="modal-actions">
-        <button id="confirmYes">Yes</button>
-        <button id="confirmCancel">Cancel</button>
+            <div class="p-4 rounded-xl border border-white/5 bg-black/30 flex flex-col gap-3">
+                <div class="text-xs uppercase font-bold tracking-wider text-purple-400">Developer Utils</div>
+
+                <div class="flex flex-col gap-2">
+                    <button onclick="copyCoordsToClipboard('vector3')" class="w-full py-2 rounded-lg bg-white/[0.02] hover:bg-purple-600/20 border border-white/5 hover:border-purple-500/30 text-xs text-left px-3 flex justify-between items-center transition-all">
+                        <span>Copy Vector3</span>
+                        <span class="text-[10px] font-mono text-zinc-500">vec3(x, y, z)</span>
+                    </button>
+
+                    <button onclick="copyCoordsToClipboard('vector4')" class="w-full py-2 rounded-lg bg-white/[0.02] hover:bg-purple-600/20 border border-white/5 hover:border-purple-500/30 text-xs text-left px-3 flex justify-between items-center transition-all">
+                        <span>Copy Vector4</span>
+                        <span class="text-[10px] font-mono text-zinc-500">vec4(x, y, z, h)</span>
+                    </button>
+
+                    <button onclick="copyCoordsToClipboard('table')" class="w-full py-2 rounded-lg bg-white/[0.02] hover:bg-purple-600/20 border border-white/5 hover:border-purple-500/30 text-xs text-left px-3 flex justify-between items-center transition-all">
+                        <span>Copy Table</span>
+                        <span class="text-[10px] font-mono text-zinc-500">{x, y, z, h}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Ref (from previous version) -->
+            <div class="p-3 rounded-xl border border-white/5 bg-black/40 flex flex-col gap-2">
+                <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Quick Actions</div>
+                <div class="flex gap-2">
+                    <button onclick="fetch(`https://${GetParentResourceName()}/toggleNoclip`, {method: 'POST', body: JSON.stringify({})})" class="flex-1 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-gray-300">Toggle Noclip</button>
+                    <button onclick="fetch(`https://${GetParentResourceName()}/toggleGodMode`, {method: 'POST', body: JSON.stringify({})})" class="flex-1 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-gray-300">God Mode</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<div id="toast" class="fixed top-5 right-5 px-6 py-3 rounded-lg bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all duration-300 translate-x-[150%] opacity-0 z-[100000]">
+    Notification
+</div>
+
+<!-- Prompt Modal -->
+<div id="promptModal" class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-[100000] hidden">
+    <div class="w-[400px] p-6 rounded-xl bg-zinc-900 border border-white/10 shadow-2xl">
+      <p id="promptTitle" class="mb-4 font-bold text-white text-center"></p>
+      <input type="text" id="promptInput" class="w-full p-2 mb-4 rounded bg-black/50 border border-white/10 text-white focus:outline-none focus:border-purple-500" />
+      <div class="flex justify-center gap-3">
+        <button id="promptConfirm" class="px-6 py-2 rounded bg-purple-600 hover:bg-purple-500 text-white font-bold">OK</button>
+        <button id="promptCancel" class="px-6 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-white font-bold">Cancel</button>
       </div>
     </div>
-  </div>
+</div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast hidden"></div>
-  <script src="script.js"></script>
-  <!-- Prompt Modal -->
-  <div id="promptModal" class="modal hidden">
-    <div class="modal-content" style="text-align: center; max-width: 400px; width: 100%;">
-      <p id="promptTitle" style="margin-bottom: 15px; font-weight: bold;"></p>
-      <input type="text" id="promptInput" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;" />
-      <div class="modal-actions" style="justify-content: center; gap: 10px;">
-        <button id="promptConfirm" style="background: var(--color-primary);">OK</button>
-        <button id="promptCancel" style="background: #444;">Cancel</button>
-      </div>
-    </div>
-  </div>
+<script src="script.js"></script>
 </body>
 </html>

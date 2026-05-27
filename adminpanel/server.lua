@@ -217,6 +217,31 @@ local function canDoAction(src, action)
   actionCooldowns[s][action] = now()
   return true
 end
+
+local RequiredPermission = "adminpanel.access"
+local function IsAuthorizedAdmin(source)
+    if IsPlayerAceAllowed(source, RequiredPermission) or IsPlayerAceAllowed(source, "command") then
+        return true
+    end
+
+    if GetResourceState('qb-core') == 'started' then
+        local QBCore = exports['qb-core']:GetCoreObject()
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then
+            local playerGroup = Player.PlayerData.group
+            if playerGroup == "admin" or playerGroup == "god" then
+                return true
+            end
+        end
+    end
+
+    if GetResourceState('qbx_core') == 'started' then
+        if exports.qbx_core:HasPermission(source, 'admin') then return true end
+    end
+
+    return false
+end
+
 local function pushLogLine(line)
   logsFeed[#logsFeed+1] = line
   if #logsFeed > 200 then table.remove(logsFeed, 1) end
@@ -418,23 +443,25 @@ RegisterNetEvent("admin:getPlayerInfo", function(data)
 end)
 
 -- Inventory (ox_inventory assumed)
-RegisterNetEvent("admin:getInventory", function(targetId)
-  local src = source
-  if not hasPermission(src, "viewInventory") then return notify(src, "No permission.") end
-  local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
-  local items = exports.ox_inventory:GetInventoryItems(tonumber(targetId)) or {}
-  TriggerClientEvent("admin:openInventoryUI", src, targetId, items)
-  logAdminAction(src, "viewInventory", targetId, "Viewed inventory")
+lib.callback.register('adminpanel:server:getInventory', function(source, targetId)
+    local src = source
+    if not hasPermission(src, "viewInventory") and not IsAuthorizedAdmin(src) then return false end
+    local inv = exports.ox_inventory:GetInventory(targetId, false)
+    if inv and inv.items then
+        logAdminAction(src, "viewInventory", targetId, "Viewed inventory grid")
+        return inv.items
+    end
+    return false
 end)
-RegisterNetEvent("admin:removeItem", function(targetId, item, amount, silent)
+RegisterNetEvent("admin:removeItem", function(targetId, item, amount, silent, slot, metadata)
   local src = source
-  if not hasPermission(src, "removeItems") then return notify(src, "No permission.") end
+  if not hasPermission(src, "removeItems") and not IsAuthorizedAdmin(src) then return notify(src, "No permission.") end
   if not canDoAction(src, "removeItem") then return notify(src, "Slow down.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
   item = sanitize(item, 64); amount = tonumber(amount) or 0; if amount <= 0 then return notify(src, "Invalid amount.") end
   local silentAllowed = isGod(src) and (silent == true)
-  exports.ox_inventory:RemoveItem(tonumber(targetId), item, amount, nil, silentAllowed)
-  logAdminAction(src, "removeItem", targetId, ("Removed %sx %s (silent: %s)"):format(amount, item, tostring(silentAllowed)))
+  exports.ox_inventory:RemoveItem(tonumber(targetId), item, amount, metadata, slot)
+  logAdminAction(src, "removeItem", targetId, ("Removed %sx %s from slot %s"):format(amount, item, tostring(slot)))
 end)
 RegisterNetEvent("admin:addItem", function(targetId, item, amount)
   local src = source
@@ -455,29 +482,7 @@ RegisterNetEvent("admin:getPlayerVehicles", function(targetId)
   TriggerClientEvent("admin:receivePlayerVehicles", src, targetId, result)
   logAdminAction(src, "viewGarage", targetId, "Viewed garage list")
 end)
-local RequiredPermission = "adminpanel.access"
-local function IsAuthorizedAdmin(source)
-    if IsPlayerAceAllowed(source, RequiredPermission) or IsPlayerAceAllowed(source, "command") then
-        return true
-    end
 
-    if GetResourceState('qb-core') == 'started' then
-        local QBCore = exports['qb-core']:GetCoreObject()
-        local Player = QBCore.Functions.GetPlayer(source)
-        if Player then
-            local playerGroup = Player.PlayerData.group
-            if playerGroup == "admin" or playerGroup == "god" then
-                return true
-            end
-        end
-    end
-
-    if GetResourceState('qbx_core') == 'started' then
-        if exports.qbx_core:HasPermission(source, 'admin') then return true end
-    end
-
-    return false
-end
 
 RegisterNetEvent("admin:addVehicle", function(targetId, vehicleModel, plate, garage, preset)
   local src = source
@@ -495,7 +500,7 @@ RegisterNetEvent("admin:addVehicle", function(targetId, vehicleModel, plate, gar
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
   vehicleModel = sanitize(vehicleModel, 40); plate = sanitize(plate or "", 12); garage = sanitize(garage or "pillboxgarage", 32)
 
-  local allocatedPlate = SaveVehicleToGarage(targetId, vehicleModel)
+  local allocatedPlate = SaveVehicleToGarage(targetId, vehicleModel, garage)
   TriggerClientEvent('adminpanel:client:spawnAllocatedVehicle', targetId, vehicleModel, allocatedPlate)
 
   notify(src, ("Added %s to %s garage"):format(vehicleModel, garage))
@@ -700,9 +705,13 @@ end)
 -- Spectate / Freeze
 RegisterNetEvent("admin:spectatePlayer", function(targetId)
   local src = source
-  if not hasPermission(src, "spectatePlayers") then return notify(src, "No permission.") end
+  if not hasPermission(src, "spectatePlayers") and not IsAuthorizedAdmin(src) then return notify(src, "No permission.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
-  TriggerClientEvent("admin:_spectate", src, tonumber(targetId))
+
+  local targetPed = GetPlayerPed(tonumber(targetId))
+  local coords = GetEntityCoords(targetPed)
+
+  TriggerClientEvent("adminpanel:client:startSpectate", src, tonumber(targetId), coords)
   logAdminAction(src, "spectate", targetId, "Started spectating player")
 end)
 RegisterNetEvent("admin:freezePlayer", function(targetId)
