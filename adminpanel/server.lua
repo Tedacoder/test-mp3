@@ -45,7 +45,7 @@ local function sanitize(str, max)
 end
 
 -- Helper for generating random plates
-local function generatePlate()
+function generatePlate()
     local charset = {}
     for i = 65, 90 do table.insert(charset, string.char(i)) end
     for i = 48, 57 do table.insert(charset, string.char(i)) end
@@ -158,7 +158,7 @@ end)
 local function notify(src, msg)
   TriggerClientEvent("admin:notify", src, sanitize(msg, 180))
 end
-local function getPlayerSafe(targetId)
+function getPlayerSafe(targetId)
   if not targetId then return nil end
   -- Allow offline testing with dummy ID 999
   if tonumber(targetId) == 999 then
@@ -455,20 +455,51 @@ RegisterNetEvent("admin:getPlayerVehicles", function(targetId)
   TriggerClientEvent("admin:receivePlayerVehicles", src, targetId, result)
   logAdminAction(src, "viewGarage", targetId, "Viewed garage list")
 end)
+local RequiredPermission = "adminpanel.access"
+local function IsAuthorizedAdmin(source)
+    if IsPlayerAceAllowed(source, RequiredPermission) or IsPlayerAceAllowed(source, "command") then
+        return true
+    end
+
+    if GetResourceState('qb-core') == 'started' then
+        local QBCore = exports['qb-core']:GetCoreObject()
+        local Player = QBCore.Functions.GetPlayer(source)
+        if Player then
+            local playerGroup = Player.PlayerData.group
+            if playerGroup == "admin" or playerGroup == "god" then
+                return true
+            end
+        end
+    end
+
+    if GetResourceState('qbx_core') == 'started' then
+        if exports.qbx_core:HasPermission(source, 'admin') then return true end
+    end
+
+    return false
+end
+
 RegisterNetEvent("admin:addVehicle", function(targetId, vehicleModel, plate, garage, preset)
   local src = source
-  if not hasPermission(src, "manageVehicles") then return notify(src, "No permission.") end
+  if not hasPermission(src, "manageVehicles") and not IsAuthorizedAdmin(src) then
+      local playerName = GetPlayerName(src)
+      print(("^1[SECURITY BREACH] Player %s (ID: %s) tried to execute an admin event without permissions!^7"):format(playerName, src))
+      if GetResourceState('qbx_core') == 'started' then
+          exports.qbx_core:ExploitBan(src, "Admin Panel Event Injection Attempt: " .. tostring(vehicleModel))
+      else
+          DropPlayer(src, "🛡️ Anti-Cheat: Unauthorized execution of admin systems.")
+      end
+      return
+  end
   if not canDoAction(src, "addVehicle") then return notify(src, "Slow down.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
   vehicleModel = sanitize(vehicleModel, 40); plate = sanitize(plate or "", 12); garage = sanitize(garage or "pillboxgarage", 32)
-  local plateText = (plate ~= "" and plate) or generatePlate()
-  local mods = (Config.VehiclePresets and Config.VehiclePresets[preset or ""]) or {}
-  local hash = GetHashKey(vehicleModel)
-  MySQL.insert.await('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, garage, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', {
-    Player.PlayerData.license, Player.PlayerData.citizenid, vehicleModel, hash, json.encode(mods), plateText, garage, 1
-  })
-  notify(src, ("Added %s [%s] to %s garage"):format(vehicleModel, plateText, garage))
-  logAdminAction(src, "addVehicle", targetId, ("Added %s [%s] to %s (preset: %s)"):format(vehicleModel, plateText, garage, preset or "none"))
+
+  local allocatedPlate = SaveVehicleToGarage(targetId, vehicleModel)
+  TriggerClientEvent('adminpanel:client:spawnAllocatedVehicle', targetId, vehicleModel, allocatedPlate)
+
+  notify(src, ("Added %s to %s garage"):format(vehicleModel, garage))
+  logAdminAction(src, "addVehicle", targetId, ("Added %s to %s (preset: %s)"):format(vehicleModel, garage, preset or "none"))
 end)
 RegisterNetEvent("admin:removeVehicle", function(targetId, plate)
   local src = source

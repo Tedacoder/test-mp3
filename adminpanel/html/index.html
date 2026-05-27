@@ -56,15 +56,6 @@
           </div>
         </div>
 
-        <div id="playerActionsInfo" style="background:rgba(255,255,255,0.05);padding:12px;border-radius:4px;margin-bottom:12px;display:none;">
-          <h3 style="margin-top:0;">Current Player Info</h3>
-          <div style="color:var(--color-text);line-height:1.8;">
-            <div><b>Name:</b> <span id="actionsPlayerName">-</span></div>
-            <div><b>Current Job:</b> <span id="actionsPlayerJob">-</span></div>
-            <div><b>Cash:</b> $<span id="actionsPlayerCash">0</span></div>
-            <div><b>Bank:</b> $<span id="actionsPlayerBank">0</span></div>
-          </div>
-        </div>
 
         <h2>Quick Actions</h2>
         <div class="actions">
@@ -154,6 +145,15 @@
         <input type="text" id="cidPlayerActions" placeholder="Enter CID" style="margin-bottom:8px;" />
         <select id="cidPlayerActionsDropdown" style="margin-bottom:8px;"></select>
         <input type="text" id="actionReason" placeholder="Reason (optional)" />
+        <div id="playerActionsInfo" style="background:rgba(255,255,255,0.05);padding:12px;border-radius:4px;margin-bottom:12px;display:none;">
+          <h3 style="margin-top:0;">Current Player Info</h3>
+          <div style="color:var(--color-text);line-height:1.8;">
+            <div><b>Name:</b> <span id="actionsPlayerName">-</span></div>
+            <div><b>Current Job:</b> <span id="actionsPlayerJob">-</span></div>
+            <div><b>Cash:</b> $<span id="actionsPlayerCash">0</span></div>
+            <div><b>Bank:</b> $<span id="actionsPlayerBank">0</span></div>
+          </div>
+        </div>
         <div class="action-buttons">
           <button onclick="warnPlayer()">Warn</button>
           <button onclick="kickPlayer()">Kick</button>
@@ -180,7 +180,7 @@
 
         <div style="margin-top:16px;">
           <h3 style="margin-bottom:8px;">Quick Reference</h3>
-          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); navigator.clipboard.writeText(this.value)">
+          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
             <option value="">Select a Car to Copy</option>
             <option value="adder">Adder</option>
             <option value="t20">T20</option>
@@ -189,7 +189,7 @@
             <option value="panto">Panto</option>
             <option value="bmx">BMX</option>
           </select>
-          <select id="itemReferenceDropdown" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); navigator.clipboard.writeText(this.value)">
+          <select id="itemReferenceDropdown" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
             <option value="">Select an Item to Copy</option>
             <option value="water">Water</option>
             <option value="sandwich">Sandwich</option>
@@ -203,6 +203,50 @@
       <!-- Management -->
       <section id="managementTab" class="tab-content hidden">
         <h1>Management</h1>
+        <div style="margin-top:16px;">
+          <h3 style="margin-bottom:8px;">Quick Reference</h3>
+          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
+            <option value="">Select a Car to Copy</option>
+            <option value="adder">Adder</option>
+            <option value="t20">T20</option>
+            <option value="sultanrs">Sultan RS</option>
+            <option value="elegy">Elegy</option>
+            <option value="panto">Panto</option>
+            <option value="bmx">BMX</option>
+          </select>
+          <select id="itemReferenceDropdown" onchange="fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
+            <option value="">Select an Item to Copy</option>
+            <option value="water">Water</option>
+            <option value="sandwich">Sandwich</option>
+            <option value="phone">Phone</option>
+            <option value="radio">Radio</option>
+            <option value="id_card">ID Card</option>
+            <option value="driver_license">Driver License</option>
+          </select>
+        </div>
+
+        <div style="margin-top:16px;">
+          <h3 style="margin-bottom:8px;">Quick Reference</h3>
+          <select id="carReferenceDropdown" style="margin-bottom:8px;" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
+            <option value="">Select a Car to Copy</option>
+            <option value="adder">Adder</option>
+            <option value="t20">T20</option>
+            <option value="sultanrs">Sultan RS</option>
+            <option value="elegy">Elegy</option>
+            <option value="panto">Panto</option>
+            <option value="bmx">BMX</option>
+          </select>
+          <select id="itemReferenceDropdown" onchange="document.getElementById('toast').textContent='Copied: ' + this.value; document.getElementById('toast').classList.remove('hidden'); setTimeout(()=>document.getElementById('toast').classList.add('hidden'), 2000); fetch(`https://${GetParentResourceName()}/copyToClipboard`, {method: 'POST', body: JSON.stringify({text: this.value})})">
+            <option value="">Select an Item to Copy</option>
+            <option value="water">Water</option>
+            <option value="sandwich">Sandwich</option>
+            <option value="phone">Phone</option>
+            <option value="radio">Radio</option>
+            <option value="id_card">ID Card</option>
+            <option value="driver_license">Driver License</option>
+          </select>
+        </div>
+
         <label for="cidManagement">Player CID:</label>
         <input type="text" id="cidManagement" placeholder="Enter CID" style="margin-bottom:8px;" />
         <select id="cidManagementDropdown" style="margin-bottom:8px;"></select>

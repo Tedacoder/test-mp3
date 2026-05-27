@@ -105,3 +105,6 @@ Config.UIThemes = {
 
 -- Default theme (change this to switch themes globally)
 Config.DefaultTheme = "default"
+
+-- Garage integration
+Config.GarageType = "qbx" -- Options: "qbx", "jg-advanced", "cd", "custom"

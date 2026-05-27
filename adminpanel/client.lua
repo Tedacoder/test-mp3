@@ -1,6 +1,9 @@
 -- Wrapper for RegisterNUICallback
-local function nui(event, cb)
-  RegisterNUICallback(event, cb)
+local function nui(event, func)
+  RegisterNUICallback(event, function(data, cb)
+    func(data, cb)
+    if cb then cb('ok') end
+  end)
 end
 
 local menuOpen = false
@@ -111,11 +114,12 @@ nui("admin:removeWhitelistItem", function(d) TriggerServerEvent("admin:removeWhi
 nui("sendAnnouncement", function(d) TriggerServerEvent("admin:sendAnnouncement", d) end)
 
 -- Close panel
+nui("copyToClipboard", function(d) TriggerEvent("adminpanel:client:copyToClipboard", d.text) end)
+
 nui("closeMenu", function(data, cb)
   SetNuiFocus(false, false)
   menuOpen = false
   SendNUIMessage({ action = "closePanel" })
-  if cb then cb('ok') end
 end)
 
 -- Server → UI updates

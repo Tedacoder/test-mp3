@@ -6,7 +6,8 @@ version '1.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
-    'config.lua'
+    'config.lua',
+    'sh_garage_bridge.lua'
 }
 
 client_scripts {

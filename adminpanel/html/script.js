@@ -346,7 +346,7 @@ function exportLogs() {
 
     window.bulkKick = function() {
       const selected = getSelectedBulkPlayers();
-      if (selected.length === 0) return alert("Select at least one player.");
+      if (selected.length === 0) return showToast("Select at least one player.");
       const reason = document.getElementById("actionReason").value || "Bulk kicked by admin";
       fetch(`https://${GetParentResourceName()}/bulkAction`, {
         method: "POST",
@@ -356,7 +356,7 @@ function exportLogs() {
 
     window.bulkBan = function() {
       const selected = getSelectedBulkPlayers();
-      if (selected.length === 0) return alert("Select at least one player.");
+      if (selected.length === 0) return showToast("Select at least one player.");
       const reason = document.getElementById("actionReason").value || "Bulk banned by admin";
       fetch(`https://${GetParentResourceName()}/bulkAction`, {
         method: "POST",
@@ -366,12 +366,12 @@ function exportLogs() {
 
     window.bulkGiveItem = async function() {
       const selected = getSelectedBulkPlayers();
-      if (selected.length === 0) return alert("Select at least one player.");
+      if (selected.length === 0) return showToast("Select at least one player.");
       const item = await showPromptModal("Enter item name to give to all selected players:");
       if (!item) return;
       const amountStr = await showPromptModal(`Enter amount of ${item} to give:`, "1");
       const amount = parseInt(amountStr);
-      if (isNaN(amount) || amount <= 0) return alert("Invalid amount.");
+      if (isNaN(amount) || amount <= 0) return showToast("Invalid amount.");
 
       fetch(`https://${GetParentResourceName()}/bulkAction`, {
         method: "POST",
@@ -457,7 +457,7 @@ function addItem() {
   const cidInput = document.getElementById("cidInventory").value;
   const cidDropdown = document.getElementById("cidInventoryDropdown").value;
   const cid = cidDropdown || cidInput;
-  if (!item || isNaN(amount) || !cid) return alert("Please enter item name, amount, and select a player");
+  if (!item || isNaN(amount) || !cid) return showToast("Please enter item name, amount, and select a player");
   fetch(`https://${GetParentResourceName()}/addItem`, {
     method: "POST",
     body: JSON.stringify({ targetId: cid, item, amount })
@@ -470,7 +470,7 @@ function removeItem(silent) {
   const cidInput = document.getElementById("cidInventory").value;
   const cidDropdown = document.getElementById("cidInventoryDropdown").value;
   const cid = cidDropdown || cidInput;
-  if (!item || isNaN(amount) || !cid) return alert("Please enter item name, amount, and select a player");
+  if (!item || isNaN(amount) || !cid) return showToast("Please enter item name, amount, and select a player");
   fetch(`https://${GetParentResourceName()}/removeItem`, {
     method: "POST",
     body: JSON.stringify({ targetId: cid, item, amount, silent })
@@ -486,7 +486,7 @@ function addVehicleFromUI() {
   const cidInput = document.getElementById("cidGarage").value;
   const cidDropdown = document.getElementById("cidGarageDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!vehicleModel || !targetId) return alert("Please enter vehicle model and select a player");
+  if (!vehicleModel || !targetId) return showToast("Please enter vehicle model and select a player");
   fetch(`https://${GetParentResourceName()}/addVehicle`, {
     method: "POST",
     body: JSON.stringify({ targetId, vehicleModel, plate, garage, preset })
@@ -501,7 +501,7 @@ function warnPlayer() {
   const targetId = cidDropdown || cidInput;
   console.log('[Player Actions] warnPlayer - targetId:', targetId);
   if (!targetId) {
-    alert("Please select a player from the dropdown or enter a player ID");
+    showToast("Please select a player from the dropdown or enter a player ID");
     return;
   }
   fetch(`https://${GetParentResourceName()}/warnPlayer`, {
@@ -541,7 +541,7 @@ function healPlayer() {
   const targetId = cidDropdown || cidInput;
   console.log('[Player Actions] healPlayer - targetId:', targetId);
   if (!targetId) {
-    alert("Please select a player from the dropdown or enter a player ID");
+    showToast("Please select a player from the dropdown or enter a player ID");
     return;
   }
   fetch(`https://${GetParentResourceName()}/healPlayer`, { method: "POST", body: JSON.stringify({ targetId }) });
@@ -594,7 +594,7 @@ function giveMoney() {
   const cidInput = document.getElementById("cidManagement").value;
   const cidDropdown = document.getElementById("cidManagementDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (isNaN(amount) || !targetId) return alert("Please select a player and enter amount");
+  if (isNaN(amount) || !targetId) return showToast("Please select a player and enter amount");
   fetch(`https://${GetParentResourceName()}/giveMoney`, {
     method: "POST",
     body: JSON.stringify({ targetId, account, amount })
@@ -627,7 +627,7 @@ function setJob() {
   const cidInput = document.getElementById("cidManagement").value;
   const cidDropdown = document.getElementById("cidManagementDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId || !job) return alert("Please select a player and job");
+  if (!targetId || !job) return showToast("Please select a player and job");
   console.log('[Management] Setting job:', job, 'grade:', grade, 'for player:', targetId);
   fetch(`https://${GetParentResourceName()}/setJob`, {
     method: "POST",
@@ -963,14 +963,51 @@ window.addEventListener("message", (event) => {
     document.getElementById("decorInfo").innerHTML = html;
   }
 
+
+  if (event.data.type === "updateInventory") {
+    const items = event.data.items;
+    let html = `<h3>Inventory for ID: ${event.data.targetId}</h3>`;
+    if (!items || Object.keys(items).length === 0) {
+      html += `<p>No items found or inventory is empty.</p>`;
+    } else {
+      html += `<div style="max-height: 200px; overflow-y: auto; background: var(--color-background); padding: 10px; border-radius: 4px;">`;
+      for (const key in items) {
+        const item = items[key];
+        html += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #333;">
+          <span>${item.label || item.name}</span>
+          <span style="color:var(--color-primary);">x${item.count || item.amount}</span>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+
+    // Create or update a modal/div for inventory. For now, we can append it to the Player Actions Info
+    const actionsDiv = document.getElementById("playerActionsInfo");
+    if (actionsDiv) {
+      let invDiv = document.getElementById("playerInventoryView");
+      if (!invDiv) {
+        invDiv = document.createElement("div");
+        invDiv.id = "playerInventoryView";
+        invDiv.style.marginTop = "10px";
+        actionsDiv.appendChild(invDiv);
+      }
+      invDiv.innerHTML = html;
+      actionsDiv.style.display = "block";
+    }
+  }
+
   if (event.data.type === "updatePlayerPreview") {
     const info = event.data.info;
     const previewDiv = document.getElementById("playerPreviewInfo");
     if (previewDiv && info) {
       if (document.getElementById("playerActionsInfo")) {
         document.getElementById("playerActionsInfo").style.display = "block";
-                                      }
-                              let html = `<div style="text-align:left;">`;
+        if (document.getElementById("actionsPlayerName")) document.getElementById("actionsPlayerName").textContent = info.name;
+        if (document.getElementById("actionsPlayerJob")) document.getElementById("actionsPlayerJob").textContent = info.job || 'N/A';
+        if (document.getElementById("actionsPlayerCash")) document.getElementById("actionsPlayerCash").textContent = info.cash || 0;
+        if (document.getElementById("actionsPlayerBank")) document.getElementById("actionsPlayerBank").textContent = info.bank || 0;
+      }
+      let html = `<div style="text-align:left;">`;
       html += `<div style="font-weight:bold;color:var(--color-primary);margin-bottom:8px;">${info.name}</div>`;
       html += `<div style="font-size:12px;line-height:1.8;">`;
       html += `<div><span style="color:var(--color-text-dim);">ID:</span> ${info.id}</div>`;
