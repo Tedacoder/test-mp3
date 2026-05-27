@@ -364,7 +364,7 @@ function exportLogs() {
       });
     }
 
-    window.bulkGiveItem = function() {
+    window.bulkGiveItem = async function() {
       const selected = getSelectedBulkPlayers();
       if (selected.length === 0) return alert("Select at least one player.");
       const item = await showPromptModal("Enter item name to give to all selected players:");
@@ -909,7 +909,7 @@ function deleteAimedEntity() {
   fetch(`https://${GetParentResourceName()}/deleteAimedEntity`, { method: "POST", body: JSON.stringify({}) });
 }
 
-function spawnVehicleAtCoords() {
+async function spawnVehicleAtCoords() {
   const model = await showPromptModal("Enter vehicle model:");
   if (model) {
     fetch(`https://${GetParentResourceName()}/spawnVehicleAtCoords`, {
