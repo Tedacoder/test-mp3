@@ -115,7 +115,7 @@ nui("closeMenu", function(data, cb)
   SetNuiFocus(false, false)
   menuOpen = false
   SendNUIMessage({ action = "closePanel" })
-  cb('ok')
+  if cb then cb('ok') end
 end)
 
 -- Server → UI updates

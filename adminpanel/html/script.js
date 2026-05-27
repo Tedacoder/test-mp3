@@ -515,7 +515,7 @@ function kickPlayer() {
   const cidInput = document.getElementById("cidPlayerActions").value;
   const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/kickPlayer`, {
     method: "POST",
     body: JSON.stringify({ targetId, reason })
@@ -527,7 +527,7 @@ function banPlayer() {
   const cidInput = document.getElementById("cidPlayerActions").value;
   const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   const duration = 86400; // 24 hours default
   fetch(`https://${GetParentResourceName()}/banPlayer`, {
     method: "POST",
@@ -551,7 +551,7 @@ function killPlayer() {
   const cidInput = document.getElementById("cidPlayerActions").value;
   const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/killPlayer`, { method: "POST", body: JSON.stringify({ targetId }) });
 }
 
@@ -559,7 +559,7 @@ function bringPlayer() {
   const cidInput = document.getElementById("cidPlayerActions").value;
   const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/bringPlayer`, { method: "POST", body: JSON.stringify({ targetId }) });
 }
 
@@ -567,7 +567,7 @@ function gotoPlayer() {
   const cidInput = document.getElementById("cidPlayerActions").value;
   const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/gotoPlayer`, { method: "POST", body: JSON.stringify({ targetId }) });
 }
 
@@ -575,7 +575,7 @@ function spectatePlayer() {
   const cidInput = document.getElementById("cidPlayerActions").value;
   const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/spectatePlayer`, { method: "POST", body: JSON.stringify({ targetId }) });
 }
 
@@ -583,7 +583,7 @@ function freezePlayer() {
   const cidInput = document.getElementById("cidPlayerActions").value;
   const cidDropdown = document.getElementById("cidPlayerActionsDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/freezePlayer`, { method: "POST", body: JSON.stringify({ targetId }) });
 }
 
@@ -605,7 +605,7 @@ function giveClothing() {
   const cidInput = document.getElementById("cidManagement").value;
   const cidDropdown = document.getElementById("cidManagementDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/giveClothing`, { method: "POST", body: JSON.stringify({ targetId }) });
 }
 
@@ -613,7 +613,7 @@ function loadPlayerManagementInfo() {
   const cidInput = document.getElementById("cidManagement").value;
   const cidDropdown = document.getElementById("cidManagementDropdown").value;
   const targetId = cidDropdown || cidInput;
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   console.log('[Management] Loading info for player:', targetId);
   fetch(`https://${GetParentResourceName()}/getPlayerInfo`, {
     method: "POST",
@@ -640,7 +640,7 @@ function removeJob() {
   const cidDropdown = document.getElementById("cidManagementDropdown").value;
   const targetId = cidDropdown || cidInput;
   console.log('[Management] Removing job for player:', targetId);
-  if (!targetId) return alert("Please select a player");
+  if (!targetId) return showToast("Please select a player");
   fetch(`https://${GetParentResourceName()}/removeJob`, { method: "POST", body: JSON.stringify({ targetId }) });
 }
 
@@ -711,7 +711,14 @@ window.addEventListener("DOMContentLoaded", () => {
   // Escape key listener to close menu
   document.addEventListener('keydown', function(event) {
       if (event.key === "Escape") {
-          window.closeMenu();
+          const promptModal = document.getElementById("promptModal");
+          if (promptModal && !promptModal.classList.contains("hidden")) {
+              document.getElementById("promptCancel").click();
+              return;
+          }
+          if (document.querySelector('.admin-container').classList.contains('show')) {
+              window.closeMenu();
+          }
       }
   });
 
