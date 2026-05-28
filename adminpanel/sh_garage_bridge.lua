@@ -85,6 +85,13 @@ else
         SetVehicleNumberPlateText(vehicle, plate)
         TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
 
+        -- Give Keys
+        if GetResourceState('qb-vehiclekeys') == 'started' then
+            TriggerEvent('vehiclekeys:client:SetOwner', plate)
+        elseif GetResourceState('qbx_vehiclekeys') == 'started' then
+            exports.qbx_vehiclekeys:GiveKeys(plate)
+        end
+
         if GetResourceState('ox_lib') == 'started' then
             lib.setClipboard(model)
         end

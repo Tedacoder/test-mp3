@@ -2,6 +2,7 @@ local PlayerPhotoCache = {}
 local activeHandles = {}
 
 function GetInGamePlayerMugshot(targetPlayerId)
+    if not targetPlayerId then return "images/default_avatar.png" end
     if PlayerPhotoCache[targetPlayerId] then
         return PlayerPhotoCache[targetPlayerId]
     end
@@ -29,8 +30,10 @@ function GetInGamePlayerMugshot(targetPlayerId)
         local txdString = GetPedheadshotTxdString(handle)
         local finalImgData = "https://nui-img/" .. txdString .. "/" .. txdString
 
-        table.insert(activeHandles, { handle = handle, id = targetPlayerId })
-        PlayerPhotoCache[targetPlayerId] = finalImgData
+        if targetPlayerId then
+            table.insert(activeHandles, { handle = handle, id = targetPlayerId })
+            PlayerPhotoCache[targetPlayerId] = finalImgData
+        end
         return finalImgData
     end
 

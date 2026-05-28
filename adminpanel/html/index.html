@@ -18,11 +18,12 @@
             <div class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-indigo-500 cursor-pointer" onclick="closeMenu()">
                 Ω
             </div>
-            <nav class="flex flex-col gap-6 w-full items-center">
-                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-white bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all"><i class="fas fa-users text-lg"></i></button>
-                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white transition-all"><i class="fas fa-car text-lg"></i></button>
-                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white transition-all"><i class="fas fa-file-alt text-lg"></i></button>
-                <button class="w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white transition-all"><i class="fas fa-cog text-lg"></i></button>
+            <nav id="sidebarNav" class="flex flex-col gap-6 w-full items-center">
+                <button data-tab="players" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-white bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all"><i class="fas fa-users text-lg pointer-events-none"></i></button>
+                <button data-tab="garage" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-car text-lg pointer-events-none"></i></button>
+                <button data-tab="chat" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-comments text-lg pointer-events-none"></i></button>
+                <button data-tab="logs" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-file-alt text-lg pointer-events-none"></i></button>
+                <button data-tab="settings" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-cog text-lg pointer-events-none"></i></button>
             </nav>
             <div class="flex flex-col items-center gap-2 p-3 w-16 rounded-xl bg-black/40 border border-[rgba(255,255,255,0.03)] text-center">
                 <div class="text-[10px] uppercase tracking-wider text-purple-400 font-bold">Vitals</div>
@@ -32,7 +33,7 @@
         </aside>
 
         <!-- Player List -->
-        <section class="w-[32%] p-6 flex flex-col gap-4 border-r border-[rgba(255,255,255,0.04)]">
+        <section class="view-players w-[32%] p-6 flex flex-col gap-4 border-r border-[rgba(255,255,255,0.04)]">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Player List</h2>
                 <span class="text-xs px-2 py-1 rounded bg-white/5 border border-white/10 text-gray-400 font-mono">ID / Name</span>
@@ -43,7 +44,7 @@
         </section>
 
         <!-- Player Inspector -->
-        <section class="w-[38%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+        <section class="view-players w-[38%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
             <div class="flex gap-4 items-center">
                 <div class="w-20 h-20 flex items-center justify-center bg-zinc-900/50 rounded-xl overflow-hidden border border-white/5 relative">
                     <img id="inspectorAvatar" src="images/default_avatar.png" class="w-full h-full object-cover scale-110" alt="Character Face Link" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png';"/>
@@ -59,7 +60,10 @@
             <div class="flex-1 flex flex-col gap-3">
                 <div class="text-xs uppercase font-bold tracking-widest text-gray-400 flex justify-between items-center">
                     <span>ox_inventory</span>
-                    <span class="text-gray-600 font-mono">Right-click to remove</span>
+                    <div class="flex gap-2">
+                        <button onclick="addInvItem()" class="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 transition-all font-bold">+ Add Item</button>
+                        <span class="text-gray-600 font-mono">Right-click to remove</span>
+                    </div>
                 </div>
                 <div id="dynamicInventoryGrid" class="grid grid-cols-5 gap-2 p-3 rounded-xl border border-white/5 bg-black/30 overflow-y-auto custom-scrollbar max-h-[300px]">
                     <!-- Inventory slots injected here -->
@@ -92,6 +96,68 @@
             </div>
         </section>
 
+
+        <!-- Garage Manager Tab -->
+        <section class="view-garage hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Garage Management</h2>
+            <div class="flex gap-4">
+                <input type="text" id="cidGarage" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none w-1/3" placeholder="Enter Player CID" />
+                <button onclick="fetchGarage()" class="px-6 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white shadow-lg transition-all">Search</button>
+            </div>
+            <ul id="garageList" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2"></ul>
+            <div class="grid grid-cols-4 gap-3">
+                <input type="text" id="vehicleModel" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none" placeholder="Vehicle Model" />
+                <input type="text" id="vehiclePlate" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none" placeholder="Plate (Optional)" />
+                <input type="text" id="garageSelect" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none" placeholder="Garage ID" value="pillboxgarage" />
+                <button id="btnGiveVehicleGarageTab" class="rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-white transition-all shadow-lg shadow-blue-500/20">Give Vehicle</button>
+            </div>
+        </section>
+
+        <!-- Admin Chat / Announcements Tab -->
+        <section class="view-chat hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Admin Communications</h2>
+            <div class="flex-1 flex gap-6">
+                <div class="flex-1 flex flex-col gap-3">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold">Admin Chat</h3>
+                    <div id="adminChatMessages" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-4 overflow-y-auto custom-scrollbar text-sm text-gray-300"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="adminChatInput" class="flex-1 p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none" placeholder="Type message..." />
+                        <button onclick="sendAdminChat()" class="px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-white shadow-lg transition-all">Send</button>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col gap-3">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold">Global Announcements</h3>
+                    <div class="flex flex-col gap-2">
+                        <textarea id="announcementInput" class="w-full p-3 h-32 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none custom-scrollbar" placeholder="Enter global announcement..."></textarea>
+                        <button onclick="sendAnnouncement()" class="py-3 rounded-xl bg-amber-600 hover:bg-amber-500 font-bold text-white shadow-lg transition-all">Broadcast</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logs Tab -->
+        <section class="view-logs hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Detailed Action Logs</h2>
+            <div id="fullLogsList" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-4 overflow-y-auto custom-scrollbar text-xs font-mono text-gray-400">
+                <!-- Detailed logs sync -->
+            </div>
+        </section>
+
+        <!-- Settings Tab -->
+        <section class="view-settings hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Panel Configuration</h2>
+
+            <div class="p-4 bg-black/30 border border-white/5 rounded-xl flex flex-col gap-3">
+                <h3 class="text-xs uppercase text-purple-400 font-bold">Dynamic Theme</h3>
+                <div class="flex gap-4">
+                    <button onclick="changeMenuTheme('147, 51, 234', 'rgba(147, 51, 234, 0.15)')" class="w-12 h-12 rounded-full bg-purple-600 border-2 border-transparent hover:scale-110 transition-transform"></button>
+                    <button onclick="changeMenuTheme('6, 182, 212', 'rgba(6, 182, 212, 0.15)')" class="w-12 h-12 rounded-full bg-cyan-500 border-2 border-transparent hover:scale-110 transition-transform"></button>
+                    <button onclick="changeMenuTheme('234, 179, 8', 'rgba(234, 179, 8, 0.15)')" class="w-12 h-12 rounded-full bg-yellow-500 border-2 border-transparent hover:scale-110 transition-transform"></button>
+                    <button onclick="changeMenuTheme('239, 68, 68', 'rgba(239, 68, 68, 0.15)')" class="w-12 h-12 rounded-full bg-red-500 border-2 border-transparent hover:scale-110 transition-transform"></button>
+                    <button onclick="changeMenuTheme('34, 197, 94', 'rgba(34, 197, 94, 0.15)')" class="w-12 h-12 rounded-full bg-green-500 border-2 border-transparent hover:scale-110 transition-transform"></button>
+                </div>
+            </div>
+        </section>
         <!-- Right Dashboard -->
         <section class="w-[30%] p-6 flex flex-col gap-4 bg-black/10">
             <div class="flex justify-between items-center">

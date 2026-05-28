@@ -50,7 +50,7 @@ document.addEventListener('keydown', function(event) {
             document.getElementById("promptCancel").click();
             return;
         }
-        if (document.getElementById('admin-root').style.display === "flex") {
+        if (document.getElementById('admin-root').style.display === "flex" || document.getElementById('admin-root').style.display === "block" || document.getElementById('admin-root').style.display === "") {
             closeMenu();
         }
     }
@@ -154,6 +154,8 @@ document.getElementById('btnHeal').addEventListener('click', () => {
 document.getElementById('btnSpectate').addEventListener('click', () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
     fetch(`https://${GetParentResourceName()}/spectatePlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+    closeMenu();
+    closeMenu();
 });
 
 document.getElementById('btnFreeze').addEventListener('click', () => {
@@ -197,6 +199,8 @@ document.getElementById('btnGiveMoney').addEventListener('click', async () => {
 document.getElementById('btnGiveClothing').addEventListener('click', () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
     fetch(`https://${GetParentResourceName()}/giveClothing`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+    closeMenu();
+    closeMenu();
 });
 
 document.getElementById('btnAddVehicle').addEventListener('click', async () => {
@@ -206,6 +210,8 @@ document.getElementById('btnAddVehicle').addEventListener('click', async () => {
     const garage = await showPromptModal("Garage ID:", "pillboxgarage");
     if (!garage) return;
     fetch(`https://${GetParentResourceName()}/addVehicle`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, vehicleModel: model, plate: "", garage, preset: "" }) });
+    closeMenu();
+    closeMenu();
 });
 
 document.getElementById('btnSetJob').addEventListener('click', async () => {
@@ -296,3 +302,85 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add theme options if a selector exists, or just expose it globally
     window.changeMenuTheme = changeMenuTheme;
 });
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const navBtns = document.querySelectorAll(".nav-btn");
+    navBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const tabName = btn.getAttribute("data-tab");
+
+            // Hide all views
+            document.querySelectorAll(".view-players, .view-garage, .view-chat, .view-logs, .view-settings").forEach(v => {
+                v.classList.add("hidden");
+            });
+
+            // Deactivate all buttons
+            navBtns.forEach(b => {
+                b.classList.remove("text-white", "bg-gradient-to-br", "from-purple-600", "to-indigo-600", "shadow-[0_0_15px_rgba(147,51,234,0.3)]");
+                b.classList.add("text-gray-400");
+            });
+
+            // Activate selected view
+            if (tabName === "players") {
+                document.querySelectorAll(".view-players").forEach(v => v.classList.remove("hidden"));
+            } else {
+                const targetView = document.querySelector(".view-" + tabName);
+                if (targetView) targetView.classList.remove("hidden");
+            }
+
+            // Activate button styling
+            btn.classList.remove("text-gray-400");
+            btn.classList.add("text-white", "bg-gradient-to-br", "from-purple-600", "to-indigo-600", "shadow-[0_0_15px_rgba(147,51,234,0.3)]");
+        });
+    });
+});
+
+function fetchGarage() {
+    const cid = document.getElementById("cidGarage").value;
+    if (!cid) return showToast("Enter a CID first.");
+    fetch(`https://${GetParentResourceName()}/getPlayerVehicles`, { method: "POST", body: JSON.stringify({ targetId: cid }) });
+}
+
+document.getElementById('btnGiveVehicleGarageTab').addEventListener('click', async () => {
+    const model = document.getElementById("vehicleModel").value;
+    const plate = document.getElementById("vehiclePlate").value;
+    const garage = document.getElementById("garageSelect").value;
+    const cid = document.getElementById("cidGarage").value;
+
+    if (!model || !cid) return showToast("CID and Model required.");
+    fetch(`https://${GetParentResourceName()}/addVehicle`, { method: "POST", body: JSON.stringify({ targetId: cid, vehicleModel: model, plate: plate, garage: garage, preset: "" }) });
+    showToast(`Sending vehicle ${model} to garage ${garage}`);
+});
+
+function sendAdminChat() {
+    const msg = document.getElementById("adminChatInput").value;
+    if (!msg) return;
+    fetch(`https://${GetParentResourceName()}/sendAdminChat`, { method: "POST", body: JSON.stringify({ message: msg }) });
+    document.getElementById("adminChatInput").value = "";
+}
+
+function sendAnnouncement() {
+    const msg = document.getElementById("announcementInput").value;
+    if (!msg) return;
+    fetch(`https://${GetParentResourceName()}/sendAnnouncement`, { method: "POST", body: JSON.stringify({ message: msg }) });
+    document.getElementById("announcementInput").value = "";
+}
+
+function changeMenuTheme(colorRGB, glowRGBA) {
+    const root = document.documentElement;
+    root.style.setProperty('--menu-accent', colorRGB);
+    root.style.setProperty('--menu-accent-glow', glowRGBA);
+}
+
+// Add Item from Player Inspector (Requested feature restore)
+function addInvItem() {
+    if (!currentSelectedPlayer) return showToast("Select a player first.");
+    showPromptModal("Enter item name to give:").then(item => {
+        if (!item) return;
+        showPromptModal("Enter amount:").then(amountStr => {
+            const amount = parseInt(amountStr) || 1;
+            fetch(`https://${GetParentResourceName()}/addItem`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, item, amount }) });
+        });
+    });
+}

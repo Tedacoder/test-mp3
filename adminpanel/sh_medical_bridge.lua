@@ -17,14 +17,13 @@ if IsDuplicityVersion() then
             end
         end
 
+        ExecuteCommand("revive " .. tostring(targetSource))
         if Config.MedicalSystem == "qbx_medical" then
             TriggerClientEvent('adminpanel:client:executeInternalHeal', targetSource, true)
         elseif Config.MedicalSystem == "qb-ambulance" then
             TriggerClientEvent('hospital:client:Revive', targetSource)
         elseif Config.MedicalSystem == "wasabi" then
             exports.wasabi_ambulance:RevivePlayer(targetSource)
-        elseif Config.MedicalSystem == "standalone" then
-            TriggerClientEvent('adminpanel:client:executeInternalHeal', targetSource, false)
         else
             TriggerClientEvent('adminpanel:client:executeInternalHeal', targetSource, false)
         end
