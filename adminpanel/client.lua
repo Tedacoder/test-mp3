@@ -52,12 +52,25 @@ RegisterCommand("adminfix", function()
 end)
 
 -- ESC key handler
+-- ESC key handler & control disabling
 CreateThread(function()
   while true do
     Wait(0)
     if menuOpen then
       DisableControlAction(0, 322, true) -- ESC
       DisableControlAction(0, 200, true) -- ESC alternative
+      DisableControlAction(0, 1, true) -- Mouse Pan
+      DisableControlAction(0, 2, true) -- Mouse Tilt
+      DisableControlAction(0, 24, true) -- Attack
+      DisableControlAction(0, 25, true) -- Aim
+      DisableControlAction(0, 30, true) -- Move L/R
+      DisableControlAction(0, 31, true) -- Move U/D
+      DisableControlAction(0, 32, true) -- W
+      DisableControlAction(0, 33, true) -- S
+      DisableControlAction(0, 34, true) -- A
+      DisableControlAction(0, 35, true) -- D
+      DisableControlAction(0, 288, true) -- F1
+      DisableControlAction(0, 289, true) -- F2
       if IsDisabledControlJustPressed(0, 322) or IsDisabledControlJustPressed(0, 200) then
         toggleAdminMenu()
       end
@@ -117,6 +130,7 @@ nui("bulkAction", function(d) TriggerServerEvent("admin:bulkAction", d) end)
 -- Missing mappings from review
 nui("admin:undoLastAction", function(d) TriggerServerEvent("admin:undoLastAction") end)
 nui("admin:updateCooldowns", function(d) TriggerServerEvent("admin:updateCooldowns", d) end)
+nui("getPermissions", function(d) TriggerServerEvent("admin:getPermissions", d.targetId) end)
 nui("admin:getWhitelistItems", function(d) TriggerServerEvent("admin:getWhitelistItems", d) end)
 nui("admin:addWhitelistItem", function(d) TriggerServerEvent("admin:addWhitelistItem", d) end)
 nui("admin:removeWhitelistItem", function(d) TriggerServerEvent("admin:removeWhitelistItem", d) end)
@@ -148,6 +162,9 @@ RegisterNetEvent("admin:updateReports", function(reports) SendNUIMessage({ type 
 RegisterNetEvent("admin:updateAdminChat", function(messages) SendNUIMessage({ type = "updateAdminChat", messages = messages }) end)
 RegisterNetEvent("admin:updateLogsFeed", function(lines) SendNUIMessage({ type = "updateLogsFeed", lines = lines }) end)
 RegisterNetEvent("admin:refreshPermissions", function(perms) SendNUIMessage({ type = "refreshPermissions", perms = perms }) end)
+RegisterNetEvent("admin:updatePermissions", function(perms) SendNUIMessage({ type = "updatePermissions", permissions = perms }) end)
+RegisterNetEvent("admin:updateAnnouncements", function(announcements) SendNUIMessage({ type = "updateAnnouncements", announcements = announcements }) end)
+RegisterNetEvent("admin:updateWhitelistItems", function(data) SendNUIMessage(data) end)
 RegisterNetEvent("admin:updatePlayerPreview", function(info)
     if GetInGamePlayerMugshot then
         info.avatarUrl = GetInGamePlayerMugshot(info.id)
@@ -376,7 +393,18 @@ nui("toggleNoclip", function()
   if not noclipActive then
       SetEntityVelocity(ped, 0.0, 0.0, 0.0)
       ClearPedTasksImmediately(ped)
-      SetEntityCoords(ped, GetEntityCoords(ped), false, false, false, false)
+      local coords = GetEntityCoords(ped)
+      local hasGround, groundZ = GetGroundZFor_3dCoord(coords.x, coords.y, coords.z, true)
+      if hasGround then
+          SetEntityCoords(ped, coords.x, coords.y, groundZ, false, false, false, false)
+      else
+          SetEntityCoords(ped, coords.x, coords.y, coords.z, false, false, false, false)
+      end
+      -- Grant a brief grace period of invincibility to prevent fall damage on exit
+      SetEntityInvincible(ped, true)
+      SetTimeout(2000, function()
+          SetEntityInvincible(ped, false)
+      end)
   end
   SendNUIMessage({ type = "toast", message = noclipActive and "Noclip enabled" or "Noclip disabled" })
 

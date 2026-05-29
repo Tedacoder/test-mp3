@@ -22,6 +22,9 @@
                 <button data-tab="players" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-white bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all"><i class="fas fa-users text-lg pointer-events-none"></i></button>
                 <button data-tab="garage" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-car text-lg pointer-events-none"></i></button>
                 <button data-tab="chat" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-comments text-lg pointer-events-none"></i></button>
+                <button data-tab="reports" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-flag text-lg pointer-events-none"></i></button>
+                <button data-tab="whitelist" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-id-card text-lg pointer-events-none"></i></button>
+                <button data-tab="permissions" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-user-shield text-lg pointer-events-none"></i></button>
                 <button data-tab="logs" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-file-alt text-lg pointer-events-none"></i></button>
                 <button data-tab="settings" class="nav-btn w-12 h-12 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-cog text-lg pointer-events-none"></i></button>
             </nav>
@@ -132,6 +135,69 @@
                         <button onclick="sendAnnouncement()" class="py-3 rounded-xl bg-amber-600 hover:bg-amber-500 font-bold text-white shadow-lg transition-all">Broadcast</button>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Reports Tab -->
+        <section class="view-reports hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Player Reports & Cheat Alerts</h2>
+            <div class="flex flex-1 gap-6">
+                <!-- Active Reports -->
+                <div class="flex-1 flex flex-col gap-3">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold">Active Reports</h3>
+                    <div id="reportsList" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-4 overflow-y-auto custom-scrollbar flex flex-col gap-3 text-sm text-gray-300">
+                    </div>
+                </div>
+                <!-- Cheat Alerts -->
+                <div class="flex-1 flex flex-col gap-3">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold">Anti-Cheat Alerts</h3>
+                    <div id="cheatAlertsList" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-4 overflow-y-auto custom-scrollbar flex flex-col gap-3 text-sm text-gray-300">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Whitelist Tab -->
+        <section class="view-whitelist hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Whitelist Management</h2>
+            <div class="flex gap-4">
+                <input type="text" id="whitelistPlayerId" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none w-1/3" placeholder="Enter Player ID" />
+                <button onclick="fetchWhitelistItems()" class="px-6 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white shadow-lg transition-all">Search</button>
+            </div>
+            <div class="grid grid-cols-3 gap-6 flex-1">
+                <div class="flex flex-col gap-2">
+                    <h3 class="text-xs uppercase font-bold text-gray-500">Clothing</h3>
+                    <div id="whitelistClothing" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-2 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-sm text-gray-300"></div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <h3 class="text-xs uppercase font-bold text-gray-500">Tattoos</h3>
+                    <div id="whitelistTattoo" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-2 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-sm text-gray-300"></div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <h3 class="text-xs uppercase font-bold text-gray-500">Skins</h3>
+                    <div id="whitelistSkin" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-2 overflow-y-auto custom-scrollbar flex flex-col gap-1 text-sm text-gray-300"></div>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-auto">
+                <select id="whitelistType" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none">
+                    <option value="clothing">Clothing</option>
+                    <option value="tattoo">Tattoo</option>
+                    <option value="skin">Skin</option>
+                </select>
+                <input type="text" id="whitelistItemName" class="flex-1 p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none" placeholder="Item Name/ID" />
+                <button onclick="addWhitelistItem()" class="px-6 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-white shadow-lg transition-all">Add Whitelist</button>
+            </div>
+        </section>
+
+        <!-- Permissions Tab -->
+        <section class="view-permissions hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Permissions Editor (God Only)</h2>
+            <div class="flex gap-4">
+                <input type="text" id="permPlayerId" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none w-1/3" placeholder="Enter Player ID" />
+                <button onclick="fetchPermissions()" class="px-6 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white shadow-lg transition-all">Load Target</button>
+            </div>
+            <div id="permissionsList" class="flex-1 grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar p-2">
+                <!-- Checkboxes populated via JS -->
             </div>
         </section>
 

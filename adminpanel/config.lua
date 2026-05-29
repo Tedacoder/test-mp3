@@ -2,6 +2,7 @@ Config = Config or {}
 
 -- Panel Settings
 Config.PanelTitle = "HARD STREETZ OF PHILLY V2"
+Config.MedicalSystem = "qbx_medical" -- "qbx_medical", "qb-ambulance", "wasabi", or "none" (for generic native heal)
 
 
 -- Gods: full access. You can use steam, license, or discord identifiers.

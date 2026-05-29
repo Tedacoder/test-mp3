@@ -37,7 +37,158 @@ window.addEventListener('message', function(event) {
     if (item.type === "updateLogsFeed") {
         renderLogs(item.lines);
     }
+
+    if (item.type === "updateAdminChat" && item.messages) {
+        const chatBox = document.getElementById("adminChatMessages");
+        if (chatBox) {
+            chatBox.innerHTML = item.messages.map(msg =>
+                `<div class="mb-2"><span class="text-purple-400 font-bold">${msg.sender}</span> <span class="text-xs text-gray-500">[${msg.time}]</span>: <span class="text-gray-300">${msg.text}</span></div>`
+            ).join('');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    if (item.type === "updateAnnouncements" && item.announcements) {
+        const box = document.getElementById("announcementHistory");
+        if (box) {
+            box.innerHTML = item.announcements.map(a =>
+                `<div class="mb-2 p-2 bg-white/5 rounded"><span class="text-yellow-400 font-bold">${a.admin}</span> <span class="text-xs text-gray-500">[${a.time}]</span>: <span class="text-gray-300">${a.message}</span></div>`
+            ).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+    }
+
+    if (item.type === "updateReports" && item.reports) {
+        const list = document.getElementById("reportsList");
+        if (list) {
+            list.innerHTML = item.reports.map(r => `
+                <div class="p-3 bg-white/5 border border-white/10 rounded flex justify-between items-center">
+                    <div>
+                        <div class="font-bold text-yellow-400">#${r.id} - ${r.playerName}</div>
+                        <div class="text-xs text-gray-300 mt-1">${r.reason}</div>
+                        <div class="text-[10px] text-gray-500 mt-1">Status: ${r.status} | Claimed By: ${r.claimedBy || 'None'} | ${r.time}</div>
+                    </div>
+                    <div class="flex gap-2">
+                        ${r.status === 'open' ? `<button onclick="claimReport(${r.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs">Claim</button>` : ''}
+                        ${r.status !== 'closed' ? `<button onclick="closeReport(${r.id})" class="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs">Close</button>` : ''}
+                        <button onclick="messageReport(${r.id})" class="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-xs">Message</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    if (item.type === "updateCheatAlerts" && item.alerts) {
+        const list = document.getElementById("cheatAlertsList");
+        if (list) {
+            list.innerHTML = item.alerts.map(a => `
+                <div class="p-3 bg-red-500/10 border border-red-500/30 rounded">
+                    <div class="font-bold text-red-400">${a.name} (ID: ${a.id})</div>
+                    <div class="text-xs text-gray-300 mt-1">${a.reason}</div>
+                    <div class="text-[10px] text-gray-500 mt-1">${a.time}</div>
+                </div>
+            `).join('');
+        }
+    }
+
+    if (item.type === "updateWhitelistItems" && item.whitelist) {
+        renderWhitelist(item.whitelist);
+    }
+
+    if (item.type === "updatePermissions" && item.permissions) {
+        renderPermissions(item.permissions);
+    }
+
+    if (item.type === "updateCoords" || item.type === "updateEntityInfo") {
+         // Implement Dev tools rendering if UI exists
+    }
 });
+
+function claimReport(id) {
+    fetch(`https://${GetParentResourceName()}/claimReport`, { method: "POST", body: JSON.stringify({ reportId: id }) });
+}
+
+function closeReport(id) {
+    fetch(`https://${GetParentResourceName()}/resolveReport`, { method: "POST", body: JSON.stringify({ reportId: id }) });
+}
+
+async function messageReport(id) {
+    const message = await _showPromptModal("Enter message to player:");
+    if (message) {
+        fetch(`https://${GetParentResourceName()}/sendReportMessage`, { method: "POST", body: JSON.stringify({ reportId: id, message }) });
+    }
+}
+
+function fetchWhitelistItems() {
+    const id = document.getElementById("whitelistPlayerId").value;
+    if (!id) return showToast("Enter Player ID");
+    fetch(`https://${GetParentResourceName()}/admin:getWhitelistItems`, { method: "POST", body: JSON.stringify({ targetId: id }) });
+}
+
+function renderWhitelist(wl) {
+    const types = ['clothing', 'tattoo', 'skin'];
+    types.forEach(type => {
+        const el = document.getElementById(`whitelist${type.charAt(0).toUpperCase() + type.slice(1)}`);
+        if (el) {
+            el.innerHTML = (wl[type] || []).map(item => `
+                <div class="flex justify-between items-center p-1 bg-black/50 border border-white/5 rounded">
+                    <span class="text-xs text-gray-300">${item}</span>
+                    <button onclick="removeWhitelistItem('${type}', '${item}')" class="text-red-500 hover:text-red-400"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+        }
+    });
+}
+
+function addWhitelistItem() {
+    const targetId = document.getElementById("whitelistPlayerId").value;
+    const itemType = document.getElementById("whitelistType").value;
+    const itemId = document.getElementById("whitelistItemName").value;
+    if (!targetId || !itemId) return showToast("Missing fields");
+    fetch(`https://${GetParentResourceName()}/admin:addWhitelistItem`, { method: "POST", body: JSON.stringify({ targetId, itemType, itemId }) });
+    setTimeout(fetchWhitelistItems, 500);
+}
+
+function removeWhitelistItem(itemType, itemId) {
+    const targetId = document.getElementById("whitelistPlayerId").value;
+    if (!targetId) return;
+    fetch(`https://${GetParentResourceName()}/admin:removeWhitelistItem`, { method: "POST", body: JSON.stringify({ targetId, itemType, itemId }) });
+    setTimeout(fetchWhitelistItems, 500);
+}
+
+const availablePerms = [
+    "viewPlayers", "viewInventory", "removeItems", "giveItems", "manageVehicles",
+    "warnPlayers", "kickPlayers", "banPlayers", "healPlayers", "killPlayers",
+    "teleportPlayers", "spectatePlayers", "giveMoney", "giveClothing", "manageJobs",
+    "viewReports", "messagePlayers", "viewCheatAlerts", "freezePlayers", "viewAdminChat", "manageWhitelist"
+];
+
+function fetchPermissions() {
+    const id = document.getElementById("permPlayerId").value;
+    if (!id) return showToast("Enter Player ID");
+    // Trigger updatePermissions event by requesting it from server (add corresponding lua if missing, assuming standard flow)
+    // As a fallback, we just send a mock update via a new callback or assume the server sends it on request.
+    // For now, we will create the checkboxes assuming we receive them.
+    fetch(`https://${GetParentResourceName()}/getPermissions`, { method: "POST", body: JSON.stringify({ targetId: id }) });
+}
+
+function renderPermissions(perms) {
+    const list = document.getElementById("permissionsList");
+    if (list) {
+        list.innerHTML = availablePerms.map(p => `
+            <div class="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded">
+                <input type="checkbox" id="perm_${p}" onchange="updatePermission('${p}', this.checked)" ${perms[p] ? 'checked' : ''} class="w-4 h-4 rounded bg-black/50 border border-white/20 accent-purple-500">
+                <label for="perm_${p}" class="text-xs text-gray-300">${p}</label>
+            </div>
+        `).join('');
+    }
+}
+
+function updatePermission(permKey, value) {
+    const targetId = document.getElementById("permPlayerId").value;
+    if (!targetId) return;
+    fetch(`https://${GetParentResourceName()}/updatePermission`, { method: "POST", body: JSON.stringify({ targetId, permKey, value }) });
+}
 
 function closeMenu() {
     fetch(`https://${GetParentResourceName()}/closeMenu`, { method: "POST", body: JSON.stringify({}) });
@@ -250,6 +401,13 @@ document.getElementById('btnUndo').addEventListener('click', () => {
 
 function showPromptModal(title, defaultValue = "") {
   return new Promise((resolve) => {
+    const result = window.prompt(title, defaultValue);
+    resolve(result);
+  });
+}
+
+function _showPromptModal(title, defaultValue = "") {
+  return new Promise((resolve) => {
     const modal = document.getElementById("promptModal");
     const titleEl = document.getElementById("promptTitle");
     const inputEl = document.getElementById("promptInput");
@@ -311,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const tabName = btn.getAttribute("data-tab");
 
             // Hide all views
-            document.querySelectorAll(".view-players, .view-garage, .view-chat, .view-logs, .view-settings").forEach(v => {
+            document.querySelectorAll(".view-players, .view-garage, .view-chat, .view-reports, .view-whitelist, .view-permissions, .view-logs, .view-settings").forEach(v => {
                 v.classList.add("hidden");
             });
 

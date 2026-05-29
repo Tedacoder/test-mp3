@@ -667,8 +667,7 @@ RegisterNetEvent("admin:healPlayer", function(targetId)
   if not hasPermission(src, "healPlayers") then return notify(src, "No permission.") end
   if not canDoAction(src, "heal") then return notify(src, "Slow down.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
-  ExecuteCommand("revive " .. targetId)
-  TriggerClientEvent("admin:_heal", targetId)
+  HealOrRevivePlayer(targetId)
   notify(src, "Healed player.")
   logAdminAction(src, "heal", targetId, "Healed player")
 end)
@@ -749,6 +748,24 @@ RegisterNetEvent("admin:giveClothing", function(targetId)
   logAdminAction(src, "giveClothing", targetId, ("Opened /pedmenu for CID %s"):format(cid))
 end)
 
+RegisterNetEvent("admin:getPermissions", function(targetId)
+  local src = source
+  if not isGod(src) then return notify(src, "Only gods can edit permissions.") end
+  local tgt = tonumber(targetId)
+  local steam
+  if tgt then
+    local ids = getIds(tgt)
+    steam = ids and ids.steam
+  else
+    local Player = getPlayerSafe(targetId)
+    local ids = Player and getIds(targetId)
+    steam = ids and ids.steam
+  end
+  if not steam then return notify(src, "Target not online for permission sync.") end
+
+  TriggerClientEvent("admin:updatePermissions", src, Config.AdminPermissions[steam] or {})
+end)
+
 -- Permissions editor (DB persistent)
 RegisterNetEvent("admin:updatePermission", function(targetId, permKey, value)
   local src = source
@@ -826,6 +843,19 @@ RegisterNetEvent("admin:submitReport", function(reason)
   end
   logAdminAction(0, "playerReport", src, ("Report: %s"):format(reason))
 end)
+
+RegisterCommand('report', function(source, args, rawCommand)
+    local src = source
+    if src == 0 then return end
+    if not args or #args == 0 then
+        TriggerClientEvent('chat:addMessage', src, { args = { '^1SYSTEM', 'Usage: /report [reason]' } })
+        return
+    end
+
+    local reason = table.concat(args, " ")
+    TriggerEvent("admin:submitReport", reason)
+    TriggerClientEvent('chat:addMessage', src, { args = { '^2REPORT', 'Your report has been submitted to the admins.' } })
+end, false)
 RegisterNetEvent("admin:getReports", function()
   local src = source
   if not (hasPermission(src, "viewReports") or isGod(src)) then return end

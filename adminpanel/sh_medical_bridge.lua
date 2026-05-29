@@ -17,7 +17,6 @@ if IsDuplicityVersion() then
             end
         end
 
-        ExecuteCommand("revive " .. tostring(targetSource))
         if Config.MedicalSystem == "qbx_medical" then
             TriggerClientEvent('adminpanel:client:executeInternalHeal', targetSource, true)
         elseif Config.MedicalSystem == "qb-ambulance" then
