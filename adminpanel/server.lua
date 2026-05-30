@@ -145,7 +145,7 @@ lib.callback.register('admin:canOpenPanel', function(source)
                or (ids.discord and Config.AdminPermissions[ids.discord])
 
     -- If they are god, or they have ANY permissions, they can open the panel
-    if isGodResult then return true end
+    if isGodResult or IsAuthorizedAdmin(source) then return true end
 
     if perms then
         for k, v in pairs(perms) do
@@ -795,6 +795,12 @@ RegisterNetEvent("admin:updatePermission", function(targetId, permKey, value)
   savePermissionsToDB(steam, Config.AdminPermissions[steam])
 end)
 
+RegisterNetEvent("admin:getCooldowns", function()
+  local src = source
+  if not isGod(src) then return notify(src, "Only gods can view cooldowns.") end
+  TriggerClientEvent("admin:updateCooldownsUI", src, Config.Cooldowns or {})
+end)
+
 -- Cooldown adjustment (gods only)
 RegisterNetEvent("admin:updateCooldowns", function(data)
   local src = source
@@ -826,9 +832,9 @@ RegisterNetEvent("admin:getCheatAlerts", function()
 end)
 
 -- Player reports
-RegisterNetEvent("admin:submitReport", function(reason)
-  local src = source
-  local name = GetPlayerName(src)
+-- Helper function to submit report
+local function submitReportInternal(src, reason)
+  local name = GetPlayerName(src) or "Unknown"
   reportCounter = reportCounter + 1
   local report = {
     id=reportCounter, playerId=src, playerName=name, reason=sanitize(reason, 300),
@@ -842,6 +848,11 @@ RegisterNetEvent("admin:submitReport", function(reason)
     end
   end
   logAdminAction(0, "playerReport", src, ("Report: %s"):format(reason))
+end
+
+RegisterNetEvent("admin:submitReport", function(reason)
+  local src = source
+  submitReportInternal(src, reason)
 end)
 
 RegisterCommand('report', function(source, args, rawCommand)
@@ -853,7 +864,7 @@ RegisterCommand('report', function(source, args, rawCommand)
     end
 
     local reason = table.concat(args, " ")
-    TriggerEvent("admin:submitReport", reason)
+    submitReportInternal(src, reason)
     TriggerClientEvent('chat:addMessage', src, { args = { '^2REPORT', 'Your report has been submitted to the admins.' } })
 end, false)
 RegisterNetEvent("admin:getReports", function()

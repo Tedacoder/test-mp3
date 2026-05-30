@@ -7,6 +7,7 @@ window.addEventListener('message', function(event) {
         document.getElementById('admin-root').style.display = "flex";
         document.body.style.display = "block";
         refreshPlayers();
+        fetchCooldowns();
     } else if (item.action === "closePanel") {
         document.getElementById('admin-root').style.display = "none";
         document.body.style.display = "none";
@@ -97,6 +98,10 @@ window.addEventListener('message', function(event) {
 
     if (item.type === "updatePermissions" && item.permissions) {
         renderPermissions(item.permissions);
+    }
+
+    if (item.type === "updateCooldownsUI" && item.cooldowns) {
+        renderCooldowns(item.cooldowns);
     }
 
     if (item.type === "updateCoords" || item.type === "updateEntityInfo") {
@@ -190,6 +195,37 @@ function updatePermission(permKey, value) {
     fetch(`https://${GetParentResourceName()}/updatePermission`, { method: "POST", body: JSON.stringify({ targetId, permKey, value }) });
 }
 
+const actionCooldownsList = ["removeItem", "addItem", "addVehicle", "removeVehicle", "kick", "ban", "warn", "heal", "kill", "bring", "teleportTo", "giveMoney", "setJob", "removeJob"];
+
+function fetchCooldowns() {
+    fetch(`https://${GetParentResourceName()}/admin:getCooldowns`, { method: "POST", body: JSON.stringify({}) });
+}
+
+function renderCooldowns(cds) {
+    const list = document.getElementById("cooldownsList");
+    if (list) {
+        list.innerHTML = actionCooldownsList.map(a => `
+            <div class="flex flex-col gap-1 p-2 bg-white/5 border border-white/10 rounded">
+                <div class="flex justify-between items-center text-xs text-gray-300">
+                    <label>${a}</label>
+                    <span id="cd_val_${a}" class="font-bold text-green-400">${cds[a] || 0}s</span>
+                </div>
+                <input type="range" id="cd_${a}" class="cd-slider w-full accent-green-500" min="0" max="60" value="${cds[a] || 0}" oninput="document.getElementById('cd_val_${a}').textContent = this.value + 's'">
+            </div>
+        `).join('');
+    }
+}
+
+function saveCooldowns() {
+    let payload = {};
+    actionCooldownsList.forEach(a => {
+        const slider = document.getElementById(`cd_${a}`);
+        if (slider) payload[a] = parseInt(slider.value);
+    });
+    fetch(`https://${GetParentResourceName()}/admin:updateCooldowns`, { method: "POST", body: JSON.stringify({ cooldowns: payload }) });
+    showToast("Cooldowns updated!");
+}
+
 function closeMenu() {
     fetch(`https://${GetParentResourceName()}/closeMenu`, { method: "POST", body: JSON.stringify({}) });
 }
@@ -213,7 +249,9 @@ function refreshPlayers() {
 
 function renderPlayerList(players) {
     const list = document.getElementById("dynamicPlayerList");
+    const bulkList = document.getElementById("bulkPlayerList");
     let html = "";
+    let bulkHtml = "";
     players.forEach(p => {
         html += `
         <div onclick="selectPlayer(${p.id})" class="p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] flex justify-between items-center cursor-pointer transition-all">
@@ -224,8 +262,47 @@ function renderPlayerList(players) {
                 </div>
             </div>
         </div>`;
+
+        bulkHtml += `
+        <div class="flex items-center gap-2 p-1">
+            <input type="checkbox" id="bulk_${p.id}" value="${p.id}" class="bulk-player-cb w-3 h-3 rounded bg-black/50 border border-white/20 accent-red-500">
+            <label for="bulk_${p.id}" class="text-[10px] text-gray-300 cursor-pointer">[${p.id}] ${p.name}</label>
+        </div>`;
     });
     list.innerHTML = html;
+    if (bulkList) bulkList.innerHTML = bulkHtml;
+}
+
+function toggleBulkSelectAll(checked) {
+    document.querySelectorAll(".bulk-player-cb").forEach(cb => cb.checked = checked);
+}
+
+async function executeBulkAction(action) {
+    const targets = Array.from(document.querySelectorAll(".bulk-player-cb:checked")).map(cb => parseInt(cb.value));
+    if (targets.length === 0) return showToast("No players selected.");
+
+    let payload = { action, targets };
+
+    if (action === "kick") {
+        const reason = await _showPromptModal("Enter bulk kick reason:");
+        if (!reason) return;
+        payload.reason = reason;
+    } else if (action === "ban") {
+        const reason = await _showPromptModal("Enter bulk ban reason:");
+        if (!reason) return;
+        const durationStr = await _showPromptModal("Enter duration in seconds (0 for perm):", "0");
+        payload.reason = reason;
+        payload.duration = parseInt(durationStr) || 0;
+    } else if (action === "giveItem") {
+        const item = await _showPromptModal("Enter item name:");
+        if (!item) return;
+        const amountStr = await _showPromptModal("Enter amount:", "1");
+        payload.item = item;
+        payload.amount = parseInt(amountStr) || 1;
+    }
+
+    fetch(`https://${GetParentResourceName()}/bulkAction`, { method: "POST", body: JSON.stringify(payload) });
+    showToast(`Executed bulk ${action} on ${targets.length} players.`);
 }
 
 function selectPlayer(id) {
@@ -316,9 +393,9 @@ document.getElementById('btnFreeze').addEventListener('click', () => {
 
 document.getElementById('btnBan').addEventListener('click', async () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
-    const reason = await showPromptModal("Enter ban reason:");
+    const reason = await _showPromptModal("Enter ban reason:");
     if (!reason) return;
-    const durationStr = await showPromptModal("Enter ban duration in seconds (0 for perm):", "0");
+    const durationStr = await _showPromptModal("Enter ban duration in seconds (0 for perm):", "0");
     const duration = parseInt(durationStr) || 0;
     fetch(`https://${GetParentResourceName()}/banPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, reason, duration }) });
 });
@@ -326,23 +403,23 @@ document.getElementById('btnBan').addEventListener('click', async () => {
 
 document.getElementById('btnKick').addEventListener('click', async () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
-    const reason = await showPromptModal("Enter kick reason:");
+    const reason = await _showPromptModal("Enter kick reason:");
     if (!reason) return;
     fetch(`https://${GetParentResourceName()}/kickPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, reason }) });
 });
 
 document.getElementById('btnWarn').addEventListener('click', async () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
-    const reason = await showPromptModal("Enter warning reason:");
+    const reason = await _showPromptModal("Enter warning reason:");
     if (!reason) return;
     fetch(`https://${GetParentResourceName()}/warnPlayer`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, reason }) });
 });
 
 document.getElementById('btnGiveMoney').addEventListener('click', async () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
-    const account = await showPromptModal("Account type (cash or bank):", "cash");
+    const account = await _showPromptModal("Account type (cash or bank):", "cash");
     if (!account) return;
-    const amountStr = await showPromptModal("Amount to give:", "1000");
+    const amountStr = await _showPromptModal("Amount to give:", "1000");
     const amount = parseInt(amountStr) || 0;
     fetch(`https://${GetParentResourceName()}/giveMoney`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, account, amount }) });
 });
@@ -351,25 +428,23 @@ document.getElementById('btnGiveClothing').addEventListener('click', () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
     fetch(`https://${GetParentResourceName()}/giveClothing`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
     closeMenu();
-    closeMenu();
 });
 
 document.getElementById('btnAddVehicle').addEventListener('click', async () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
-    const model = await showPromptModal("Vehicle Model (e.g. adder):");
+    const model = await _showPromptModal("Vehicle Model (e.g. adder):");
     if (!model) return;
-    const garage = await showPromptModal("Garage ID:", "pillboxgarage");
+    const garage = await _showPromptModal("Garage ID:", "pillboxgarage");
     if (!garage) return;
     fetch(`https://${GetParentResourceName()}/addVehicle`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, vehicleModel: model, plate: "", garage, preset: "" }) });
-    closeMenu();
     closeMenu();
 });
 
 document.getElementById('btnSetJob').addEventListener('click', async () => {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
-    const job = await showPromptModal("Job name:");
+    const job = await _showPromptModal("Job name:");
     if (!job) return;
-    const gradeStr = await showPromptModal("Job grade (number):", "0");
+    const gradeStr = await _showPromptModal("Job grade (number):", "0");
     const grade = parseInt(gradeStr) || 0;
     fetch(`https://${GetParentResourceName()}/setJob`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, job, grade }) });
 });
@@ -534,9 +609,9 @@ function changeMenuTheme(colorRGB, glowRGBA) {
 // Add Item from Player Inspector (Requested feature restore)
 function addInvItem() {
     if (!currentSelectedPlayer) return showToast("Select a player first.");
-    showPromptModal("Enter item name to give:").then(item => {
+    _showPromptModal("Enter item name to give:").then(item => {
         if (!item) return;
-        showPromptModal("Enter amount:").then(amountStr => {
+        _showPromptModal("Enter amount:").then(amountStr => {
             const amount = parseInt(amountStr) || 1;
             fetch(`https://${GetParentResourceName()}/addItem`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer, item, amount }) });
         });

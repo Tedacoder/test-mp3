@@ -3,6 +3,8 @@ if not IsDuplicityVersion() then
     local spectateCam = nil
     local spectatingPlayer = nil
 
+    local returnCoords = nil
+
     RegisterNetEvent("adminpanel:client:startSpectate", function(targetId, targetCoords)
         local target = GetPlayerFromServerId(targetId)
         local targetPed = GetPlayerPed(target)
@@ -10,6 +12,7 @@ if not IsDuplicityVersion() then
         if not targetPed or targetPed == 0 or not DoesEntityExist(targetPed) then
             -- Use coords if ped isn't loaded (OneSync scope issue)
             if targetCoords then
+                if not returnCoords then returnCoords = GetEntityCoords(PlayerPedId()) end
                 SetEntityCoords(PlayerPedId(), targetCoords.x, targetCoords.y, targetCoords.z + 50.0, false, false, false, false)
                 Wait(500)
                 target = GetPlayerFromServerId(targetId)
@@ -88,7 +91,11 @@ if not IsDuplicityVersion() then
             spectateCam = nil
             spectatingPlayer = nil
             SetNuiFocus(false, false)
-                                lib.notify({ title = 'Spectating', description = 'Spectate stopped.', type = 'inform' })
+            if returnCoords then
+                SetEntityCoords(PlayerPedId(), returnCoords.x, returnCoords.y, returnCoords.z, false, false, false, false)
+                returnCoords = nil
+            end
+            lib.notify({ title = 'Spectating', description = 'Spectate stopped.', type = 'inform' })
         end
     end)
 

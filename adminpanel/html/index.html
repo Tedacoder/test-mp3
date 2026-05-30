@@ -191,13 +191,26 @@
 
         <!-- Permissions Tab -->
         <section class="view-permissions hidden w-[70%] p-6 flex flex-col gap-5 border-r border-[rgba(255,255,255,0.04)] bg-black/[0.05]">
-            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Permissions Editor (God Only)</h2>
-            <div class="flex gap-4">
-                <input type="text" id="permPlayerId" class="p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none w-1/3" placeholder="Enter Player ID" />
-                <button onclick="fetchPermissions()" class="px-6 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white shadow-lg transition-all">Load Target</button>
-            </div>
-            <div id="permissionsList" class="flex-1 grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar p-2">
-                <!-- Checkboxes populated via JS -->
+            <h2 class="text-lg font-bold tracking-wide uppercase text-gray-300">Permissions & Cooldowns (God Only)</h2>
+            <div class="flex flex-1 gap-6">
+                <!-- Permissions -->
+                <div class="flex-1 flex flex-col gap-3">
+                    <div class="flex gap-4">
+                        <input type="text" id="permPlayerId" class="flex-1 p-3 bg-black/50 border border-white/10 rounded-xl text-white focus:outline-none" placeholder="Enter Player ID" />
+                        <button onclick="fetchPermissions()" class="px-6 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white shadow-lg transition-all">Load</button>
+                    </div>
+                    <div id="permissionsList" class="flex-1 bg-black/40 border border-white/5 rounded-xl grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar p-4">
+                        <!-- Checkboxes populated via JS -->
+                    </div>
+                </div>
+                <!-- Cooldowns -->
+                <div class="flex-1 flex flex-col gap-3">
+                    <h3 class="text-xs uppercase text-gray-500 font-bold">Action Cooldowns (Seconds)</h3>
+                    <div id="cooldownsList" class="flex-1 bg-black/40 border border-white/5 rounded-xl overflow-y-auto custom-scrollbar p-4 flex flex-col gap-3">
+                        <!-- Sliders populated via JS -->
+                    </div>
+                    <button onclick="saveCooldowns()" class="py-3 rounded-xl bg-green-600 hover:bg-green-500 font-bold text-white shadow-lg transition-all">Save Cooldowns</button>
+                </div>
             </div>
         </section>
 
@@ -262,6 +275,23 @@
                 <div class="flex gap-2">
                     <button onclick="fetch(`https://${GetParentResourceName()}/toggleNoclip`, {method: 'POST', body: JSON.stringify({})})" class="flex-1 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-gray-300">Toggle Noclip</button>
                     <button onclick="fetch(`https://${GetParentResourceName()}/toggleGodMode`, {method: 'POST', body: JSON.stringify({})})" class="flex-1 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-gray-300">God Mode</button>
+                </div>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="p-4 rounded-xl border border-white/5 bg-black/30 flex flex-col gap-3">
+                <div class="text-xs uppercase font-bold tracking-wider text-red-400">Bulk Actions</div>
+                <div class="flex items-center gap-2 mb-1">
+                    <input type="checkbox" id="bulkSelectAll" onchange="toggleBulkSelectAll(this.checked)" class="w-4 h-4 rounded bg-black/50 border border-white/20 accent-red-500">
+                    <label for="bulkSelectAll" class="text-xs text-gray-300 cursor-pointer">Select All Players</label>
+                </div>
+                <div id="bulkPlayerList" class="max-h-[100px] overflow-y-auto custom-scrollbar flex flex-col gap-1 p-2 bg-black/40 rounded border border-white/5">
+                    <!-- Populated dynamically via JS from player list -->
+                </div>
+                <div class="flex flex-col gap-2 mt-1">
+                    <button onclick="executeBulkAction('kick')" class="w-full py-2 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-all shadow shadow-red-500/20">Bulk Kick</button>
+                    <button onclick="executeBulkAction('ban')" class="w-full py-2 rounded-lg bg-red-900 hover:bg-red-800 text-xs font-bold text-white transition-all shadow shadow-red-500/20">Bulk Ban</button>
+                    <button onclick="executeBulkAction('giveItem')" class="w-full py-2 rounded-lg bg-green-600 hover:bg-green-500 text-xs font-bold text-white transition-all shadow shadow-green-500/20">Bulk Give Item</button>
                 </div>
             </div>
         </section>
