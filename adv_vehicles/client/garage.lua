@@ -25,8 +25,20 @@ RegisterNUICallback('spawnVehicle', function(data, cb)
 
     -- Request model and spawn logic
     local hash = GetHashKey(model)
+    if not IsModelInCdimage(hash) then
+        Framework.Notify("Invalid vehicle model in database.", "error")
+        return
+    end
     RequestModel(hash)
-    while not HasModelLoaded(hash) do Wait(0) end
+    local timeout = 5000
+    while not HasModelLoaded(hash) and timeout > 0 do
+        Wait(10)
+        timeout = timeout - 10
+    end
+    if not HasModelLoaded(hash) then
+        Framework.Notify("Failed to load vehicle model.", "error")
+        return
+    end
 
     local ped = PlayerPedId()
     local coords = GetEntityCoords(ped)

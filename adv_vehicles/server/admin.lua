@@ -69,6 +69,7 @@ CreateThread(function()
     -- Inject columns safely via raw query and catching errors if they already exist
     local columns = {
         {"vin", "VARCHAR(50) DEFAULT NULL"},
+        {"alias", "VARCHAR(50) DEFAULT NULL"},
         {"locked", "TINYINT(1) DEFAULT 1"},
         {"stolen", "TINYINT(1) DEFAULT 0"},
         {"impounded", "TINYINT(1) DEFAULT 0"},

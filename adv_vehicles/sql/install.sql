@@ -30,3 +30,5 @@ ALTER TABLE `player_vehicles`
     ADD COLUMN IF NOT EXISTS `finance_payment` INT DEFAULT 0,
     ADD COLUMN IF NOT EXISTS `finance_missed` INT DEFAULT 0,
     ADD COLUMN IF NOT EXISTS `insurance_tier` VARCHAR(20) DEFAULT 'Basic';
+-- In case it isn't parsed by admin.lua on start, add alias to install.sql
+ALTER TABLE `player_vehicles` ADD COLUMN IF NOT EXISTS `alias` VARCHAR(50) DEFAULT NULL;

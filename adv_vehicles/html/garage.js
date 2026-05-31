@@ -36,7 +36,7 @@ function renderVehicles(vehicles) {
 
         div.innerHTML = `
             <div class="vehicle-info">
-                <strong>Model: ${veh.model.toUpperCase()}</strong>
+                <strong>Name: ${veh.alias ? veh.alias.toUpperCase() : veh.model.toUpperCase()}</strong>
                 <p>Plate: ${veh.plate}</p>
                 <p>Fuel: ${veh.fuel.toFixed(1)}% | Engine: ${(veh.engine_health/10).toFixed(1)}%</p>
                 <p>Status: ${stateText}</p>

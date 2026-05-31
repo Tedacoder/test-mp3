@@ -50,24 +50,33 @@ function Framework.HasDriversLicense(source)
     local player = Framework.GetPlayer(source)
     if not player then return false end
 
+    -- Check physical item first (Universal fallback)
+    if Framework.HasItem(source, "driver_license", 1) then
+        return true
+    end
+
     if Config.Framework == "QBOX" or Config.Framework == "QB" then
-        local licenseData = player.PlayerData.metadata['licences']
-        if licenseData and licenseData.drive then
+        -- QBCore / Qbox handles metadata licenses
+        -- Some versions spell it 'licenses', others 'licences'
+        local meta = player.PlayerData.metadata
+        local licenseData = meta['licences'] or meta['licenses']
+
+        if licenseData and (licenseData.drive or licenseData.driver) then
             return true
         end
         return false
     elseif Config.Framework == "ESX" then
-        -- ESX licensing logic (simplified, can be tied to esx_license)
         local hasLicense = false
-        local promise = promise.new()
+        local p = promise.new()
         TriggerEvent('esx_license:checkLicense', source, 'drive', function(has)
             hasLicense = has
-            promise:resolve()
+            p:resolve()
         end)
-        Citizen.Await(promise)
+        Citizen.Await(p)
         return hasLicense
     end
-    return true
+
+    return true -- Standalone assumes true unless item system implemented
 end
 
 function Framework.GetCreditScore(source)

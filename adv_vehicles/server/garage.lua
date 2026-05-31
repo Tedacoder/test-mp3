@@ -33,6 +33,6 @@ RegisterNetEvent('adv_vehicles:server:RenameVehicle', function(plate, newName)
     local isOwner = MySQL.scalar.await('SELECT id FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, identifier})
     if isOwner then
         -- We repurpose model string as alias for UI purposes
-        MySQL.update('UPDATE player_vehicles SET model = ? WHERE plate = ?', {newName, plate})
+        MySQL.update('UPDATE player_vehicles SET alias = ? WHERE plate = ?', {newName, plate})
     end
 end)
