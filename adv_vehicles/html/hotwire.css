@@ -1,0 +1,64 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    user-select: none;
+}
+
+#hotwire-container {
+    background: rgba(30, 30, 30, 0.95);
+    border: 2px solid #555;
+    border-radius: 10px;
+    padding: 20px;
+    width: 400px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.wiring-area {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    height: 200px;
+}
+
+.wires, .terminals {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.wire {
+    width: 50px;
+    height: 20px;
+    cursor: grab;
+    border-radius: 5px;
+}
+
+.wire.red { background-color: red; }
+.wire.blue { background-color: #2196F3; }
+.wire.green { background-color: #4CAF50; }
+
+.terminal {
+    width: 50px;
+    height: 20px;
+    background-color: #444;
+    border: 2px solid #777;
+    border-radius: 5px;
+}
+
+.terminal.connected {
+    border-color: yellow;
+}
+
+#status {
+    margin-top: 20px;
+    font-weight: bold;
+}

@@ -1,0 +1,68 @@
+local ParkedVehicles = {}
+
+RegisterNetEvent('adv_vehicles:server:ParkVehicle', function(plate, model, props, coords, heading, engineHealth, bodyHealth, fuel, isLocked)
+    local src = source
+    local identifier = Framework.GetIdentifier(src)
+
+    if not identifier then return end
+
+    -- Verify player is close to coords
+    local playerCoords = GetEntityCoords(GetPlayerPed(src))
+    local dist = #(playerCoords - coords)
+    if dist > 20.0 then return end -- Exploiter check
+
+    MySQL.query('SELECT plate FROM player_vehicles WHERE plate = ?', {plate}, function(result)
+        if result and #result > 0 then
+            MySQL.update('UPDATE player_vehicles SET coords = ?, heading = ?, engine_health = ?, body_health = ?, fuel = ?, locked = ?, state = 0, mods = ? WHERE plate = ?',
+            {
+                json.encode(coords),
+                heading,
+                engineHealth,
+                bodyHealth,
+                fuel,
+                isLocked and 1 or 0,
+                json.encode(props),
+                plate
+            })
+        end
+    end)
+end)
+
+RegisterNetEvent('adv_vehicles:server:SaveVehicleState', function(plate, engineHealth, bodyHealth, fuel)
+    local src = source
+    local identifier = Framework.GetIdentifier(src)
+
+    if not identifier then return end
+
+    -- Ownership or proximity check would be ideal. Rate limit the save.
+    local isOwner = MySQL.scalar.await('SELECT id FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, identifier})
+    if isOwner then
+        MySQL.update('UPDATE player_vehicles SET engine_health = ?, body_health = ?, fuel = ? WHERE plate = ?', {
+            engineHealth, bodyHealth, fuel, plate
+        })
+    end
+end)
+
+lib.callback.register('adv_vehicles:server:GetStreetParkedVehicles', function(source)
+    local results = MySQL.query.await('SELECT * FROM player_vehicles WHERE state = 0 AND garage = "street"')
+    return results
+end)
+
+CreateThread(function()
+    Wait(5000)
+    local results = MySQL.query.await('SELECT * FROM player_vehicles WHERE state = 0')
+    if results then
+        for _, veh in ipairs(results) do
+            local coords = json.decode(veh.coords)
+            if coords then
+                local vehicle = CreateVehicle(GetHashKey(veh.model), coords.x, coords.y, coords.z, veh.heading, true, false)
+                if DoesEntityExist(vehicle) then
+                    SetVehicleNumberPlateText(vehicle, veh.plate)
+                    SetVehicleDoorsLocked(vehicle, veh.locked == 1 and 2 or 1)
+                    SetVehicleEngineHealth(vehicle, veh.engine_health + 0.0)
+                    SetVehicleBodyHealth(vehicle, veh.body_health + 0.0)
+                end
+            end
+        end
+    end
+end)

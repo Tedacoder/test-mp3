@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotwire Minigame</title>
+    <link rel="stylesheet" href="hotwire.css">
+</head>
+<body>
+    <div id="hotwire-container" style="display: none;">
+        <div class="panel">
+            <h2>Ignition Wiring</h2>
+            <p>Connect the wires to start the engine. Don't cross the wrong ones!</p>
+            <div class="wiring-area">
+                <div class="wires">
+                    <div class="wire red" draggable="true" data-color="red"></div>
+                    <div class="wire blue" draggable="true" data-color="blue"></div>
+                    <div class="wire green" draggable="true" data-color="green"></div>
+                </div>
+                <div class="terminals">
+                    <div class="terminal" data-accept="red"></div>
+                    <div class="terminal" data-accept="blue"></div>
+                    <div class="terminal" data-accept="green"></div>
+                </div>
+            </div>
+            <div id="status">Waiting for connection...</div>
+        </div>
+    </div>
+    <script src="hotwire.js"></script>
+</body>
+</html>
