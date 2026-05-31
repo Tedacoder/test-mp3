@@ -117,3 +117,7 @@ CreateThread(function()
         end
     end
 end)
+
+RegisterNetEvent('adv_vehicles:client:ForceEngineState', function(state)
+    isEngineOn = state
+end)

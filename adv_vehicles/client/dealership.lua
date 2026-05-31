@@ -1,9 +1,13 @@
 
-function SpawnPurchasedVehicle(model, plate)
-    local hash = GetHashKey(model)
+function SpawnPurchasedVehicle(vehicleModel, plate)
+    local hash = GetHashKey(vehicleModel)
     if not IsModelInCdimage(hash) then return end
     RequestModel(hash)
-    while not HasModelLoaded(hash) do Wait(10) end
+    local timeout = 5000
+    while not HasModelLoaded(hash) and timeout > 0 do
+        Wait(10)
+        timeout = timeout - 10
+    end
 
     -- PDM Outside Spawn Vector
     local spawnCoords = vec4(-13.4, -1081.7, 26.6, 135.0)
@@ -17,42 +21,17 @@ function SpawnPurchasedVehicle(model, plate)
 
     -- Ensure state matches the spawn (0 = street)
     TriggerServerEvent('adv_vehicles:server:SetVehicleState', plate, 0)
-end
-local showroomVehicles = {
-    {vehicle = 'adder', price = 1000000, coords = vec4(-33.0, -1102.0, 26.42, 160.0)},
-    {vehicle = 't20', price = 2200000, coords = vec4(-35.0, -1105.0, 26.42, 160.0)}
-}
 
-local displayEntities = {}
-
-CreateThread(function()
-    -- Spawn showroom displays locally
-    for i, data in ipairs(showroomVehicles) do
-        local hash = GetHashKey(data.vehicle)
-        RequestModel(hash)
-        while not HasModelLoaded(hash) do Wait(0) end
-
-        local veh = CreateVehicle(hash, data.coords.x, data.coords.y, data.coords.z, data.coords.w, false, false)
-        SetEntityInvincible(veh, true)
-        FreezeEntityPosition(veh, true)
-        SetVehicleDoorsLocked(veh, 2)
-        SetModelAsNoLongerNeeded(hash)
-
-        displayEntities[i] = veh
-
-        if Config.UseOxTarget then
-            exports.ox_target:addLocalEntity(veh, {
-                {
-                    name = 'buy_car_'..i,
-                    icon = 'fas fa-money-bill',
-                    label = 'Purchase ' .. data.vehicle:upper() .. ' ($' .. data.price .. ')',
-                    onSelect = function()
-                        TriggerEvent('adv_vehicles:client:OpenPurchaseMenu', data)
-                    end
-                }
-            })
-        end
+    -- Hand over keys immediately natively if using QBOX/QB vehiclekeys
+    if GetResourceState('qbx_vehiclekeys') == 'started' then
+        exports.qbx_vehiclekeys:GiveKeys(plate, true)
+    elseif GetResourceState('qb-vehiclekeys') == 'started' then
+        TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys', plate)
     end
+
+    -- Force engine on tracking for our internal operation loop
+    SetVehicleEngineOn(veh, true, true, false)
+    TriggerEvent('adv_vehicles:client:ForceEngineState', true)
 end)
 
 RegisterNetEvent('adv_vehicles:client:OpenPurchaseMenu', function(data)

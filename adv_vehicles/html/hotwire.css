@@ -20,6 +20,7 @@ html, body {
     text-align: center;
     color: white;
     box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    position: relative;
 }
 
 .wiring-area {
@@ -27,34 +28,33 @@ html, body {
     justify-content: space-between;
     margin-top: 30px;
     height: 200px;
+    position: relative;
 }
 
 .wires, .terminals {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    z-index: 2;
 }
 
-.wire {
-    width: 50px;
-    height: 20px;
-    cursor: grab;
-    border-radius: 5px;
-}
-
-.wire.red { background-color: red; }
-.wire.blue { background-color: #2196F3; }
-.wire.green { background-color: #4CAF50; }
-
-.terminal {
-    width: 50px;
-    height: 20px;
-    background-color: #444;
+.wire-point {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
     border: 2px solid #777;
-    border-radius: 5px;
+    background-color: #444;
 }
 
-.terminal.connected {
+.wire-point.start {
+    cursor: grab;
+}
+.wire-point.start:active {
+    cursor: grabbing;
+}
+
+.wire-point.connected {
     border-color: yellow;
 }
 

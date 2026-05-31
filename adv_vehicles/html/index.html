@@ -13,16 +13,17 @@
         <div class="panel">
             <h2>Ignition Wiring</h2>
             <p>Connect the wires to start the engine. Don't cross the wrong ones!</p>
-            <div class="wiring-area">
-                <div class="wires">
-                    <div class="wire red" draggable="true" data-color="red"></div>
-                    <div class="wire blue" draggable="true" data-color="blue"></div>
-                    <div class="wire green" draggable="true" data-color="green"></div>
+            <div class="wiring-area" id="wiring-area">
+                <svg id="wire-svg" width="100%" height="100%" style="position: absolute; top: 0; left: 0; pointer-events: none;"></svg>
+                <div class="wires" id="wire-starts">
+                    <div class="wire-point start" data-color="red" style="background-color: red;"></div>
+                    <div class="wire-point start" data-color="blue" style="background-color: #2196F3;"></div>
+                    <div class="wire-point start" data-color="green" style="background-color: #4CAF50;"></div>
                 </div>
-                <div class="terminals">
-                    <div class="terminal" data-accept="red"></div>
-                    <div class="terminal" data-accept="blue"></div>
-                    <div class="terminal" data-accept="green"></div>
+                <div class="terminals" id="wire-ends">
+                    <div class="wire-point end" data-accept="red"></div>
+                    <div class="wire-point end" data-accept="blue"></div>
+                    <div class="wire-point end" data-accept="green"></div>
                 </div>
             </div>
             <div id="status">Waiting for connection...</div>

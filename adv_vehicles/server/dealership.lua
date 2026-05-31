@@ -74,8 +74,17 @@ lib.callback.register('adv_vehicles:server:ProcessFinancePayments', function()
 
     for _, veh in ipairs(vehicles) do
         -- Try to take money from offline player using framework logic or DB direct
-        -- For simplicity, if they fail, increment missed
-        local success = false -- Assuming framework offline payment logic here
+        -- Actually calling the framework to try and take the money natively
+        local success = Framework.RemoveMoney(veh.citizenid, 'bank', veh.finance_payment, 'finance-payment')
+        -- (In a real environment, citizenid might not map perfectly to source if offline, but QBOX offline functions support identifier strings in modern builds, or requires DB direct query)
+        if not success then
+            -- Optional: DB Direct fallback if framework doesn't natively handle offline identifiers
+            local currentBal = MySQL.scalar.await('SELECT bank FROM players WHERE citizenid = ?', {veh.citizenid})
+            if currentBal and currentBal >= veh.finance_payment then
+                MySQL.update('UPDATE players SET bank = bank - ? WHERE citizenid = ?', {veh.finance_payment, veh.citizenid})
+                success = true
+            end
+        end
 
         if success then
             local newBalance = veh.finance_balance - veh.finance_payment
