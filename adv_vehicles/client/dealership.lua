@@ -1,3 +1,23 @@
+
+function SpawnPurchasedVehicle(model, plate)
+    local hash = GetHashKey(model)
+    if not IsModelInCdimage(hash) then return end
+    RequestModel(hash)
+    while not HasModelLoaded(hash) do Wait(10) end
+
+    -- PDM Outside Spawn Vector
+    local spawnCoords = vec4(-13.4, -1081.7, 26.6, 135.0)
+
+    local veh = CreateVehicle(hash, spawnCoords.x, spawnCoords.y, spawnCoords.z, spawnCoords.w, true, false)
+    SetVehicleNumberPlateText(veh, plate)
+    SetModelAsNoLongerNeeded(hash)
+
+    local ped = PlayerPedId()
+    TaskWarpPedIntoVehicle(ped, veh, -1)
+
+    -- Ensure state matches the spawn (0 = street)
+    TriggerServerEvent('adv_vehicles:server:SetVehicleState', plate, 0)
+end
 local showroomVehicles = {
     {vehicle = 'adder', price = 1000000, coords = vec4(-33.0, -1102.0, 26.42, 160.0)},
     {vehicle = 't20', price = 2200000, coords = vec4(-35.0, -1105.0, 26.42, 160.0)}
@@ -47,6 +67,9 @@ RegisterNetEvent('adv_vehicles:client:OpenPurchaseMenu', function(data)
                     onSelect = function()
                         lib.callback('adv_vehicles:server:PurchaseVehicle', false, function(success, msg, plate)
                             Framework.Notify(msg, success and "success" or "error")
+                            if success then
+                                SpawnPurchasedVehicle(data.vehicle, plate)
+                            end
                         end, data.vehicle, data.price, false, 0)
                     end
                 },
@@ -56,6 +79,9 @@ RegisterNetEvent('adv_vehicles:client:OpenPurchaseMenu', function(data)
                     onSelect = function()
                         lib.callback('adv_vehicles:server:PurchaseVehicle', false, function(success, msg, plate)
                             Framework.Notify(msg, success and "success" or "error")
+                            if success then
+                                SpawnPurchasedVehicle(data.vehicle, plate)
+                            end
                         end, data.vehicle, data.price, true, math.floor(data.price * 0.20))
                     end
                 }

@@ -79,7 +79,9 @@ function duplicateKey(plate) {
 }
 
 document.addEventListener('keydown', (e) => {
-    if (e.key === "Escape") closeUI();
+    if (document.getElementById('garage-container').style.display === 'flex') {
+        if (e.key === "Escape") closeUI();
+    }
 });
 
 function renameVehicle(plate) {

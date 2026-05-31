@@ -65,7 +65,6 @@ lib.callback.register('adv_vehicles:server:PurchaseVehicle', function(source, ve
         plate, identifier
     })
 
-    TriggerClientEvent("adv_vehicles:client:AdminSpawnCar", src, model, plate)
     return true, "Vehicle purchased successfully! It has been delivered outside.", plate
 end)
 

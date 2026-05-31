@@ -34,13 +34,13 @@ server_scripts {
     'server/admin.lua'
 }
 
-ui_page 'html/hotwire.html'
+ui_page 'html/index.html'
 
 files {
     'html/hotwire.html',
     'html/hotwire.css',
     'html/hotwire.js',
-    'html/garage.html',
+    'html/index.html',
     'html/garage.css',
     'html/garage.js'
 }

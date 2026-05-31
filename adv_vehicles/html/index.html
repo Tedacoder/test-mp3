@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotwire Minigame</title>
+    <title>Advanced Vehicles UI</title>
     <link rel="stylesheet" href="hotwire.css">
+    <link rel="stylesheet" href="garage.css">
 </head>
 <body>
+    <!-- Hotwire Container -->
     <div id="hotwire-container" style="display: none;">
         <div class="panel">
             <h2>Ignition Wiring</h2>
@@ -26,6 +28,19 @@
             <div id="status">Waiting for connection...</div>
         </div>
     </div>
+
+    <!-- Garage Container -->
+    <div id="garage-container" style="display: none;">
+        <div class="header">
+            <h2 id="garage-name">Garage</h2>
+            <button onclick="closeUI()">X</button>
+        </div>
+        <div class="vehicle-list" id="vehicle-list">
+            <!-- Vehicles injected via JS -->
+        </div>
+    </div>
+
     <script src="hotwire.js"></script>
+    <script src="garage.js"></script>
 </body>
 </html>

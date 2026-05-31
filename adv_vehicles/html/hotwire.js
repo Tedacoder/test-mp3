@@ -71,7 +71,9 @@ document.querySelectorAll('.terminal').forEach(terminal => {
 });
 
 document.addEventListener('keydown', (e) => {
-    if (e.key === "Escape" || e.key === "Backspace") {
-        closeMinigame(false);
+    if (document.getElementById('hotwire-container').style.display === 'block') {
+        if (e.key === "Escape" || e.key === "Backspace") {
+            closeMinigame(false);
+        }
     }
 });
