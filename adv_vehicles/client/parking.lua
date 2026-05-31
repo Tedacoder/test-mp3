@@ -55,7 +55,7 @@ RegisterNetEvent('adv_vehicles:client:ParkVehicle', function()
     local veh = GetVehiclePedIsIn(ped, false)
     if veh ~= 0 then
         local plate = GetVehicleNumberPlateText(veh)
-        local model = GetEntityModel(veh)
+        local vehicle = GetEntityModel(veh)
         -- Assume we get properties using core exports or a local function
         local props = {}
         local coords = GetEntityCoords(veh)
@@ -65,7 +65,7 @@ RegisterNetEvent('adv_vehicles:client:ParkVehicle', function()
         local fuel = GetVehicleFuelLevel(veh)
         local isLocked = GetVehicleDoorLockStatus(veh) == 2
 
-        TriggerServerEvent('adv_vehicles:server:ParkVehicle', plate, model, props, coords, heading, engineHealth, bodyHealth, fuel, isLocked)
+        TriggerServerEvent('adv_vehicles:server:ParkVehicle', plate, vehicle, props, coords, heading, engineHealth, bodyHealth, fuel, isLocked)
         Framework.Notify("Vehicle parked on the street.", "success")
 
         TaskLeaveVehicle(ped, veh, 0)
@@ -82,7 +82,7 @@ RegisterCommand('park', function()
 end)
 
 -- EV vs Gas Logic Addition to existing loop
--- To keep it clean, replace the simple consumption logic with EV logic checking model classes
+-- To keep it clean, replace the simple consumption logic with EV logic checking vehicle classes
 CreateThread(function()
     while true do
         Wait(10000)
@@ -101,7 +101,7 @@ CreateThread(function()
                 if speed > 30.0 then consumptionRate = 0.5 end
 
                 -- EVs consume less "fuel" per tick
-                local model = GetEntityModel(veh)
+                local vehicle = GetEntityModel(veh)
                 if GetVehicleHandlingFloat(veh, 'CHandlingData', 'fInitialDriveForce') > 0.3 then -- Rough heuristic or specific EV list
                     consumptionRate = consumptionRate * 0.5
                 end

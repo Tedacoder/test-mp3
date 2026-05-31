@@ -1,6 +1,6 @@
 local showroomVehicles = {
-    {model = 'adder', price = 1000000, coords = vec4(-33.0, -1102.0, 26.42, 160.0)},
-    {model = 't20', price = 2200000, coords = vec4(-35.0, -1105.0, 26.42, 160.0)}
+    {vehicle = 'adder', price = 1000000, coords = vec4(-33.0, -1102.0, 26.42, 160.0)},
+    {vehicle = 't20', price = 2200000, coords = vec4(-35.0, -1105.0, 26.42, 160.0)}
 }
 
 local displayEntities = {}
@@ -8,7 +8,7 @@ local displayEntities = {}
 CreateThread(function()
     -- Spawn showroom displays locally
     for i, data in ipairs(showroomVehicles) do
-        local hash = GetHashKey(data.model)
+        local hash = GetHashKey(data.vehicle)
         RequestModel(hash)
         while not HasModelLoaded(hash) do Wait(0) end
 
@@ -25,7 +25,7 @@ CreateThread(function()
                 {
                     name = 'buy_car_'..i,
                     icon = 'fas fa-money-bill',
-                    label = 'Purchase ' .. data.model:upper() .. ' ($' .. data.price .. ')',
+                    label = 'Purchase ' .. data.vehicle:upper() .. ' ($' .. data.price .. ')',
                     onSelect = function()
                         TriggerEvent('adv_vehicles:client:OpenPurchaseMenu', data)
                     end
@@ -47,7 +47,7 @@ RegisterNetEvent('adv_vehicles:client:OpenPurchaseMenu', function(data)
                     onSelect = function()
                         lib.callback('adv_vehicles:server:PurchaseVehicle', false, function(success, msg, plate)
                             Framework.Notify(msg, success and "success" or "error")
-                        end, data.model, data.price, false, 0)
+                        end, data.vehicle, data.price, false, 0)
                     end
                 },
                 {
@@ -56,7 +56,7 @@ RegisterNetEvent('adv_vehicles:client:OpenPurchaseMenu', function(data)
                     onSelect = function()
                         lib.callback('adv_vehicles:server:PurchaseVehicle', false, function(success, msg, plate)
                             Framework.Notify(msg, success and "success" or "error")
-                        end, data.model, data.price, true, math.floor(data.price * 0.20))
+                        end, data.vehicle, data.price, true, math.floor(data.price * 0.20))
                     end
                 }
             }

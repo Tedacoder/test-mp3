@@ -20,9 +20,9 @@ local function GeneratePlate()
     return plate
 end
 
-lib.callback.register('adv_vehicles:server:PurchaseVehicle', function(source, model, clientPrice, isFinanced, downPayment)
+lib.callback.register('adv_vehicles:server:PurchaseVehicle', function(source, vehicle, clientPrice, isFinanced, downPayment)
     -- Security: Verify price from DB instead of trusting client
-    local dbPrice = MySQL.scalar.await('SELECT price FROM dealership_stock WHERE plate = ?', {model}) -- using model as ID for now or hardcode for prototype
+    local dbPrice = MySQL.scalar.await('SELECT price FROM dealership_stock WHERE plate = ?', {vehicle}) -- using vehicle as ID for now or hardcode for prototype
     local price = dbPrice or clientPrice -- Fallback for prototyping, in prod never trust clientPrice
     local src = source
     local identifier = Framework.GetIdentifier(src)
@@ -47,7 +47,7 @@ lib.callback.register('adv_vehicles:server:PurchaseVehicle', function(source, mo
 
     local plate = GeneratePlate()
     local vin = GenerateVIN()
-    local hash = GetHashKey(model)
+    local hash = GetHashKey(vehicle)
     -- We re-verify total final price and charge once here
     local tax = math.floor(price * 0.08)
     local finalPrice = price + tax
@@ -57,15 +57,16 @@ lib.callback.register('adv_vehicles:server:PurchaseVehicle', function(source, mo
     local balance = isFinanced and (finalPrice - downPayment) or 0
     local payment = isFinanced and math.floor(balance / 10) or 0
 
-    MySQL.insert.await('INSERT INTO player_vehicles (citizenid, plate, vin, model, hash, state, garage, finance_balance, finance_payment) VALUES (?, ?, ?, ?, ?, 1, "dealership", ?, ?)', {
-        identifier, plate, vin, model, hash, balance, payment
+    MySQL.insert.await('INSERT INTO player_vehicles (citizenid, plate, vin, vehicle, hash, state, garage, finance_balance, finance_payment) VALUES (?, ?, ?, ?, ?, 1, "legionsquare", ?, ?)', {
+        identifier, plate, vin, vehicle, hash, balance, payment
     })
 
     MySQL.insert.await('INSERT INTO vehicle_keys (plate, citizenid, is_primary) VALUES (?, ?, 1)', {
         plate, identifier
     })
 
-    return true, "Vehicle purchased successfully!", plate
+    TriggerClientEvent("adv_vehicles:client:AdminSpawnCar", src, model, plate)
+    return true, "Vehicle purchased successfully! It has been delivered outside.", plate
 end)
 
 lib.callback.register('adv_vehicles:server:ProcessFinancePayments', function()

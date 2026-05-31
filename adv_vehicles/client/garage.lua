@@ -21,12 +21,12 @@ end)
 RegisterNUICallback('spawnVehicle', function(data, cb)
     SetNuiFocus(false, false)
     local plate = data.plate
-    local model = data.model
+    local vehicle = data.vehicle
 
-    -- Request model and spawn logic
-    local hash = GetHashKey(model)
+    -- Request vehicle and spawn logic
+    local hash = GetHashKey(vehicle)
     if not IsModelInCdimage(hash) then
-        Framework.Notify("Invalid vehicle model in database.", "error")
+        Framework.Notify("Invalid vehicle vehicle in database.", "error")
         return
     end
     RequestModel(hash)
@@ -36,7 +36,7 @@ RegisterNUICallback('spawnVehicle', function(data, cb)
         timeout = timeout - 10
     end
     if not HasModelLoaded(hash) then
-        Framework.Notify("Failed to load vehicle model.", "error")
+        Framework.Notify("Failed to load vehicle vehicle.", "error")
         return
     end
 
@@ -95,4 +95,17 @@ RegisterNUICallback('renameVehicle', function(data, cb)
         Framework.Notify("Vehicle renamed.", "success")
     end
     cb('ok')
+end)
+
+-- Ensure the ped actually exists for players to target
+CreateThread(function()
+    local hash = GetHashKey("s_m_m_autoshop_01")
+    RequestModel(hash)
+    while not HasModelLoaded(hash) do Wait(0) end
+
+    -- Example coords for a generic garage at Legion Square
+    local ped = CreatePed(4, hash, 215.0, -810.0, 30.73, 250.0, false, true)
+    FreezeEntityPosition(ped, true)
+    SetEntityInvincible(ped, true)
+    SetBlockingOfNonTemporaryEvents(ped, true)
 end)

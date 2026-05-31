@@ -7,7 +7,7 @@ lib.callback.register('adv_vehicles:server:GetRepoVehicles', function(source)
         return {}
     end
 
-    local vehicles = MySQL.query.await('SELECT plate, model, coords FROM player_vehicles WHERE finance_missed >= 3 AND state = 0')
+    local vehicles = MySQL.query.await('SELECT plate, vehicle, coords FROM player_vehicles WHERE finance_missed >= 3 AND state = 0')
     return vehicles
 end)
 

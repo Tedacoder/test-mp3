@@ -1,6 +1,6 @@
 local ParkedVehicles = {}
 
-RegisterNetEvent('adv_vehicles:server:ParkVehicle', function(plate, model, props, coords, heading, engineHealth, bodyHealth, fuel, isLocked)
+RegisterNetEvent('adv_vehicles:server:ParkVehicle', function(plate, vehicle, props, coords, heading, engineHealth, bodyHealth, fuel, isLocked)
     local src = source
     local identifier = Framework.GetIdentifier(src)
 
@@ -55,7 +55,7 @@ CreateThread(function()
             -- In QBOX, coords might be stored differently or be nil if not used by qbx natively
             local coords = type(veh.coords) == 'string' and json.decode(veh.coords) or nil
             if coords and coords.x then
-                local vehicle = CreateVehicle(GetHashKey(veh.model), coords.x, coords.y, coords.z, veh.heading, true, false)
+                local vehicle = CreateVehicle(GetHashKey(veh.vehicle), coords.x, coords.y, coords.z, veh.heading, true, false)
                 if DoesEntityExist(vehicle) then
                     SetVehicleNumberPlateText(vehicle, veh.plate)
                     SetVehicleDoorsLocked(vehicle, veh.locked == 1 and 2 or 1)

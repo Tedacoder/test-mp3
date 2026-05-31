@@ -1,5 +1,5 @@
-RegisterNetEvent('adv_vehicles:client:AdminSpawnCar', function(model, plate)
-    local hash = GetHashKey(model)
+RegisterNetEvent('adv_vehicles:client:AdminSpawnCar', function(vehicle, plate)
+    local hash = GetHashKey(vehicle)
     RequestModel(hash)
     while not HasModelLoaded(hash) do Wait(0) end
 

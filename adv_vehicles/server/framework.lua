@@ -103,6 +103,12 @@ function Framework.RemoveMoney(source, type, amount, reason)
     local player = Framework.GetPlayer(source)
     if not player then return false end
 
+    -- Handle Prism Banking integration if active
+    if type == 'bank' and GetResourceState('prism-banking') == 'started' then
+        local success = exports['prism-banking']:RemoveMoney(source, amount, reason)
+        return success -- DO NOT FALL BACK if Prism is running to prevent double charge or bypass
+    end
+
     if Config.Framework == "QBOX" or Config.Framework == "QB" then
         return player.Functions.RemoveMoney(type, amount, reason)
     elseif Config.Framework == "ESX" then

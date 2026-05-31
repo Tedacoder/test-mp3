@@ -9,7 +9,7 @@ RegisterNetEvent('adv_vehicles:client:StartRepoJob', function()
         for _, veh in ipairs(vehicles) do
             local coords = json.decode(veh.coords)
             table.insert(options, {
-                title = 'Repo: ' .. veh.model:upper(),
+                title = 'Repo: ' .. veh.vehicle:upper(),
                 description = 'Plate: ' .. veh.plate,
                 onSelect = function()
                     SetNewWaypoint(coords.x, coords.y)

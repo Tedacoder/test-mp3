@@ -27,7 +27,7 @@ function renderVehicles(vehicles) {
         let btnHtml = '';
 
         if (veh.state === 1) {
-            btnHtml = `<button class="btn" onclick="spawnVehicle('${veh.plate}', '${veh.model}')">Spawn</button>`;
+            btnHtml = `<button class="btn" onclick="spawnVehicle('${veh.plate}', '${veh.vehicle}')">Spawn</button>`;
         } else if (veh.state === 0) {
             btnHtml = `<button class="btn" disabled>On Street</button>`;
         } else if (veh.state === 2) {
@@ -36,7 +36,7 @@ function renderVehicles(vehicles) {
 
         div.innerHTML = `
             <div class="vehicle-info">
-                <strong>Name: ${veh.alias ? veh.alias.toUpperCase() : veh.model.toUpperCase()}</strong>
+                <strong>Name: ${veh.alias ? veh.alias.toUpperCase() : veh.vehicle.toUpperCase()}</strong>
                 <p>Plate: ${veh.plate}</p>
                 <p>Fuel: ${veh.fuel.toFixed(1)}% | Engine: ${(veh.engine_health/10).toFixed(1)}%</p>
                 <p>Status: ${stateText}</p>
@@ -51,12 +51,12 @@ function renderVehicles(vehicles) {
     });
 }
 
-function spawnVehicle(plate, model) {
+function spawnVehicle(plate, vehicle) {
     document.getElementById('garage-container').style.display = 'none';
     fetch(`https://${GetParentResourceName()}/spawnVehicle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plate, model })
+        body: JSON.stringify({ plate, vehicle })
     });
 }
 
