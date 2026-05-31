@@ -35,7 +35,6 @@ RegisterNetEvent('adv_vehicles:client:ExecuteRepo', function()
     if veh and veh ~= 0 then
         local plate = GetVehicleNumberPlateText(veh)
         local vehCoords = GetEntityCoords(veh)
-        TriggerServerEvent('adv_vehicles:server:RepoVehicle', plate, vehCoords)
         TriggerServerEvent('adv_vehicles:server:RepoVehicle', plate, vehCoords, NetworkGetNetworkIdFromEntity(veh))
         Framework.Notify("Vehicle repossessed.", "success")
     else
@@ -53,6 +52,6 @@ end)
 RegisterNetEvent('adv_vehicles:client:DeleteRepoVehicle', function(netId)
     local veh = NetToVeh(netId)
     if veh and veh ~= 0 then
-        TriggerServerEvent('adv_vehicles:server:RepoVehicle', plate, vehCoords, NetworkGetNetworkIdFromEntity(veh))
+        DeleteEntity(veh)
     end
 end)

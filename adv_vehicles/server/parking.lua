@@ -13,7 +13,7 @@ RegisterNetEvent('adv_vehicles:server:ParkVehicle', function(plate, model, props
 
     MySQL.query('SELECT plate FROM player_vehicles WHERE plate = ?', {plate}, function(result)
         if result and #result > 0 then
-            MySQL.update('UPDATE player_vehicles SET coords = ?, heading = ?, engine_health = ?, body_health = ?, fuel = ?, locked = ?, state = 0, mods = ? WHERE plate = ?',
+            MySQL.update('UPDATE player_vehicles SET coords = ?, heading = ?, engine_health = ?, body_health = ?, fuel = ?, locked = ?, state = 0 WHERE plate = ?',
             {
                 json.encode(coords),
                 heading,
@@ -21,7 +21,6 @@ RegisterNetEvent('adv_vehicles:server:ParkVehicle', function(plate, model, props
                 bodyHealth,
                 fuel,
                 isLocked and 1 or 0,
-                json.encode(props),
                 plate
             })
         end
@@ -53,8 +52,9 @@ CreateThread(function()
     local results = MySQL.query.await('SELECT * FROM player_vehicles WHERE state = 0')
     if results then
         for _, veh in ipairs(results) do
-            local coords = json.decode(veh.coords)
-            if coords then
+            -- In QBOX, coords might be stored differently or be nil if not used by qbx natively
+            local coords = type(veh.coords) == 'string' and json.decode(veh.coords) or nil
+            if coords and coords.x then
                 local vehicle = CreateVehicle(GetHashKey(veh.model), coords.x, coords.y, coords.z, veh.heading, true, false)
                 if DoesEntityExist(vehicle) then
                     SetVehicleNumberPlateText(vehicle, veh.plate)
