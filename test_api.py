@@ -28,7 +28,7 @@ def test():
         assert res['total'] == 1.5
 
     # Checkout
-    req = urllib.request.Request("http://127.0.0.1:5000/api/checkout", data=b'', headers={'Content-Type': 'application/json'}, method="POST")
+    req = urllib.request.Request("http://127.0.0.1:5000/api/checkout", data=b'{}', headers={'Content-Type': 'application/json'}, method="POST")
     with urllib.request.urlopen(req) as response:
         res = json.loads(response.read().decode())
         assert res['paid'] == 1.5
