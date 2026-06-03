@@ -71,9 +71,10 @@ RegisterNetEvent('adv_vehicles:client:ParkVehicle', function()
         TriggerServerEvent('adv_vehicles:server:ParkVehicle', plate, vehicle, props, coords, heading, engineHealth, bodyHealth, fuel, isLocked)
         Framework.Notify("Vehicle parked on the street.", "success")
 
+        -- Leave the vehicle in the world, just shut it off and optionally have the player step out
+        SetVehicleEngineOn(veh, false, true, true)
+        TriggerEvent('adv_vehicles:client:ForceEngineState', false)
         TaskLeaveVehicle(ped, veh, 0)
-        Wait(2000)
-        DeleteEntity(veh)
     else
         Framework.Notify("You must be inside a vehicle to park it.", "error")
     end

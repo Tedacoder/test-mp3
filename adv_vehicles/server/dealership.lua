@@ -106,6 +106,7 @@ CreateThread(function()
             MySQL.update('UPDATE player_vehicles SET finance_missed = finance_missed + 1 WHERE id = ?', {veh.id})
         end
     end
+    end
 end)
 
 -- Dealership Admin Management
