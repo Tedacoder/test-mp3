@@ -19,6 +19,7 @@ local function GetCitizenId()
 end
 
 local function IsVehicleWhitelisted(vehicle)
+    if not vehicle or vehicle == 0 or not IsEntityAVehicle(vehicle) then return false end
     local vehicleModel = GetEntityModel(vehicle)
     for _, model in ipairs(Config.Whitelist.model) do
         if vehicleModel == GetHashKey(model) then return true end
@@ -463,7 +464,17 @@ if Config.AllowNPCSales then
             icon = 'fa-solid fa-burger',
             label = 'Sell Food',
             canInteract = function(entity)
-                if not IsPedAPlayer(entity) and not IsPedDeadOrDying(entity, true) then
+                if IsPedAPlayer(entity) or IsPedDeadOrDying(entity, true) then return false end
+
+                -- Check if player is near or inside their food truck
+                local playerPed = cache.ped
+                local vehicle = GetVehiclePedIsIn(playerPed, true)
+                if not vehicle or vehicle == 0 or not IsVehicleWhitelisted(vehicle) then
+                    vehicle = lib.getClosestVehicle(GetEntityCoords(playerPed), 15.0, false)
+                end
+
+                if vehicle and IsVehicleWhitelisted(vehicle) then
+                    -- Allow interaction if they are near their truck
                     return true
                 end
                 return false
