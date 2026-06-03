@@ -1,9 +1,12 @@
 let connectedWires = 0;
 const totalWires = 3;
 let isDragging = false;
-let currentWireColor = null;
 let currentStartPoint = null;
-let currentPath = null;
+let currentPath1 = null;
+let currentPath2 = null;
+let currentTargetTerminal = null;
+let currentWireColor = null;
+
 const svg = document.getElementById('wire-svg');
 
 window.addEventListener('message', (event) => {
@@ -26,7 +29,7 @@ function resetMinigame() {
     connectedWires = 0;
     document.getElementById('status').innerText = 'Waiting for connection...';
     document.getElementById('status').style.color = 'white';
-    svg.innerHTML = ''; // Clear SVG paths
+    svg.innerHTML = '';
 
     document.querySelectorAll('.wire-point.start').forEach(point => {
         point.classList.remove('connected');
@@ -38,7 +41,6 @@ function resetMinigame() {
         terminal.style.backgroundColor = '#444';
     });
 
-    // Shuffle terminals
     const terminalsContainer = document.getElementById('wire-ends');
     for (let i = terminalsContainer.children.length; i >= 0; i--) {
         terminalsContainer.appendChild(terminalsContainer.children[Math.random() * i | 0]);
@@ -54,9 +56,14 @@ function getCenter(el) {
     };
 }
 
-function drawPath(startX, startY, endX, endY, color) {
+function drawPath(startX, startY, endX, endY) {
     const offset = 50;
     return `M ${startX} ${startY} C ${startX + offset} ${startY}, ${endX - offset} ${endY}, ${endX} ${endY}`;
+}
+
+function drawReversePath(startX, startY, endX, endY) {
+    const offset = 50;
+    return `M ${startX} ${startY} C ${startX - offset} ${startY}, ${endX + offset} ${endY}, ${endX} ${endY}`;
 }
 
 document.querySelectorAll('.wire-point.start').forEach(point => {
@@ -68,77 +75,100 @@ document.querySelectorAll('.wire-point.start').forEach(point => {
         currentWireColor = point.dataset.color;
 
         const startPos = getCenter(point);
-        currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        currentPath.setAttribute("stroke", point.style.backgroundColor);
-        currentPath.setAttribute("stroke-width", "8");
-        currentPath.setAttribute("fill", "none");
-        currentPath.setAttribute("d", drawPath(startPos.x, startPos.y, startPos.x, startPos.y, currentWireColor));
-        svg.appendChild(currentPath);
+        currentPath1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        currentPath1.setAttribute("stroke", currentWireColor);
+        currentPath1.setAttribute("stroke-width", "8");
+        currentPath1.setAttribute("fill", "none");
+        svg.appendChild(currentPath1);
+
+        // Find matching terminal
+        currentTargetTerminal = document.querySelector(`.wire-point.end[data-accept="${currentWireColor}"]`);
+
+        currentPath2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        currentPath2.setAttribute("stroke", currentWireColor);
+        currentPath2.setAttribute("stroke-width", "8");
+        currentPath2.setAttribute("fill", "none");
+        svg.appendChild(currentPath2);
     });
 });
 
 document.addEventListener('mousemove', (e) => {
-    if (!isDragging || !currentPath) return;
+    if (!isDragging || !currentPath1) return;
 
     const svgRect = svg.getBoundingClientRect();
     const mouseX = e.clientX - svgRect.left;
     const mouseY = e.clientY - svgRect.top;
-    const startPos = getCenter(currentStartPoint);
 
-    currentPath.setAttribute("d", drawPath(startPos.x, startPos.y, mouseX, mouseY, currentWireColor));
+    const startPos = getCenter(currentStartPoint);
+    currentPath1.setAttribute("d", drawPath(startPos.x, startPos.y, mouseX, mouseY));
+
+    // Dynamic opposite wire meeting it
+    const termPos = getCenter(currentTargetTerminal);
+    // Calc mirror pos
+    const dx = mouseX - startPos.x;
+    const pct = Math.min(1.0, Math.max(0.0, dx / (termPos.x - startPos.x)));
+
+    // Reverse side draws out proportional to how far left side is dragged
+    const targetMouseX = termPos.x - dx;
+    const targetMouseY = termPos.y + (mouseY - startPos.y);
+
+    // Give it a spark-meet effect in the middle
+    if (pct > 0.45 && pct < 0.55) {
+       currentPath2.setAttribute("d", drawReversePath(termPos.x, termPos.y, mouseX, mouseY));
+    } else {
+       currentPath2.setAttribute("d", drawReversePath(termPos.x, termPos.y, targetMouseX, targetMouseY));
+    }
 });
 
 document.addEventListener('mouseup', (e) => {
     if (!isDragging) return;
     isDragging = false;
 
-    // Check if mouse is over a terminal
-    const endPoints = document.querySelectorAll('.wire-point.end');
-    let hitTerminal = null;
+    const svgRect = svg.getBoundingClientRect();
+    const mouseX = e.clientX - svgRect.left;
+    const startPos = getCenter(currentStartPoint);
+    const termPos = getCenter(currentTargetTerminal);
+    const dx = mouseX - startPos.x;
+    const pct = dx / (termPos.x - startPos.x);
 
-    endPoints.forEach(terminal => {
-        const rect = terminal.getBoundingClientRect();
-        if (e.clientX >= rect.left && e.clientX <= rect.right &&
-            e.clientY >= rect.top && e.clientY <= rect.bottom) {
-            hitTerminal = terminal;
-        }
-    });
+    if (pct > 0.45 && pct < 0.55) {
+        // They met in the middle
+        const midY = e.clientY - svgRect.top;
+        currentPath1.setAttribute("d", drawPath(startPos.x, startPos.y, mouseX, midY));
+        currentPath2.setAttribute("d", drawReversePath(termPos.x, termPos.y, mouseX, midY));
 
-    if (hitTerminal && !hitTerminal.classList.contains('connected')) {
-        const acceptColor = hitTerminal.dataset.accept;
+        currentTargetTerminal.classList.add('connected');
+        currentTargetTerminal.style.backgroundColor = currentWireColor;
+        currentStartPoint.classList.add('connected');
+        currentStartPoint.style.pointerEvents = 'none';
 
-        if (currentWireColor === acceptColor) {
-            // Success snap
-            const startPos = getCenter(currentStartPoint);
-            const endPos = getCenter(hitTerminal);
-            currentPath.setAttribute("d", drawPath(startPos.x, startPos.y, endPos.x, endPos.y, currentWireColor));
+        // Add a spark dot
+        const spark = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        spark.setAttribute("cx", mouseX);
+        spark.setAttribute("cy", midY);
+        spark.setAttribute("r", "8");
+        spark.setAttribute("fill", "yellow");
+        svg.appendChild(spark);
 
-            hitTerminal.classList.add('connected');
-            hitTerminal.style.backgroundColor = currentStartPoint.style.backgroundColor;
-            currentStartPoint.classList.add('connected');
-            currentStartPoint.style.pointerEvents = 'none';
-
-            connectedWires++;
-            if (connectedWires === totalWires) {
-                document.getElementById('status').innerText = 'Engine Started!';
-                document.getElementById('status').style.color = 'lime';
-                setTimeout(() => closeMinigame(true), 1000);
-            }
-        } else {
-            // Fail
-            document.getElementById('status').innerText = 'Spark! Wrong connection!';
-            document.getElementById('status').style.color = 'red';
-            svg.removeChild(currentPath);
-            setTimeout(() => closeMinigame(false), 1000);
+        connectedWires++;
+        if (connectedWires === totalWires) {
+            document.getElementById('status').innerText = 'Engine Started!';
+            document.getElementById('status').style.color = 'lime';
+            setTimeout(() => closeMinigame(true), 1000);
         }
     } else {
-        // Missed terminal, remove wire
-        svg.removeChild(currentPath);
+        // Missed connection
+        document.getElementById('status').innerText = 'Spark! Wrong connection!';
+        document.getElementById('status').style.color = 'red';
+        svg.removeChild(currentPath1);
+        svg.removeChild(currentPath2);
+        setTimeout(() => closeMinigame(false), 1000);
     }
 
-    currentPath = null;
+    currentPath1 = null;
+    currentPath2 = null;
     currentStartPoint = null;
-    currentWireColor = null;
+    currentTargetTerminal = null;
 });
 
 document.addEventListener('keydown', (e) => {

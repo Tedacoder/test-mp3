@@ -48,8 +48,20 @@ RegisterNUICallback('spawnVehicle', function(data, cb)
     SetVehicleNumberPlateText(veh, plate)
     TaskWarpPedIntoVehicle(ped, veh, -1)
 
-    -- Update state
+    -- Ensure state matches the spawn (0 = street)
     TriggerServerEvent('adv_vehicles:server:SetVehicleState', plate, 0)
+
+    -- Hand over keys natively so they don't have to hotwire their own car pulled from garage
+    if GetResourceState('qbx_vehiclekeys') == 'started' then
+        exports.qbx_vehiclekeys:GiveKeys(plate, true)
+    elseif GetResourceState('qb-vehiclekeys') == 'started' then
+        TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys', plate)
+    end
+
+    -- Force engine on
+    SetVehicleEngineOn(veh, true, true, false)
+    TriggerEvent('adv_vehicles:client:ForceEngineState', true)
+
     Framework.Notify("Vehicle retrieved.", "success")
     cb('ok')
 end)
@@ -108,4 +120,61 @@ CreateThread(function()
     FreezeEntityPosition(ped, true)
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
+end)
+
+RegisterNUICallback('locateVehicle', function(data, cb)
+    SetNuiFocus(false, false)
+    if data.coords and data.coords ~= "null" then
+        local coords = json.decode(data.coords)
+        if coords and coords.x and coords.y then
+            SetNewWaypoint(coords.x, coords.y)
+            Framework.Notify("Vehicle location set on GPS.", "success")
+        else
+            Framework.Notify("Location data is corrupt or missing.", "error")
+        end
+    else
+        Framework.Notify("Location data is missing.", "error")
+    end
+    cb('ok')
+end)
+
+-- Storing Vehicles
+CreateThread(function()
+    -- Garage coords for Legion Square generic setup
+    local storeCoords = vec3(215.0, -810.0, 30.73)
+
+    if Config.UseOxTarget then
+        exports.ox_target:addBoxZone({
+            coords = storeCoords,
+            size = vec3(5.0, 5.0, 3.0),
+            rotation = 250.0,
+            debug = false,
+            options = {
+                {
+                    name = 'store_veh_adv',
+                    icon = 'fas fa-parking',
+                    label = 'Store Vehicle',
+                    canInteract = function(entity, distance, coords, name)
+                        return IsPedInAnyVehicle(PlayerPedId(), false)
+                    end,
+                    onSelect = function()
+                        local ped = PlayerPedId()
+                        local veh = GetVehiclePedIsIn(ped, false)
+                        if veh ~= 0 then
+                            local plate = GetVehicleNumberPlateText(veh)
+                            local engineHealth = GetVehicleEngineHealth(veh)
+                            local bodyHealth = GetVehicleBodyHealth(veh)
+                            local fuel = GetVehicleFuelLevel(veh)
+
+                            TriggerServerEvent('adv_vehicles:server:StoreVehicle', plate, 'Legion Square', engineHealth, bodyHealth, fuel)
+                            TaskLeaveVehicle(ped, veh, 0)
+                            Wait(1500)
+                            DeleteEntity(veh)
+                            Framework.Notify("Vehicle stored in garage.", "success")
+                        end
+                    end
+                }
+            }
+        })
+    end
 end)

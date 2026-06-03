@@ -1,3 +1,39 @@
+local showroomVehicles = {
+    {vehicle = 'adder', price = 1000000, coords = vec4(-33.0, -1102.0, 26.42, 160.0)},
+    {vehicle = 't20', price = 2200000, coords = vec4(-35.0, -1105.0, 26.42, 160.0)}
+}
+
+local displayEntities = {}
+
+CreateThread(function()
+    for i, data in ipairs(showroomVehicles) do
+        local hash = GetHashKey(data.vehicle)
+        RequestModel(hash)
+        while not HasModelLoaded(hash) do Wait(0) end
+
+        local veh = CreateVehicle(hash, data.coords.x, data.coords.y, data.coords.z, data.coords.w, false, false)
+        SetEntityInvincible(veh, true)
+        FreezeEntityPosition(veh, true)
+        SetVehicleDoorsLocked(veh, 2)
+        SetModelAsNoLongerNeeded(hash)
+
+        displayEntities[i] = veh
+
+        if Config.UseOxTarget then
+            exports.ox_target:addLocalEntity(veh, {
+                {
+                    name = 'buy_car_'..i,
+                    icon = 'fas fa-money-bill',
+                    label = 'Purchase ' .. data.vehicle:upper() .. ' ($' .. data.price .. ')',
+                    onSelect = function()
+                        TriggerEvent('adv_vehicles:client:OpenPurchaseMenu', data)
+                    end
+                }
+            })
+        end
+    end
+end)
+
 
 function SpawnPurchasedVehicle(vehicleModel, plate)
     local hash = GetHashKey(vehicleModel)
@@ -32,7 +68,7 @@ function SpawnPurchasedVehicle(vehicleModel, plate)
     -- Force engine on tracking for our internal operation loop
     SetVehicleEngineOn(veh, true, true, false)
     TriggerEvent('adv_vehicles:client:ForceEngineState', true)
-end)
+end
 
 RegisterNetEvent('adv_vehicles:client:OpenPurchaseMenu', function(data)
     if Config.UseOxLib then

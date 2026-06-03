@@ -75,7 +75,18 @@ lib.callback.register('adv_vehicles:server:ProcessFinancePayments', function()
     for _, veh in ipairs(vehicles) do
         -- Try to take money from offline player using framework logic or DB direct
         -- Actually calling the framework to try and take the money natively
-        local success = Framework.RemoveMoney(veh.citizenid, 'bank', veh.finance_payment, 'finance-payment')
+        local success = false
+        local targetSrc = nil
+        for _, pid in ipairs(GetPlayers()) do
+            if Framework.GetIdentifier(tonumber(pid)) == veh.citizenid then
+                targetSrc = tonumber(pid)
+                break
+            end
+        end
+
+        if targetSrc then
+            success = Framework.RemoveMoney(targetSrc, 'bank', veh.finance_payment, 'finance-payment')
+        end
         -- (In a real environment, citizenid might not map perfectly to source if offline, but QBOX offline functions support identifier strings in modern builds, or requires DB direct query)
         if not success then
             -- Optional: DB Direct fallback if framework doesn't natively handle offline identifiers
