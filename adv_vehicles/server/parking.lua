@@ -55,12 +55,47 @@ CreateThread(function()
             -- In QBOX, coords might be stored differently or be nil if not used by qbx natively
             local coords = type(veh.coords) == 'string' and json.decode(veh.coords) or nil
             if coords and coords.x then
-                local vehicle = CreateVehicle(GetHashKey(veh.vehicle), coords.x, coords.y, coords.z, veh.heading, true, false)
+                local vehicle = CreateVehicle(GetHashKey(veh.vehicle), coords.x, coords.y, coords.z, veh.heading, true, true)
                 if DoesEntityExist(vehicle) then
+                    -- Prevent entity from being deleted by engine automatically
+                    -- This requires routing buckets or specific native manipulation, but basic persistence is achieved by passing 'true' to isNetwork and 'true' to bScriptHostVehicle (the 7th arg).
+                    -- Actually wait, FiveM server-side CreateVehicle is (model, x, y, z, heading, isNetwork, netMissionEntity).
                     SetVehicleNumberPlateText(vehicle, veh.plate)
                     SetVehicleDoorsLocked(vehicle, veh.locked == 1 and 2 or 1)
                     SetVehicleEngineHealth(vehicle, veh.engine_health + 0.0)
                     SetVehicleBodyHealth(vehicle, veh.body_health + 0.0)
+                end
+            end
+        end
+    end
+end)
+
+RegisterNetEvent('adv_vehicles:server:SyncStreetVehicles', function()
+    -- Client requests sync when they load in, just in case vehicles despawned.
+    local src = source
+    local results = MySQL.query.await('SELECT * FROM player_vehicles WHERE state = 0')
+    if results then
+        for _, veh in ipairs(results) do
+            local coords = type(veh.coords) == 'string' and json.decode(veh.coords) or nil
+            if coords and coords.x then
+                -- Check if it already exists by plate
+                local exists = false
+                local allVehs = GetAllVehicles()
+                for _, v in ipairs(allVehs) do
+                    if GetVehicleNumberPlateText(v) == veh.plate then
+                        exists = true
+                        break
+                    end
+                end
+
+                if not exists then
+                    local vehicle = CreateVehicle(GetHashKey(veh.vehicle), coords.x, coords.y, coords.z, veh.heading, true, true)
+                    if DoesEntityExist(vehicle) then
+                        SetVehicleNumberPlateText(vehicle, veh.plate)
+                        SetVehicleDoorsLocked(vehicle, veh.locked == 1 and 2 or 1)
+                        SetVehicleEngineHealth(vehicle, veh.engine_health + 0.0)
+                        SetVehicleBodyHealth(vehicle, veh.body_health + 0.0)
+                    end
                 end
             end
         end

@@ -25,8 +25,8 @@ CreateThread(function()
 
             -- Track actual native engine state to prevent sync fighting
             if GetIsVehicleEngineRunning(veh) and not isEngineOn then
-                -- This allows hotwires and native key exports to work without the script overriding them
-                isEngineOn = true
+                -- Force it off unless it was explicitly turned on by keys or hotwire
+                SetVehicleEngineOn(veh, false, true, true)
             elseif not GetIsVehicleEngineRunning(veh) and isEngineOn then
                 isEngineOn = false
             end
@@ -124,4 +124,41 @@ end)
 
 RegisterNetEvent('adv_vehicles:client:ForceEngineState', function(state)
     isEngineOn = state
+end)
+
+CreateThread(function()
+    -- Request sync from server when player fully loads in
+    Wait(5000)
+    TriggerServerEvent('adv_vehicles:server:SyncStreetVehicles')
+end)
+
+-- Entering vehicle logic
+CreateThread(function()
+    local lastVehicle = 0
+    while true do
+        Wait(500)
+        local ped = PlayerPedId()
+        local veh = GetVehiclePedIsIn(ped, false)
+
+        if veh ~= 0 and veh ~= lastVehicle then
+            lastVehicle = veh
+            local driver = GetPedInVehicleSeat(veh, -1) == ped
+            if driver then
+                local plate = GetVehicleNumberPlateText(veh)
+                lib.callback('adv_vehicles:server:HasKeys', false, function(hasKey)
+                    if not hasKey then
+                        -- Player entered an unlocked car but doesn't have keys. Force engine off.
+                        SetVehicleEngineOn(veh, false, true, true)
+                        isEngineOn = false
+                        Framework.Notify("You do not have keys for this vehicle. You must hotwire it to drive.", "error")
+                    else
+                        -- Player has keys. Engine can be turned on.
+                        Framework.Notify("You have keys for this vehicle.", "success")
+                    end
+                end, plate)
+            end
+        elseif veh == 0 then
+            lastVehicle = 0
+        end
+    end
 end)
