@@ -29,7 +29,9 @@ function renderVehicles(vehicles) {
         if (veh.state === 1) {
             btnHtml = `<button class="btn" onclick="spawnVehicle('${veh.plate}', '${veh.vehicle}')">Spawn</button>`;
         } else if (veh.state === 0) {
-            btnHtml = `<button class="btn" onclick="locateVehicle('${veh.plate}', '${veh.coords}')">Locate</button>`;
+            // Encode the string safely for HTML injection
+            let safeCoords = encodeURIComponent(veh.coords);
+            btnHtml = `<button class="btn" onclick="locateVehicle('${veh.plate}', '${safeCoords}')">Locate</button>`;
         } else if (veh.state === 2) {
             btnHtml = `<button class="btn" onclick="recoverImpound('${veh.plate}')">Recover ($500)</button>`;
         }
@@ -93,8 +95,9 @@ function renameVehicle(plate) {
     });
 }
 
-function locateVehicle(plate, coords) {
+function locateVehicle(plate, safeCoords) {
     document.getElementById('garage-container').style.display = 'none';
+    let coords = decodeURIComponent(safeCoords);
     fetch(`https://${GetParentResourceName()}/locateVehicle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

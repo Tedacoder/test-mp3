@@ -34,4 +34,5 @@ RegisterNetEvent('adv_vehicles:server:RepoVehicle', function(plate, vehicleCoord
 
     MySQL.update('UPDATE player_vehicles SET state = 2, garage = "impound", impounded = 1 WHERE plate = ?', {plate})
     Framework.AddMoney(src, 'cash', 500, "repo-job")
+    if netId then TriggerClientEvent('adv_vehicles:client:DeleteRepoVehicle', -1, netId) end
 end)

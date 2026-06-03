@@ -59,10 +59,9 @@ function SpawnPurchasedVehicle(vehicleModel, plate)
     TriggerServerEvent('adv_vehicles:server:SetVehicleState', plate, 0)
 
     -- Hand over keys immediately natively if using QBOX/QB vehiclekeys
-    if GetResourceState('qbx_vehiclekeys') == 'started' then
-        exports.qbx_vehiclekeys:GiveKeys(plate, true)
-    elseif GetResourceState('qb-vehiclekeys') == 'started' then
+    if GetResourceState('qbx_vehiclekeys') == 'started' or GetResourceState('qb-vehiclekeys') == 'started' then
         TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys', plate)
+        TriggerEvent('vehiclekeys:client:SetOwner', plate)
     end
 
     -- Force engine on tracking for our internal operation loop

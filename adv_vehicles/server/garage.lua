@@ -7,7 +7,7 @@ lib.callback.register('adv_vehicles:server:GetPlayerVehicles', function(source)
     return vehicles
 end)
 
-RegisterNetEvent('adv_vehicles:server:StoreVehicle', function(plate, garageName, engineHealth, bodyHealth, fuel)
+lib.callback.register('adv_vehicles:server:StoreVehicle', function(source, plate, garageName, engineHealth, bodyHealth, fuel)
     local src = source
     local identifier = Framework.GetIdentifier(src)
 
@@ -16,7 +16,9 @@ RegisterNetEvent('adv_vehicles:server:StoreVehicle', function(plate, garageName,
         MySQL.update('UPDATE player_vehicles SET state = 1, garage = ?, engine_health = ?, body_health = ?, fuel = ? WHERE plate = ?', {
             garageName, engineHealth, bodyHealth, fuel, plate
         })
+        return true
     end
+    return false
 end)
 
 RegisterNetEvent('adv_vehicles:server:SetVehicleState', function(plate, state)

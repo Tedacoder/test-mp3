@@ -52,10 +52,9 @@ RegisterNUICallback('spawnVehicle', function(data, cb)
     TriggerServerEvent('adv_vehicles:server:SetVehicleState', plate, 0)
 
     -- Hand over keys natively so they don't have to hotwire their own car pulled from garage
-    if GetResourceState('qbx_vehiclekeys') == 'started' then
-        exports.qbx_vehiclekeys:GiveKeys(plate, true)
-    elseif GetResourceState('qb-vehiclekeys') == 'started' then
+    if GetResourceState('qbx_vehiclekeys') == 'started' or GetResourceState('qb-vehiclekeys') == 'started' then
         TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys', plate)
+        TriggerEvent('vehiclekeys:client:SetOwner', plate)
     end
 
     -- Force engine on
@@ -166,11 +165,16 @@ CreateThread(function()
                             local bodyHealth = GetVehicleBodyHealth(veh)
                             local fuel = GetVehicleFuelLevel(veh)
 
-                            TriggerServerEvent('adv_vehicles:server:StoreVehicle', plate, 'Legion Square', engineHealth, bodyHealth, fuel)
-                            TaskLeaveVehicle(ped, veh, 0)
-                            Wait(1500)
-                            DeleteEntity(veh)
-                            Framework.Notify("Vehicle stored in garage.", "success")
+                            lib.callback('adv_vehicles:server:StoreVehicle', false, function(success)
+                                if success then
+                                    TaskLeaveVehicle(ped, veh, 0)
+                                    Wait(1500)
+                                    DeleteEntity(veh)
+                                    Framework.Notify("Vehicle stored in garage.", "success")
+                                else
+                                    Framework.Notify("You do not own this vehicle.", "error")
+                                end
+                            end, plate, 'Legion Square', engineHealth, bodyHealth, fuel)
                         end
                     end
                 }

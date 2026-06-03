@@ -23,9 +23,12 @@ CreateThread(function()
                 end
             end
 
-            -- Prevent seat jacking if not allowed (basic block)
-            if not isEngineOn and GetIsVehicleEngineRunning(veh) then
-                SetVehicleEngineOn(veh, false, true, true)
+            -- Track actual native engine state to prevent sync fighting
+            if GetIsVehicleEngineRunning(veh) and not isEngineOn then
+                -- This allows hotwires and native key exports to work without the script overriding them
+                isEngineOn = true
+            elseif not GetIsVehicleEngineRunning(veh) and isEngineOn then
+                isEngineOn = false
             end
         else
             Wait(500)
