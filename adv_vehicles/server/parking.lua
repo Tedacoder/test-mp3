@@ -11,7 +11,7 @@ RegisterNetEvent('adv_vehicles:server:ParkVehicle', function(plate, vehicle, pro
     local dist = #(playerCoords - coords)
     if dist > 20.0 then return end -- Exploiter check
 
-    MySQL.query('SELECT plate FROM player_vehicles WHERE plate = ?', {plate}, function(result)
+    MySQL.query('SELECT plate FROM player_vehicles WHERE plate = ? AND citizenid = ?', {plate, identifier}, function(result)
         if result and #result > 0 then
             MySQL.update('UPDATE player_vehicles SET coords = ?, heading = ?, engine_health = ?, body_health = ?, fuel = ?, locked = ?, state = 0 WHERE plate = ?',
             {

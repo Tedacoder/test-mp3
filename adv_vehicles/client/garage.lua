@@ -182,3 +182,10 @@ CreateThread(function()
         })
     end
 end)
+
+-- Failsafe for NUI Focus locking steering
+RegisterCommand('fixui', function()
+    SetNuiFocus(false, false)
+    ClearPedTasks(PlayerPedId())
+    Framework.Notify("UI Focus forcefully cleared.", "inform")
+end)

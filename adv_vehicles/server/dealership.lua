@@ -68,9 +68,10 @@ lib.callback.register('adv_vehicles:server:PurchaseVehicle', function(source, ve
     return true, "Vehicle purchased successfully! It has been delivered outside.", plate
 end)
 
-lib.callback.register('adv_vehicles:server:ProcessFinancePayments', function()
-    -- This would be called by a cron job or thread periodically
-    local vehicles = MySQL.query.await('SELECT id, plate, finance_balance, finance_payment, finance_missed, citizenid FROM player_vehicles WHERE finance_balance > 0')
+CreateThread(function()
+    while true do
+        Wait(3600000) -- Check every hour
+        local vehicles = MySQL.query.await('SELECT id, plate, finance_balance, finance_payment, finance_missed, citizenid FROM player_vehicles WHERE finance_balance > 0')
 
     for _, veh in ipairs(vehicles) do
         -- Try to take money from offline player using framework logic or DB direct

@@ -38,7 +38,8 @@ RegisterNUICallback('hotwireResult', function(data, cb)
 
     if data.success then
         Framework.Notify("Hotwire successful!", "success")
-        SetVehicleEngineOn(veh, true, false, true)
+        SetVehicleEngineOn(veh, true, true, false)
+        TriggerEvent('adv_vehicles:client:ForceEngineState', true)
         -- Set vehicle as stolen on server
         local plate = GetVehicleNumberPlateText(veh)
         TriggerServerEvent('adv_vehicles:server:SetVehicleStolen', plate)

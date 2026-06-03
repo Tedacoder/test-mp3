@@ -44,7 +44,7 @@ RegisterNetEvent('adv_vehicles:client:ToggleEngine', function()
         lib.callback('adv_vehicles:server:HasKeys', false, function(hasKey)
             if hasKey then
                 isEngineOn = not isEngineOn
-                SetVehicleEngineOn(veh, isEngineOn, false, true)
+                SetVehicleEngineOn(veh, isEngineOn, false, false)
                 Framework.Notify(isEngineOn and "Engine turned ON" or "Engine turned OFF", "success")
             else
                 Framework.Notify("You do not have keys for this vehicle.", "error")
