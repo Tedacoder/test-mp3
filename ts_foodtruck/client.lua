@@ -28,7 +28,7 @@ local function IsVehicleWhitelisted(vehicle)
 end
 
 local function IsOwner(plate)
-    local truckOwner = lib.callback.await('env_foodtrucks:server:getOwner', false, plate)
+    local truckOwner = lib.callback.await('ts_foodtruck:server:getOwner', false, plate)
     local citizenid = GetCitizenId()
     if citizenid and citizenid == truckOwner then
         return true
@@ -37,7 +37,7 @@ local function IsOwner(plate)
 end
 
 local function IsEmployee(plate)
-    local employeeList = lib.callback.await('env_foodtrucks:server:getEmployees', false, plate)
+    local employeeList = lib.callback.await('ts_foodtruck:server:getEmployees', false, plate)
     if employeeList then
         for _, id in ipairs(employeeList) do
             if id == cache.serverId then
@@ -50,7 +50,7 @@ end
 
 local function OpenEmployeeMenu(plate)
     local options = {}
-    local employeeList = lib.callback.await('env_foodtrucks:server:getEmployees', false, plate)
+    local employeeList = lib.callback.await('ts_foodtruck:server:getEmployees', false, plate)
     local isOwner = IsOwner(plate)
 
     if employeeList then
@@ -66,7 +66,7 @@ local function OpenEmployeeMenu(plate)
                             description = 'Remove from session.',
                             icon = 'fa-solid fa-user-minus',
                             onSelect = function()
-                                TriggerServerEvent('env_foodtrucks:server:handleEmployee', plate, id, 'remove')
+                                TriggerServerEvent('ts_foodtruck:server:handleEmployee', plate, id, 'remove')
                                 Wait(100)
                                 OpenEmployeeMenu(plate)
                             end
@@ -82,7 +82,7 @@ local function OpenEmployeeMenu(plate)
                                     {type = 'number', label = 'Amount', min = 1, default = 100}
                                 })
                                 if input and input[1] then
-                                    TriggerServerEvent('env_foodtrucks:server:payEmployee', plate, id, input[1])
+                                    TriggerServerEvent('ts_foodtruck:server:payEmployee', plate, id, input[1])
                                 end
                             end
                         }
@@ -110,7 +110,7 @@ end
 
 local function ExecuteCraftStep(step, plate, recipeId, stepId)
     for _, ing in pairs(step.ingredients) do
-        local count = lib.callback.await('env_foodtrucks:server:stashCount', false, ing.item, plate)
+        local count = lib.callback.await('ts_foodtruck:server:stashCount', false, ing.item, plate)
         if count < ing.count then
             Alerts('Missing ' .. ing.item .. ' in cooler.', 'error')
             return
@@ -126,7 +126,7 @@ local function ExecuteCraftStep(step, plate, recipeId, stepId)
         anim = step.anim,
         prop = step.prop
     }) then
-        lib.callback.await('env_foodtrucks:server:handleCraft', false, recipeId, stepId, plate)
+        lib.callback.await('ts_foodtruck:server:handleCraft', false, recipeId, stepId, plate)
     else
         Alerts('Crafting cancelled.', 'error')
     end
@@ -134,7 +134,7 @@ end
 
 local function OpenCraftingMenu(plate)
     local options = {}
-    local dynamicMenu = lib.callback.await('env_foodtrucks:server:getMenuConfig', false, plate) or {}
+    local dynamicMenu = lib.callback.await('ts_foodtruck:server:getMenuConfig', false, plate) or {}
 
     -- Single Step Menu Items
     for key, item in pairs(Config.Menu) do
@@ -305,7 +305,7 @@ exports.ox_target:addGlobalVehicle({
         onSelect = function(data)
             local entity = data.entity
             local plate = GetVehicleNumberPlateText(entity)
-            local hasKitchen = lib.callback.await('env_foodtrucks:server:hasKitchen', false, plate)
+            local hasKitchen = lib.callback.await('ts_foodtruck:server:hasKitchen', false, plate)
 
             if hasKitchen then
                 local owner = IsOwner(plate)
@@ -330,7 +330,7 @@ exports.ox_target:addGlobalVehicle({
         onSelect = function(data)
             local entity = data.entity
             local plate = GetVehicleNumberPlateText(entity)
-            local hasKitchen = lib.callback.await('env_foodtrucks:server:hasKitchen', false, plate)
+            local hasKitchen = lib.callback.await('ts_foodtruck:server:hasKitchen', false, plate)
 
             if hasKitchen then
                 ox_inventory:openInventory('stash', {id='food_truck_counter_'..plate})
@@ -373,11 +373,11 @@ exports.ox_target:addGlobalPlayer({
 
             if vehicle and IsVehicleWhitelisted(vehicle) then
                 local plate = GetVehicleNumberPlateText(vehicle)
-                local hasKitchen = lib.callback.await('env_foodtrucks:server:hasKitchen', false, plate)
+                local hasKitchen = lib.callback.await('ts_foodtruck:server:hasKitchen', false, plate)
                 if hasKitchen then
                     local isOwner = IsOwner(plate)
                     if isOwner then
-                        TriggerServerEvent('env_foodtrucks:server:handleEmployee', plate, targetServerId, 'insert')
+                        TriggerServerEvent('ts_foodtruck:server:handleEmployee', plate, targetServerId, 'insert')
                     else
                         Alerts('Only the truck owner can hire employees.', 'error')
                     end
@@ -414,7 +414,7 @@ exports.ox_target:addBoxZone({
                                 {type = 'number', label = 'Amount', min = 1, default = 1}
                             })
                             if input and input[1] then
-                                TriggerServerEvent('env_foodtrucks:server:buyWholesale', item.item, input[1])
+                                TriggerServerEvent('ts_foodtruck:server:buyWholesale', item.item, input[1])
                             end
                         end
                     }
@@ -449,7 +449,7 @@ exports.ox_target:addBoxZone({
                     cancel = true
                 })
                 if alert == 'confirm' then
-                    TriggerServerEvent('env_foodtrucks:server:buyLiquorLicense')
+                    TriggerServerEvent('ts_foodtruck:server:buyLiquorLicense')
                 end
             end
         }
@@ -486,7 +486,7 @@ if Config.AllowNPCSales then
                     options[#options + 1] = {
                         title = 'Sell ' .. v.label,
                         onSelect = function()
-                            TriggerServerEvent('env_foodtrucks:server:sellToNPC', k)
+                            TriggerServerEvent('ts_foodtruck:server:sellToNPC', k)
                         end
                     }
                 end
@@ -495,7 +495,7 @@ if Config.AllowNPCSales then
                     options[#options + 1] = {
                         title = 'Sell ' .. v.label,
                         onSelect = function()
-                            TriggerServerEvent('env_foodtrucks:server:sellToNPC', k)
+                            TriggerServerEvent('ts_foodtruck:server:sellToNPC', k)
                         end
                     }
                 end
@@ -547,7 +547,7 @@ exports('install', function(data, slot)
                         Wait(2000)
                         local citizenid = GetCitizenId()
                         if citizenid then
-                            TriggerServerEvent("env_foodtruck:server:kitchenAdd", GetVehicleNumberPlateText(vehicle), citizenid)
+                            TriggerServerEvent("ts_foodtruck:server:kitchenAdd", GetVehicleNumberPlateText(vehicle), citizenid)
                             Alerts("Food kitchen installed.", 'success')
                         else
                             Alerts("Could not determine your ID.", 'error')
@@ -600,10 +600,10 @@ exports('openTabletManager', function(plate)
                 })
                 if input then
                     if input[1] ~= item.label then
-                        TriggerServerEvent('env_foodtrucks:server:tabletMenuUpdate', plate, 'rename', {recipeId = key, newName = input[1]})
+                        TriggerServerEvent('ts_foodtruck:server:tabletMenuUpdate', plate, 'rename', {recipeId = key, newName = input[1]})
                     end
-                    TriggerServerEvent('env_foodtrucks:server:tabletMenuUpdate', plate, 'price', {recipeId = key, price = input[2]})
-                    TriggerServerEvent('env_foodtrucks:server:tabletMenuUpdate', plate, 'toggle', {recipeId = key, enabled = input[3]})
+                    TriggerServerEvent('ts_foodtruck:server:tabletMenuUpdate', plate, 'price', {recipeId = key, price = input[2]})
+                    TriggerServerEvent('ts_foodtruck:server:tabletMenuUpdate', plate, 'toggle', {recipeId = key, enabled = input[3]})
                 end
             end
         }
@@ -619,10 +619,10 @@ exports('openTabletManager', function(plate)
                 })
                 if input then
                     if input[1] ~= recipe.label then
-                        TriggerServerEvent('env_foodtrucks:server:tabletMenuUpdate', plate, 'rename', {recipeId = key, newName = input[1]})
+                        TriggerServerEvent('ts_foodtruck:server:tabletMenuUpdate', plate, 'rename', {recipeId = key, newName = input[1]})
                     end
-                    TriggerServerEvent('env_foodtrucks:server:tabletMenuUpdate', plate, 'price', {recipeId = key, price = input[2]})
-                    TriggerServerEvent('env_foodtrucks:server:tabletMenuUpdate', plate, 'toggle', {recipeId = key, enabled = input[3]})
+                    TriggerServerEvent('ts_foodtruck:server:tabletMenuUpdate', plate, 'price', {recipeId = key, price = input[2]})
+                    TriggerServerEvent('ts_foodtruck:server:tabletMenuUpdate', plate, 'toggle', {recipeId = key, enabled = input[3]})
                 end
             end
         }

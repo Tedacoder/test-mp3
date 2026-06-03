@@ -1,4 +1,4 @@
-# env_foodtrucks
+# ts_foodtruck
 
 A comprehensive, fully-configurable, and highly immersive FiveM food truck resource. Built tightly around `ox_lib`, `ox_target`, and `ox_inventory`, this script features a dynamic configuration system, multi-step cooking mechanics, dynamic session-based hiring, and a functional management tablet.
 
@@ -25,13 +25,13 @@ A comprehensive, fully-configurable, and highly immersive FiveM food truck resou
 ## Installation & Setup
 
 1. **Download and Extract:**
-   Place the `env_foodtrucks` folder into your resources directory.
+   Place the `ts_foodtruck` folder into your resources directory.
 
 2. **Ensure Dependencies:**
-   Make sure all dependencies listed above are started in your `server.cfg` *before* `env_foodtrucks`.
+   Make sure all dependencies listed above are started in your `server.cfg` *before* `ts_foodtruck`.
 
 3. **Start the Resource:**
-   Add `ensure env_foodtrucks` to your `server.cfg`.
+   Add `ensure ts_foodtruck` to your `server.cfg`.
 
 4. **Configure the Script:**
    Open `config.lua` to adjust wholesale locations, City Hall coordinates, license costs, and all crafting recipes. You can easily modify the animation dicts, props, and ingredient requirements.
@@ -263,4 +263,4 @@ Because this script utilizes `ox_inventory:RegisterStash` on the server-side, yo
 3. Drive your whitelisted Food Truck and ensure a kitchen is installed (via the `install` item logic).
 4. As the owner, `ox_target` a nearby player to hire them for your session.
 5. `ox_target` your truck to access the Cooking Station. If you have the correct raw ingredients, you can proceed through the multi-step menus.
-6. To manage your dynamic menu configurations (prices, titles, disabling), you can trigger the `exports['env_foodtrucks']:openTabletManager()` event via your server's tablet or business logic.
+6. To manage your dynamic menu configurations (prices, titles, disabling), you can trigger the `exports['ts_foodtruck']:openTabletManager()` event via your server's tablet or business logic.

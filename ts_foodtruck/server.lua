@@ -41,7 +41,7 @@ CreateThread(function()
 end)
 
 -- Event: Install Kitchen
-RegisterNetEvent('env_foodtruck:server:kitchenAdd', function(plate, citizenid)
+RegisterNetEvent('ts_foodtruck:server:kitchenAdd', function(plate, citizenid)
     hasKitchen[plate] = true
     tempEmployees[plate] = {}
     truckOwner[plate] = citizenid
@@ -56,17 +56,17 @@ RegisterNetEvent('env_foodtruck:server:kitchenAdd', function(plate, citizenid)
 end)
 
 -- Callback: Check if vehicle has a kitchen
-lib.callback.register('env_foodtrucks:server:hasKitchen', function(source, plate)
+lib.callback.register('ts_foodtruck:server:hasKitchen', function(source, plate)
     return hasKitchen[plate] or false
 end)
 
 -- Callback: Check stash count for an item
-lib.callback.register('env_foodtrucks:server:stashCount', function(source, item, plate)
+lib.callback.register('ts_foodtruck:server:stashCount', function(source, item, plate)
     return ox_inventory:Search('food_truck_stash_'..plate, 'count', item)
 end)
 
 -- Callback: Get truck owner
-lib.callback.register('env_foodtrucks:server:getOwner', function(source, plate)
+lib.callback.register('ts_foodtruck:server:getOwner', function(source, plate)
     if truckOwner[plate] ~= nil then return truckOwner[plate] end
 
     local owner = nil
@@ -80,17 +80,17 @@ lib.callback.register('env_foodtrucks:server:getOwner', function(source, plate)
 end)
 
 -- Callback: Get truck employees
-lib.callback.register('env_foodtrucks:server:getEmployees', function(source, plate)
+lib.callback.register('ts_foodtruck:server:getEmployees', function(source, plate)
     return tempEmployees[plate]
 end)
 
 -- Callback: Get dynamic menu configuration
-lib.callback.register('env_foodtrucks:server:getMenuConfig', function(source, plate)
+lib.callback.register('ts_foodtruck:server:getMenuConfig', function(source, plate)
     return dynamicMenus[plate] or {}
 end)
 
 -- Event: Handle Employee Hiring/Firing
-RegisterNetEvent('env_foodtrucks:server:handleEmployee', function(plate, empId, task)
+RegisterNetEvent('ts_foodtruck:server:handleEmployee', function(plate, empId, task)
     local src = source
     local empName = GetPlayerName(empId)
     if not empName then
@@ -129,7 +129,7 @@ RegisterNetEvent('env_foodtrucks:server:handleEmployee', function(plate, empId, 
 end)
 
 -- Event: Handle Manual Payout to Employee
-RegisterNetEvent('env_foodtrucks:server:payEmployee', function(plate, empId, amount)
+RegisterNetEvent('ts_foodtruck:server:payEmployee', function(plate, empId, amount)
     local src = source
     if type(amount) ~= "number" or amount <= 0 or math.floor(amount) ~= amount then
         Alerts(src, 'Invalid payment amount.', 'error')
@@ -176,7 +176,7 @@ end)
 
 
 -- Callback: Handle Crafting/Step Execution
-lib.callback.register('env_foodtrucks:server:handleCraft', function(source, recipeId, stepId, plate)
+lib.callback.register('ts_foodtruck:server:handleCraft', function(source, recipeId, stepId, plate)
     local src = source
 
     local expectedIngredients = nil
@@ -227,7 +227,7 @@ lib.callback.register('env_foodtrucks:server:handleCraft', function(source, reci
 end)
 
 -- Event: Buy Liquor License from City Hall
-RegisterNetEvent('env_foodtrucks:server:buyLiquorLicense', function()
+RegisterNetEvent('ts_foodtruck:server:buyLiquorLicense', function()
     local src = source
     local cost = Config.LiquorLicense.cost
 
@@ -245,7 +245,7 @@ RegisterNetEvent('env_foodtrucks:server:buyLiquorLicense', function()
 end)
 
 -- Event: Wholesale Depot Purchases
-RegisterNetEvent('env_foodtrucks:server:buyWholesale', function(item, amount)
+RegisterNetEvent('ts_foodtruck:server:buyWholesale', function(item, amount)
     local src = source
 
     -- Input validation
@@ -288,7 +288,7 @@ RegisterNetEvent('env_foodtrucks:server:buyWholesale', function(item, amount)
 end)
 
 -- Event: Handle NPC Sales
-RegisterNetEvent('env_foodtrucks:server:sellToNPC', function(recipeId)
+RegisterNetEvent('ts_foodtruck:server:sellToNPC', function(recipeId)
     local src = source
     if not Config.AllowNPCSales then
         Alerts(src, 'NPC sales are disabled.', 'error')
@@ -338,7 +338,7 @@ end)
 
 
 -- Tati_Tablet integration logic
-RegisterNetEvent('env_foodtrucks:server:tabletMenuUpdate', function(plate, action, data)
+RegisterNetEvent('ts_foodtruck:server:tabletMenuUpdate', function(plate, action, data)
     local src = source
 
     -- Ensure only owner can update using proper framework check
