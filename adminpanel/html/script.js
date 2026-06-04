@@ -1,3 +1,13 @@
+const escapeHtml = (unsafe) => {
+    if (!unsafe) return "";
+    return String(unsafe)
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
 let currentSelectedPlayer = null;
 
 // Universal Global Handler listening to NUI Visibility Commands from client.lua
@@ -39,6 +49,10 @@ window.addEventListener('message', function(event) {
         renderLogs(item.lines);
     }
 
+    if (item.type === "updateAuditTrail") {
+        renderDetailedLogs(item.trail);
+    }
+
     if (item.type === "updateAdminChat" && item.messages) {
         const chatBox = document.getElementById("adminChatMessages");
         if (chatBox) {
@@ -59,15 +73,64 @@ window.addEventListener('message', function(event) {
         }
     }
 
+    if (item.type === "showAnnouncement" && item.message) {
+        const banner = document.createElement("div");
+        banner.style.position = "fixed";
+        banner.style.top = "20px";
+        banner.style.left = "50%";
+        banner.style.transform = "translateX(-50%)";
+        banner.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+        banner.style.border = "2px solid #f1c40f";
+        banner.style.boxShadow = "0 0 20px rgba(241, 196, 15, 0.5)";
+        banner.style.borderRadius = "10px";
+        banner.style.padding = "20px 40px";
+        banner.style.zIndex = "9999";
+        banner.style.pointerEvents = "none";
+        banner.style.textAlign = "center";
+        banner.style.transition = "opacity 0.5s ease-in-out";
+        banner.style.opacity = "0";
+
+        banner.innerHTML = `
+            <div style="color: #f1c40f; font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">Server Announcement</div>
+            <div style="color: white; font-size: 1.2rem;">${escapeHtml(item.message)}</div>
+        `;
+
+        document.body.appendChild(banner);
+
+        // Play alert sound
+        const audio = new Audio("https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=message-incoming-132126.mp3");
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log("Audio play failed:", e));
+
+        // Fade in
+        setTimeout(() => banner.style.opacity = "1", 10);
+
+        // Flash effect for 10 seconds
+        let isFlashing = true;
+        const flashInterval = setInterval(() => {
+            if (isFlashing) {
+                banner.style.boxShadow = banner.style.boxShadow.includes("0px") ? "0 0 30px rgba(241, 196, 15, 0.9)" : "0 0 10px rgba(241, 196, 15, 0.3)";
+            }
+        }, 500);
+
+        // Fade out and remove after 10 seconds
+        setTimeout(() => {
+            isFlashing = false;
+            banner.style.opacity = "0";
+            setTimeout(() => banner.remove(), 500);
+            clearInterval(flashInterval);
+        }, 10000);
+    }
+
     if (item.type === "updateReports" && item.reports) {
         const list = document.getElementById("reportsList");
         if (list) {
             list.innerHTML = item.reports.map(r => `
                 <div class="p-3 bg-white/5 border border-white/10 rounded flex justify-between items-center">
                     <div>
-                        <div class="font-bold text-yellow-400">#${r.id} - ${r.playerName}</div>
-                        <div class="text-xs text-gray-300 mt-1">${r.reason}</div>
-                        <div class="text-[10px] text-gray-500 mt-1">Status: ${r.status} | Claimed By: ${r.claimedBy || 'None'} | ${r.time}</div>
+                        <div class="font-bold text-yellow-400">#${escapeHtml(r.id)} - ${escapeHtml(r.playerName)}</div>
+                        <div class="text-xs text-gray-300 mt-1">${escapeHtml(r.reason)}</div>
+                        <div class="text-[10px] text-gray-500 mt-1">Status: ${escapeHtml(r.status)} | Claimed By: ${escapeHtml(r.claimedBy) || 'None'} | ${escapeHtml(r.time)}</div>
                     </div>
                     <div class="flex gap-2">
                         ${r.status === 'open' ? `<button onclick="claimReport(${r.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs">Claim</button>` : ''}
@@ -90,6 +153,10 @@ window.addEventListener('message', function(event) {
                 </div>
             `).join('');
         }
+    }
+
+    if (item.type === "updateGarage" && item.vehicles) {
+        renderGarageList(item.vehicles, item.targetId);
     }
 
     if (item.type === "updateWhitelistItems" && item.whitelist) {
@@ -309,6 +376,7 @@ function selectPlayer(id) {
     currentSelectedPlayer = id;
     fetch(`https://${GetParentResourceName()}/getPlayerInfo`, { method: "POST", body: JSON.stringify({ targetId: id }) });
     fetch(`https://${GetParentResourceName()}/getInventory`, { method: "POST", body: JSON.stringify({ targetId: id }) });
+    fetch(`https://${GetParentResourceName()}/getPlayerVehicles`, { method: "POST", body: JSON.stringify({ targetId: id }) });
 }
 
 function renderInventoryGrid(items) {
@@ -359,9 +427,67 @@ function removeInvItem(event, targetId, itemName, count, slot, metaStr, element)
 
 function renderLogs(lines) {
     const box = document.getElementById("dynamicLogs");
-    if (!lines) return;
-    box.innerHTML = lines.map(l => `<div class="mb-1.5">${l}</div>`).join('');
+    if (!lines || !box) return;
+    box.innerHTML = lines.map(l => `<div class="mb-1.5">${escapeHtml(l)}</div>`).join('');
     box.scrollTop = box.scrollHeight;
+}
+
+function renderDetailedLogs(trail) {
+    const list = document.getElementById("fullLogsList");
+    if (!list) return;
+    if (!trail || trail.length === 0) {
+        list.innerHTML = `<div class="text-gray-500 text-center py-10 text-xl font-bold bg-black/40 rounded-xl border border-white/5">No detailed logs found.</div>`;
+        return;
+    }
+
+    list.innerHTML = trail.reverse().map(t => `
+        <div class="mb-3 p-4 bg-black/40 border border-white/5 rounded-xl hover:border-[var(--menu-accent)] transition-all flex flex-col gap-2">
+            <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                <span class="text-sm font-mono text-gray-500">${escapeHtml(t.time)}</span>
+                <span class="px-2 py-1 rounded bg-[var(--menu-accent)] text-black text-xs font-bold uppercase tracking-wider">${escapeHtml(t.action)}</span>
+            </div>
+            <div class="flex gap-4 items-center">
+                <div class="flex flex-col">
+                    <span class="text-xs text-gray-500 uppercase tracking-wider">Admin</span>
+                    <span class="font-bold text-white">${escapeHtml(t.admin)}</span>
+                </div>
+                <i class="fas fa-arrow-right text-[var(--menu-accent)] opacity-50"></i>
+                <div class="flex flex-col">
+                    <span class="text-xs text-gray-500 uppercase tracking-wider">Target</span>
+                    <span class="font-bold text-white">${escapeHtml(t.target)}</span>
+                </div>
+            </div>
+            <div class="mt-2 text-gray-400 bg-white/5 p-2 rounded text-sm font-mono break-all">
+                ${escapeHtml(t.details)}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderGarageList(vehicles, targetId) {
+    const list = document.getElementById("garageList");
+    if (!list) return;
+    if (!vehicles || vehicles.length === 0) {
+        list.innerHTML = `<div class="p-4 text-center text-gray-500 font-bold bg-black/40 rounded-xl border border-white/5">No vehicles found.</div>`;
+        return;
+    }
+
+    list.innerHTML = vehicles.map(v => `
+        <div class="flex justify-between items-center p-3 bg-black/40 border border-white/5 rounded-xl hover:border-purple-500/30 transition-all">
+            <div class="flex flex-col">
+                <span class="font-bold text-white tracking-wide uppercase">${escapeHtml(v.vehicle) || 'Unknown Model'}</span>
+                <span class="text-xs text-gray-500 font-mono">Plate: <span class="text-gray-300">${escapeHtml(v.plate)}</span> | Garage: ${escapeHtml(v.garage) || 'None'}</span>
+            </div>
+            <button onclick="removeVehicle(${targetId}, '${escapeHtml(v.plate)}')" class="w-8 h-8 rounded-lg bg-red-600/20 hover:bg-red-500 border border-red-500/30 text-red-500 hover:text-white transition-all shadow shadow-red-500/10 flex items-center justify-center">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function removeVehicle(targetId, plate) {
+    fetch(`https://${GetParentResourceName()}/removeVehicle`, { method: "POST", body: JSON.stringify({ targetId, plate }) });
+    setTimeout(fetchGarage, 500); // refresh list
 }
 
 function showToast(msg) {
@@ -552,6 +678,8 @@ document.addEventListener("DOMContentLoaded", () => {
             navBtns.forEach(b => {
                 b.classList.remove("text-white", "bg-gradient-to-br", "from-purple-600", "to-indigo-600", "shadow-[0_0_15px_rgba(147,51,234,0.3)]");
                 b.classList.add("text-gray-400");
+                b.style.background = '';
+                b.style.boxShadow = '';
             });
 
             // Activate selected view
@@ -564,15 +692,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Activate button styling
             btn.classList.remove("text-gray-400");
-            btn.classList.add("text-white", "bg-gradient-to-br", "from-purple-600", "to-indigo-600", "shadow-[0_0_15px_rgba(147,51,234,0.3)]");
+            btn.classList.add("text-white");
+            btn.style.background = `rgba(var(--menu-accent), 0.8)`;
+            btn.style.boxShadow = `0 0 15px var(--menu-accent-glow)`;
         });
     });
 });
 
 function fetchGarage() {
-    const cid = document.getElementById("cidGarage").value;
-    if (!cid) return showToast("Enter a CID first.");
-    fetch(`https://${GetParentResourceName()}/getPlayerVehicles`, { method: "POST", body: JSON.stringify({ targetId: cid }) });
+    const idStr = document.getElementById("cidGarage").value;
+    const targetId = parseInt(idStr) || currentSelectedPlayer;
+    if (!targetId) return showToast("Select a player or enter a valid Server ID");
+    fetch(`https://${GetParentResourceName()}/getPlayerVehicles`, { method: "POST", body: JSON.stringify({ targetId: targetId }) });
 }
 
 document.getElementById('btnGiveVehicleGarageTab').addEventListener('click', async () => {
@@ -598,12 +729,6 @@ function sendAnnouncement() {
     if (!msg) return;
     fetch(`https://${GetParentResourceName()}/sendAnnouncement`, { method: "POST", body: JSON.stringify({ message: msg }) });
     document.getElementById("announcementInput").value = "";
-}
-
-function changeMenuTheme(colorRGB, glowRGBA) {
-    const root = document.documentElement;
-    root.style.setProperty('--menu-accent', colorRGB);
-    root.style.setProperty('--menu-accent-glow', glowRGBA);
 }
 
 // Add Item from Player Inspector (Requested feature restore)

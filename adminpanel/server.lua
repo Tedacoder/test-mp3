@@ -88,6 +88,7 @@ end)
 
 local function getIds(src)
   local ids = { steam=nil, license=nil, discord=nil, ip=nil }
+  if not src or tonumber(src) == 0 then return ids end
   if tonumber(src) == 999 then
     ids.steam = "steam:dummy123"
     ids.license = "license:dummy123"
@@ -247,10 +248,10 @@ local function pushLogLine(line)
   if #logsFeed > 200 then table.remove(logsFeed, 1) end
 end
 local function logAdminAction(adminSrc, actionType, target, details)
-  local adminIds = (adminSrc and getIds(adminSrc)) or {}
-  local adminName = (adminSrc and getName(adminSrc)) or "SYSTEM"
-  local targetName = (target and getName(target)) or "N/A"
-  local targetIds = target and getIds(target) or {}
+  local adminIds = (adminSrc and adminSrc > 0 and getIds(adminSrc)) or {}
+  local adminName = (adminSrc and adminSrc > 0 and getName(adminSrc)) or "SYSTEM"
+  local targetName = (target and target > 0 and getName(target)) or "N/A"
+  local targetIds = target and target > 0 and getIds(target) or {}
   local line = string.format("[%s] %s (%s) performed %s on %s (%s): %s",
     os.date("%Y-%m-%d %H:%M:%S"),
     adminName, adminIds.steam or "no-steam",
@@ -936,6 +937,7 @@ RegisterNetEvent("admin:sendAnnouncement", function(data)
   if #_G.announcementHistory > 50 then table.remove(_G.announcementHistory) end
   for _, id in ipairs(GetPlayers()) do
     TriggerClientEvent("chat:addMessage", id, { args = { "^3ANNOUNCEMENT", msg } })
+    TriggerClientEvent("admin:showAnnouncement", id, msg)
     TriggerClientEvent("admin:updateAnnouncements", id, _G.announcementHistory)
   end
 end)

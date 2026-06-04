@@ -162,10 +162,12 @@ RegisterNetEvent("admin:updateCheatAlerts", function(alerts) SendNUIMessage({ ty
 RegisterNetEvent("admin:updateReports", function(reports) SendNUIMessage({ type = "updateReports", reports = reports }) end)
 RegisterNetEvent("admin:updateAdminChat", function(messages) SendNUIMessage({ type = "updateAdminChat", messages = messages }) end)
 RegisterNetEvent("admin:updateLogsFeed", function(lines) SendNUIMessage({ type = "updateLogsFeed", lines = lines }) end)
+RegisterNetEvent("admin:updateAuditTrail", function(trail) SendNUIMessage({ type = "updateAuditTrail", trail = trail }) end)
 RegisterNetEvent("admin:refreshPermissions", function(perms) SendNUIMessage({ type = "refreshPermissions", perms = perms }) end)
 RegisterNetEvent("admin:updatePermissions", function(perms) SendNUIMessage({ type = "updatePermissions", permissions = perms }) end)
 RegisterNetEvent("admin:updateCooldownsUI", function(cds) SendNUIMessage({ type = "updateCooldownsUI", cooldowns = cds }) end)
 RegisterNetEvent("admin:updateAnnouncements", function(announcements) SendNUIMessage({ type = "updateAnnouncements", announcements = announcements }) end)
+RegisterNetEvent("admin:showAnnouncement", function(msg) SendNUIMessage({ type = "showAnnouncement", message = msg }) end)
 RegisterNetEvent("admin:updateWhitelistItems", function(data) SendNUIMessage(data) end)
 RegisterNetEvent("admin:updatePlayerPreview", function(info)
     if GetInGamePlayerMugshot then
