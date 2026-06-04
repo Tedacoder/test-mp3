@@ -479,8 +479,25 @@ RegisterNetEvent("admin:getPlayerVehicles", function(targetId)
   local src = source
   if not hasPermission(src, "manageVehicles") then return notify(src, "No permission.") end
   local Player = getPlayerSafe(targetId); if not Player then return notify(src, "Player not online.") end
-  local result = MySQL.query.await('SELECT vehicle, plate, garage, mods FROM player_vehicles WHERE citizenid = ?', { Player.PlayerData.citizenid }) or {}
-  TriggerClientEvent("admin:receivePlayerVehicles", src, targetId, result)
+
+  local result = MySQL.query.await('SELECT vehicle, plate, state, fuel, garage, mods FROM player_vehicles WHERE citizenid = ?', { Player.PlayerData.citizenid }) or {}
+
+  local clientVehicles = {}
+  for i = 1, #result do
+      local vehicleData = QBCore.Shared.Vehicles[result[i].vehicle]
+      local displayName = vehicleData and vehicleData.name or string.upper(result[i].vehicle)
+
+      table.insert(clientVehicles, {
+          model = result[i].vehicle,
+          label = displayName,
+          plate = result[i].plate,
+          status = result[i].state == 1 and "Stored" or "Out",
+          fuel = result[i].fuel or 100,
+          garage = result[i].garage
+      })
+  end
+
+  TriggerClientEvent("admin:receivePlayerVehicles", src, targetId, clientVehicles)
   logAdminAction(src, "viewGarage", targetId, "Viewed garage list")
 end)
 

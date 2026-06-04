@@ -473,14 +473,23 @@ function renderGarageList(vehicles, targetId) {
     }
 
     list.innerHTML = vehicles.map(v => `
-        <div class="flex justify-between items-center p-3 bg-black/40 border border-white/5 rounded-xl hover:border-purple-500/30 transition-all">
-            <div class="flex flex-col">
-                <span class="font-bold text-white tracking-wide uppercase">${escapeHtml(v.vehicle) || 'Unknown Model'}</span>
-                <span class="text-xs text-gray-500 font-mono">Plate: <span class="text-gray-300">${escapeHtml(v.plate)}</span> | Garage: ${escapeHtml(v.garage) || 'None'}</span>
+        <div class="p-3 rounded-lg border border-white/5 bg-black/40 flex justify-between items-center hover:border-purple-500/20 transition-all mb-2">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-zinc-400">
+                    <i class="fas fa-car text-sm"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-gray-200">${escapeHtml(v.label) || escapeHtml(v.model) || 'Unknown Model'}</h4>
+                    <p class="text-[10px] font-mono text-zinc-500">Plate: [ ${escapeHtml(v.plate)} ]</p>
+                </div>
             </div>
-            <button onclick="removeVehicle(${targetId}, '${escapeHtml(v.plate)}')" class="w-8 h-8 rounded-lg bg-red-600/20 hover:bg-red-500 border border-red-500/30 text-red-500 hover:text-white transition-all shadow shadow-red-500/10 flex items-center justify-center">
-                <i class="fas fa-trash"></i>
-            </button>
+
+            <div class="flex flex-col items-end gap-1">
+                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold ${v.status === 'Stored' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'} border">
+                    ${escapeHtml(v.status)}
+                </span>
+                <span class="text-[9px] font-mono text-zinc-600"><i class="fas fa-gas-pump mr-1"></i>${escapeHtml(v.fuel)}%</span>
+            </div>
         </div>
     `).join('');
 }
@@ -551,8 +560,7 @@ document.getElementById('btnGiveMoney').addEventListener('click', async () => {
 });
 
 document.getElementById('btnGiveClothing').addEventListener('click', () => {
-    if (!currentSelectedPlayer) return showToast("Select a player first.");
-    fetch(`https://${GetParentResourceName()}/giveClothing`, { method: "POST", body: JSON.stringify({ targetId: currentSelectedPlayer }) });
+    fetch(`https://${GetParentResourceName()}/triggerPedMenu`, { method: "POST", body: JSON.stringify({}) });
     closeMenu();
 });
 

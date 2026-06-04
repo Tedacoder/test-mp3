@@ -502,6 +502,18 @@ nui("fixVehicle", function()
   end
 end)
 
+nui("triggerPedMenu", function(data, cb)
+    SetNuiFocus(false, false)
+    menuOpen = false
+    SendNUIMessage({ action = "closePanel" })
+
+    if GetResourceState('illenium-appearance') == 'started' then
+        exports['illenium-appearance']:OpenCustomizer()
+    elseif GetResourceState('qb-clothing') == 'started' then
+        TriggerEvent('qb-clothing:client:openMenu')
+    end
+end)
+
 -- Delete Aimed Entity
 nui("deleteAimedEntity", function()
   local entity = GetEntityPlayerIsFreeAimingAt(PlayerId())
