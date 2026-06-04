@@ -415,24 +415,51 @@ nui("toggleNoclip", function()
   CreateThread(function()
     while noclipActive do
       Wait(0)
-      local coords = GetEntityCoords(ped)
-      local heading = GetEntityHeading(ped)
+      local x, y, z = table.unpack(GetEntityCoords(ped, true))
+      local dx, dy, dz = GetCamDirection()
+
       local speed = 1.0
-      if IsControlPressed(0, 21) then speed = 5.0 end -- Shift
+      if IsControlPressed(0, 21) then -- LEFT SHIFT
+          speed = 3.0
+      elseif IsControlPressed(0, 36) then -- LEFT CONTROL
+          speed = 0.2
+      else
+          speed = 1.0
+      end
 
-      if IsControlPressed(0, 32) then coords = coords + GetEntityForwardVector(ped) * speed end -- W
-      if IsControlPressed(0, 33) then coords = coords - GetEntityForwardVector(ped) * speed end -- S
-      if IsControlPressed(0, 34) then heading = heading - 2.0 end -- A
-      if IsControlPressed(0, 35) then heading = heading + 2.0 end -- D
-      if IsControlPressed(0, 44) then coords = coords - vector3(0, 0, speed) end -- Q
-      if IsControlPressed(0, 38) then coords = coords + vector3(0, 0, speed) end -- E
+      if IsControlPressed(0, 32) then -- W
+          x = x + speed * dx
+          y = y + speed * dy
+          z = z + speed * dz
+      elseif IsControlPressed(0, 33) then -- S
+          x = x - speed * dx
+          y = y - speed * dy
+          z = z - speed * dz
+      end
 
-      SetEntityCoords(ped, coords.x, coords.y, coords.z, true, true, true, false)
-      SetEntityHeading(ped, heading)
+      SetEntityCoordsNoOffset(ped, x, y, z, true, true, true)
     end
     SetEntityVisible(ped, true, 0)
   end)
 end)
+
+function GetCamDirection()
+    local heading = GetGameplayCamRelativeHeading() + GetEntityHeading(PlayerPedId())
+    local pitch = GetGameplayCamRelativePitch()
+
+    local x = -math.sin(heading * math.pi / 180.0)
+    local y = math.cos(heading * math.pi / 180.0)
+    local z = math.sin(pitch * math.pi / 180.0)
+
+    local len = math.sqrt(x * x + y * y + z * z)
+    if len ~= 0 then
+        x = x / len
+        y = y / len
+        z = z / len
+    end
+
+    return x, y, z
+end
 
 -- God Mode
 nui("toggleGodMode", function()
