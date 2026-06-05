@@ -147,9 +147,9 @@ window.addEventListener('message', function(event) {
         if (list) {
             list.innerHTML = item.alerts.map(a => `
                 <div class="p-3 bg-red-500/10 border border-red-500/30 rounded">
-                    <div class="font-bold text-red-400">${a.name} (ID: ${a.id})</div>
-                    <div class="text-xs text-gray-300 mt-1">${a.reason}</div>
-                    <div class="text-[10px] text-gray-500 mt-1">${a.time}</div>
+                    <div class="font-bold text-red-400">${escapeHtml(a.name)} (ID: ${escapeHtml(a.id)})</div>
+                    <div class="text-xs text-gray-300 mt-1">${escapeHtml(a.reason)}</div>
+                    <div class="text-[10px] text-gray-500 mt-1">${escapeHtml(a.time)}</div>
                 </div>
             `).join('');
         }
@@ -466,13 +466,16 @@ function renderDetailedLogs(trail) {
 
 function renderGarageList(vehicles, targetId) {
     const list = document.getElementById("garageList");
-    if (!list) return;
+    const inspectorList = document.getElementById("inspectorGarageList");
+
     if (!vehicles || vehicles.length === 0) {
-        list.innerHTML = `<div class="p-4 text-center text-gray-500 font-bold bg-black/40 rounded-xl border border-white/5">No vehicles found.</div>`;
+        const emptyMsg = `<div class="p-4 text-center text-gray-500 font-bold bg-black/40 rounded-xl border border-white/5">No vehicles found.</div>`;
+        if (list) list.innerHTML = emptyMsg;
+        if (inspectorList) inspectorList.innerHTML = emptyMsg;
         return;
     }
 
-    list.innerHTML = vehicles.map(v => `
+    const html = vehicles.map(v => `
         <div class="p-3 rounded-lg border border-white/5 bg-black/40 flex justify-between items-center hover:border-purple-500/20 transition-all mb-2">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-zinc-400">
@@ -492,6 +495,9 @@ function renderGarageList(vehicles, targetId) {
             </div>
         </div>
     `).join('');
+
+    if (list) list.innerHTML = html;
+    if (inspectorList) inspectorList.innerHTML = html;
 }
 
 function removeVehicle(targetId, plate) {
