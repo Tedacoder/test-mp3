@@ -1,0 +1,9 @@
+{
+    "en": {
+        "phone_fried": "\u26a0\ufe0f This phone is permanently fried.",
+        "screen_cracked": "Your screen cracked!",
+        "network_outage": "No Signal - Network Outage in area",
+        "privacy_enabled": "Privacy Screen Enabled",
+        "privacy_disabled": "Privacy Screen Disabled"
+    }
+}
