@@ -1,0 +1,50 @@
+:root {
+  /* Default Theme: Premium Purple */
+  --menu-accent: 147, 51, 234; /* RGB values for easy opacity manipulation */
+  --menu-accent-glow: rgba(147, 51, 234, 0.15);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Custom Modern Mini Scrollbar Implementation */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--menu-accent), 0.4);
+}
+
+/* Force Global App Hardware Acceleration For Transitions */
+aside, section, button, div {
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* Apply the dynamic variable to your theme classes */
+.theme-accent-text {
+  color: rgb(var(--menu-accent));
+}
+
+.theme-accent-border {
+  border-color: rgba(var(--menu-accent), 0.3);
+}
+
+.theme-accent-bg {
+  background-color: rgba(var(--menu-accent), 0.1);
+}
+
+.theme-accent-glow {
+  box-shadow: 0 0 15px var(--menu-accent-glow);
+}
