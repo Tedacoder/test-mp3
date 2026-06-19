@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 Radio Player - xsound Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .player {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .url-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            border-radius: 3px;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 MP3 Radio Player</h1>
+        <p>Example of using GitHub-hosted MP3 files with Web Audio API</p>
+        
+        <div class="player">
+            <h3>Audio Player</h3>
+            <label for="audioUrl">MP3 URL:</label>
+            <input 
+                type="text" 
+                id="audioUrl" 
+                class="url-input"
+                placeholder="https://raw.githubusercontent.com/Tedacoder/test-mp3/main/audio/YOUR_FILE.mp3"
+                value="">
+            
+            <div class="controls">
+                <button id="loadBtn">Load Audio</button>
+                <button id="playBtn" disabled>Play</button>
+                <button id="pauseBtn" disabled>Pause</button>
+                <button id="stopBtn" disabled>Stop</button>
+            </div>
+            
+            <div class="status" id="status">
+                Ready to load audio
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>How to Use:</h3>
+            <ol>
+                <li>Upload your MP3 file to the <code>audio/</code> directory in this repository</li>
+                <li>Get the raw GitHub URL: <code>https://raw.githubusercontent.com/Tedacoder/test-mp3/main/audio/YOUR_FILE.mp3</code></li>
+                <li>Enter the URL in the field above</li>
+                <li>Click "Load Audio" to load the file</li>
+                <li>Use Play/Pause/Stop buttons to control playback</li>
+            </ol>
+            
+            <h4>Alternative: Using HTML5 Audio Element</h4>
+            <p>You can also use a simple HTML5 audio element:</p>
+            <pre>&lt;audio controls&gt;
+  &lt;source src="https://raw.githubusercontent.com/Tedacoder/test-mp3/main/audio/YOUR_FILE.mp3" type="audio/mpeg"&gt;
+&lt;/audio&gt;</pre>
+        </div>
+    </div>
+
+    <script>
+        // Simple Web Audio API implementation (compatible with xsound usage)
+        let audioContext;
+        let audioBuffer;
+        let source;
+        let isPlaying = false;
+        let pausedAt = 0;
+        let startedAt = 0;
+
+        const loadBtn = document.getElementById('loadBtn');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const audioUrl = document.getElementById('audioUrl');
+
+        // Initialize Web Audio API
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Load audio from URL
+        async function loadAudio() {
+            const url = audioUrl.value.trim();
+            if (!url) {
+                status.textContent = 'Error: Please enter a valid URL';
+                status.style.background = '#ffebee';
+                return;
+            }
+
+            try {
+                initAudioContext();
+                status.textContent = 'Loading audio...';
+                status.style.background = '#fff3cd';
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                status.textContent = 'Audio loaded successfully! Ready to play.';
+                status.style.background = '#d4edda';
+                playBtn.disabled = false;
+                stopBtn.disabled = false;
+            } catch (error) {
+                status.textContent = `Error loading audio: ${error.message}`;
+                status.style.background = '#ffebee';
+                console.error('Error:', error);
+            }
+        }
+
+        // Play audio
+        function playAudio() {
+            if (!audioBuffer) return;
+
+            initAudioContext();
+            
+            // Stop any existing source
+            if (source) {
+                source.stop();
+            }
+
+            // Create new source
+            source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
+            
+            // Start playing from the paused position
+            source.start(0, pausedAt);
+            startedAt = audioContext.currentTime - pausedAt;
+            pausedAt = 0;
+            isPlaying = true;
+
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            status.textContent = 'Playing...';
+            status.style.background = '#d4edda';
+
+            // Handle when audio ends
+            source.onended = () => {
+                if (isPlaying) {
+                    stopAudio();
+                }
+            };
+        }
+
+        // Pause audio
+        function pauseAudio() {
+            if (!source || !isPlaying) return;
+
+            pausedAt = audioContext.currentTime - startedAt;
+            source.stop();
+            source = null;
+            isPlaying = false;
+
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            status.textContent = 'Paused';
+            status.style.background = '#fff3cd';
+        }
+
+        // Stop audio
+        function stopAudio() {
+            if (source) {
+                source.stop();
+                source = null;
+            }
+            isPlaying = false;
+            pausedAt = 0;
+            startedAt = 0;
+
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            status.textContent = 'Stopped';
+            status.style.background = '#e0e0e0';
+        }
+
+        // Event listeners
+        loadBtn.addEventListener('click', loadAudio);
+        playBtn.addEventListener('click', playAudio);
+        pauseBtn.addEventListener('click', pauseAudio);
+        stopBtn.addEventListener('click', stopAudio);
+    </script>
+</body>
+</html>
